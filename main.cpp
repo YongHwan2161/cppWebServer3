@@ -1763,15 +1763,15 @@ bool insertUser(const std::string &username, const std::string &email, const std
     // 테이블 존재 여부 확인
    // bool tableExists = false;
     std::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='USERS';";
-    rc = sqlite3_exec(db, sql.c_str(), [](void *data, int argc, char **argv, char **azColName) -> int {
-        //tableExists = true;
-        return 0;
-    }, nullptr, &zErrMsg);
-    if (rc != SQLITE_OK)
-    {
-        std::cerr << "SQL error: " << zErrMsg << std::endl;
-        sqlite3_free(zErrMsg);
-    }
+    // rc = sqlite3_exec(db, sql.c_str(), [](void *data, int argc, char **argv, char **azColName) -> int {
+    //     //tableExists = true;
+    //     return 0;
+    // }, nullptr, &zErrMsg);
+    // if (rc != SQLITE_OK)
+    // {
+    //     std::cerr << "SQL error: " << zErrMsg << std::endl;
+    //     sqlite3_free(zErrMsg);
+    // }
 
     // 테이블이 없으면 생성
 //    if (!tableExists)
@@ -2298,7 +2298,7 @@ int main(int argc, char const *argv[])
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    Log(L"loading time: " + intToWString(duration.count()) + L"ms");
+    //Log(L"loading time: " + intToWString(duration.count()) + L"ms");
 
     thread t1(Network);
     t1.join();
