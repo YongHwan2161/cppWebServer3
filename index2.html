@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Document Title</title>
+    <style>
+        #clock {
+            color: green;
+            display: inline-block;
+        }
+        #contents, #info {
+            display: inline-block;
+            max-width: 500px;
+            overflow-wrap: break-word;
+        }
+        textarea {
+            width: 80%;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="clock"></div><br/>
+    <div id="contents"></div><br/>
+    <textarea id="textinput" placeholder="Enter text..."></textarea><br/>
+    <button id="Button_Save" onclick="save()">Save</button>
+    <button id="Button_Enter" onclick="sendTextToServer()">Enter</button>
+    <div id="info"></div>
+    <textarea id="fileContent" rows="20"></textarea><br/>
+    <button onclick="saveFileChanges()">Save Changes</button>
+<form action="/login" method="POST">
+        <div>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div>
+            <button type="submit">Login</button>
+            <button type="button" onclick="location.href='/signup.html'">Sign Up</button>
+        </div>
+    </form>
+    <script>
+        let user = 0, node = 0, ch = 0;
+
+        function updateClock() {
+            document.getElementById("clock").textContent = new Date().toLocaleTimeString();
+        }
+
+        function sendTextToServer() {
+            const textinput = document.getElementById("textinput").value;
+            const fileContent = document.getElementById('fileContent').value;
+            const text = `${user}\t${node}\t${ch}\t${textinput}${textinput === "editHtml" ? '\t' + fileContent : ''}`;
+            if (textinput === "editcpp") {
+                text = `${user}\t${node}\t${ch}\t${textinput}${textinput === "editcppl" ? '\t' + fileContent : ''}`;
+            }
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'http://localhost:8080/', true);
+            xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const res = xhr.responseText.split('\t');
+                    updateUI(res);
+                } else {
+                    console.error('Error:', xhr.status, xhr.statusText);
+                    document.getElementById("contents").textContent = `An error occurred: ${xhr.status} ${xhr.statusText}`;
+                }
+            };
+            xhr.onerror = function () {
+                console.error('Request failed.');
+            };
+            xhr.send(text);
+        }
+
+        function updateUI(res) {
+            user = res[0];
+            node = res[1];
+            ch = res[2];
+            const contents = document.getElementById("contents");
+            const info = document.getElementById("info");
+            if (res[5] === "html") {
+                document.getElementById('fileContent').value = res[3];
+            } else if (res[5] === "cpp"){
+                 document.getElementById('fileContent').value = res[3];
+            } else {
+                contents.innerHTML = res[3];
+            }
+            info.textContent = `user: ${res[0]}, node: ${res[1]}/${res[4]}, ch: ${res[2]}`;
+            document.getElementById("textinput").value = res[5];
+        }
+
+        function save() {
+            document.getElementById("textinput").value = "save";
+            sendTextToServer();
+        }
+
+        function saveFileChanges() {
+        if (document.getElementById("textinput").value === "html"){
+            document.getElementById("textinput").value = "editHtml";
+        } else {
+             document.getElementById("textinput").value = "editcpp";
+        }
+            sendTextToServer();
+            //location.reload();
+        }
+
+        window.onload = function () {
+            console.log('Page is fully loaded.');
+            updateClock();
+            setInterval(updateClock, 1000);
+            sendTextToServer();
+        }
+    </script>
+</body>
+</html>
