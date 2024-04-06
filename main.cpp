@@ -31,8 +31,7 @@ vector<wstring> LogStr{};
 unsigned int gar = 39701;
 uint ttt = 166972;
 vector<uchar> zero8 = {0, 0, 0, 0, 0, 0, 0, 0};
-uchar initValues[18] = {14, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // node 추가시 초기값 설정
-
+uchar initValues[18] = {14, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // node 추가시 초기값 설정 charToushort(uchar *arr)
 ushort charToushort(uchar *arr)
 {
     return (static_cast<ushort>(arr[0])) |
@@ -1352,7 +1351,7 @@ void sendMsg(int ClientSocket, std::wstring content)
     std::string strContent = converter.to_bytes(content);
 
     // Create the response
-    std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(strContent.size()) + "\r\n\r\n" + strContent;
+    std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(strContent.size()) + "\r\n\r\n" + strContent;
 
     // Send the response
     const char *buf = response.c_str();
@@ -1383,7 +1382,7 @@ wstring contentList(uint node, ushort ch)
         wstring pprev = L"";
         for (int i = 0; i < sizeRev / 6; i++)
         {
-            wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonRev" + intToWString(i + 1) + L"\", \"\")' onclick='document.getElementById(\"textinput\").value =" + intToWString(-(i + 1)) + L"; sendTextToServer(); return false;'>" + intToWString(-(i + 1)) + L"</a>";
+            wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonRev" + intToWString(i + 1) + L"\", \"\")' onclick='sendTextToServer(" + intToWString(-(i + 1)) + L"); return false;'>" + intToWString(-(i + 1)) + L"</a>";
             prev += hpL + L". " + charToWstring(Sheet(charTouint(prevNode + 6 * i))) + L"<br/>";
             // prev += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&prevNode[6 * i]))) + L"<br/>";
             uint node2 = charTouint(prevNode + 6 * i);
@@ -1412,7 +1411,7 @@ wstring contentList(uint node, ushort ch)
         {
             break;
         }
-        wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonNext" + intToWString(i + 1) + L"\", \"\")' onclick='document.getElementById(\"textinput\").value =" + intToWString(i + 1) + L"; sendTextToServer(); return false;'>" + intToWString(i + 1) + L"</a>";
+        wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonNext" + intToWString(i + 1) + L"\", \"\")' onclick='sendTextToServer(" + intToWString(i + 1) + L"); return false;'>" + intToWString(i + 1) + L"</a>";
         // ws += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&nextNode[6 * i]))) + L"<br/>";
         ws += hpL + L". " + charToWstring(Sheet(charTouint(nextNode + 6 * i))) + L"<br/>";
     }
@@ -1421,7 +1420,7 @@ wstring contentList(uint node, ushort ch)
         ws += L"<br />Page ";
         for (int i = 1; i <= (sizeCoo / 6 / 50) + 1; i++)
         {
-            ws += L" <a href='javascript:__doPostBack(\"PageButton" + intToWString(i) + L"\", \"\")' onclick='document.getElementById(\"textinput\").value =\"Page\" + " + intToWString(i) + L"; sendTextToServer(); return false;'>" + intToWString(i) + L"</a>";
+            ws += L" <a href='javascript:__doPostBack(\"PageButton" + intToWString(i) + L"\", \"\")' onclick='sendTextToServer(" + L"\"Page\" + " + intToWString(i) + L"); return false;'>" + intToWString(i) + L"</a>";
         }
     }
     ws += L"<style> .prev{margin-left: 10px;} .this{margin-left: 20px;} .next{margin-left:30px;}</style>";
@@ -1725,15 +1724,39 @@ std::string urlDecode(std::string str)
 std::map<std::string, std::string> parsePostData(const std::string &postData)
 {
     std::map<std::string, std::string> dataMap;
-    std::istringstream postDataStream(postData);
-    std::string keyValuePair;
 
-    while (std::getline(postDataStream, keyValuePair, '&'))
+    std::istringstream postDataStream(postData);
+    std::string line;
+
+    // Skip the first boundary line
+    std::getline(postDataStream, line);
+
+    // Read the content lines
+    while (std::getline(postDataStream, line))
     {
-        auto delimiterPos = keyValuePair.find('=');
-        auto key = keyValuePair.substr(0, delimiterPos);
-        auto value = keyValuePair.substr(delimiterPos + 1);
-        dataMap[urlDecode(key)] = urlDecode(value);
+        // Check if the line contains form data
+        if (line.find("Content-Disposition: form-data") != std::string::npos)
+        {
+            // Find the name and value of the form data
+            std::string key;
+            std::string value;
+
+            // Skip "Content-Disposition: form-data; name="
+            size_t startPos = line.find("name=\"") + 6;
+            size_t endPos = line.find("\"", startPos);
+            key = line.substr(startPos, endPos - startPos);
+
+            // Skip empty line
+            std::getline(postDataStream, line);
+
+            // Get the value
+            std::getline(postDataStream, value);
+            // Remove '\r' character from the value
+            //string value2 = value.substr(0, value.size() - 1);
+
+            // Store the key-value pair in the map
+            dataMap[key] = value.substr(0, value.size() - 1);
+        }
     }
 
     return dataMap;
@@ -1774,17 +1797,17 @@ bool insertUser(const std::string &username, const std::string &email, const std
     // }
 
     // 테이블이 없으면 생성
-//    if (!tableExists)
-//    {
-//        sql = "CREATE TABLE USERS (USERNAME TEXT NOT NULL UNIQUE, EMAIL TEXT NOT NULL, PASSWORD TEXT NOT NULL);";
-//        rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
-//        if (rc != SQLITE_OK)
-//        {
-//            std::cerr << "SQL error: " << zErrMsg << std::endl;
-//            sqlite3_free(zErrMsg);
-//            return false;
-//        }
-//    }
+    //    if (!tableExists)
+    //    {
+    // sql = "CREATE TABLE USERS (USERNAME TEXT NOT NULL UNIQUE, EMAIL TEXT NOT NULL, PASSWORD TEXT NOT NULL);";
+    // rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
+    // if (rc != SQLITE_OK)
+    //{
+    //   std::cerr << "SQL error: " << zErrMsg << std::endl;
+    //  sqlite3_free(zErrMsg);
+    //  return false;
+    //}
+    //    }
 
     // 사용자 데이터를 저장하기 위한 SQL 쿼리 생성
     sql = "INSERT INTO USERS (USERNAME, EMAIL, PASSWORD) VALUES ('" + username + "', '" + email + "', '" + password + "');";
@@ -1854,17 +1877,73 @@ bool checkLogin(const std::string& username, const std::string& password) {
 
     return loginSuccess;
 }
-void handleLogin(const std::string& requestBody, int clientSocket) {
+wstring makeContent(uint user, uint node, ushort ch, wstring contentList, wstring inputText)
+{
+    wstring content = intToWString(user) + L"\t" + intToWString(node) + L"\t" + intToWString(ch) + L"\t" + contentList + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(node, ch, user);
+    return content;
+}
+void handleLogin(const std::string& requestBody, int client_socket, uint user) {
     auto data = parsePostData(requestBody);
     bool isAuthenticated = checkLogin(data["username"], data["password"]);
-
+    uchar *IDList = axis1(34196, 1);
+    bool check = false;
+    uint startCoo = charTouint(CoRe[34196] + 6 + 4 * 1);
+    //uint sizeCoo = charTouint(CoRe[34196] + startCoo);
+    uint sizeIDList = charTouint(CoRe[34196] + startCoo);
+    wstring content = L"";
+    for (int i = 0; i < sizeIDList / 6; i++)
+    {
+        if (utf8ToWstring(data["username"]) == charToWstring(Sheet(*reinterpret_cast<uint *>(&IDList[6 * i])))) // ID가 존재하는 경우
+        {
+            uint startCoo = startCh(34196, 1);
+            pair<uint, ushort> userID = charToPair(CoRe[34196] + startCoo + 4 + 6 * (user - 1));
+            uint startUserID = startCh(userID.first, userID.second);
+            pair<uint, ushort> Pass = charToPair(CoRe[userID.first] + startUserID + 4);
+            if (utf8ToWstring(data["password"]) == charToWstring(Sheet(Pass.first))) // 비밀번호가 동일한 경우
+            {
+                uint startPass = startCh(Pass.first, Pass.second);
+                pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
+                // content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
+                sendMsg(client_socket, makeContent(user, start.first, start.second, contentList(start.first, start.second), L""));
+            }
+            else
+            {
+                content = intToWString(user) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + L"비밀번호가 틀립니다. 다시 입력해 주세요." + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, node, ch, sheet 순서
+                sendMsg(client_socket, content);
+            }
+            check = true;
+            break;
+        }
+    }
+    if (!check)
+    {
+        content = intToWString(user) + L"\t" + intToWString(34198) + L"\t" + L"0" + L"\t" + L"없는 아이디입니다. 다시 아이디를 입력해 주세요."; // 다시 아이디 입력 화면을 보냄
+        sendMsg(client_socket, content);
+    }
     std::string response;
     if (isAuthenticated) {
-        response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n\nLogin Successful!";
-    } else {
-        response = "HTTP/1.1 401 Unauthorized\nContent-Type: text/plain\n\nLogin Failed!";
+        uint startCoo = startCh(34196, 1);
+        pair<uint, ushort> userID = charToPair(CoRe[34196] + startCoo + 4 + 6 * (user - 1));
+        uint startUserID = startCh(userID.first, userID.second);
+        pair<uint, ushort> Pass = charToPair(CoRe[userID.first] + startUserID + 4);
+        uint startPass = startCh(Pass.first, Pass.second);
+        pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
+        // content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
+        sendMsg(client_socket, makeContent(user, start.first, start.second, contentList(start.first, start.second), L""));
+        // response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n\nLogin Successful!";
     }
-    write(clientSocket, response.c_str(), response.length());
+    else
+    {
+        response = "HTTP/1.1 401 Unauthorized\nContent-Type: text/plain\n\nLogin Failed!";
+
+        write(client_socket, response.c_str(), response.length());
+    }
+}
+void change_data(uint node, uchar *data)
+{
+    clearToken(node);
+    clearCh(node, 0);
+    Brain(node, data);
 }
 int Network()
 {
@@ -1929,6 +2008,7 @@ int Network()
             wstring firstLine = ws.substr(0, ws.find(L"\r\n"));
             wstring method = firstLine.substr(0, firstLine.find(L" HTTP"));
             wstring content = L"";
+            uint user = 1;
             if (method == L"GET /")
             {
                 std::cerr << "get GET request" << std::endl;
@@ -1939,7 +2019,7 @@ int Network()
                     continue; // Skip this iteration
                 }
                 std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-                std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + to_string(content.size()) + "\r\n\r\n" + content;
+                std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + to_string(content.size()) + "\r\n\r\n" + content;
                 send(client_socket, response.c_str(), response.size(), 0);
             }
             else if (method == L"GET /signup.html")
@@ -1951,7 +2031,7 @@ int Network()
                     continue; // Skip this iteration
                 }
                 std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-                std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + to_string(content.size()) + "\r\n\r\n" + content;
+                std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + to_string(content.size()) + "\r\n\r\n" + content;
                 send(client_socket, response.c_str(), response.size(), 0);
             }
             else if (method == L"POST /login")
@@ -1960,7 +2040,7 @@ int Network()
                 if (contentPos != std::string::npos)
                 {
                     std::string postData = request.substr(contentPos + 4);
-                    handleLogin(postData, client_socket);
+                    handleLogin(postData, client_socket, user);
                 }
             }
             else if (method == L"POST /signup")
@@ -1984,7 +2064,6 @@ int Network()
                     std::vector<std::wstring> clientMvec = splitWstring(clientMessage, L"\t");
                     std::cerr << "clientMvec[0]: " << wstringToUtf8(clientMvec[0]) << endl;
                     wstringstream wss(clientMvec[0]);
-                    uint user{};
                     std::wstring userString = wss.str(); // 스트림 내용을 wstring으로 변환
                     wss >> user;
                     std::cerr << "user = " << wstringToUtf8(userString) << std::endl;
@@ -2035,12 +2114,12 @@ int Network()
                             pair<uint, ushort> userID = charToPair(CoRe[34196] + startCoo + 4 + 6 * (user - 1));
                             uint startUserID = startCh(userID.first, userID.second);
                             pair<uint, ushort> Pass = charToPair(CoRe[userID.first] + startUserID + 4);
-                            if (clientMvec[3] == charToWstring(Sheet(Pass.first)))
+                            if (clientMvec[3] == charToWstring(Sheet(Pass.first))) //비밀번호가 동일한 경우
                             {
                                 uint startPass = startCh(Pass.first, Pass.second);
                                 pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
-                                content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
-                                sendMsg(client_socket, content);
+                                // content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
+                                sendMsg(client_socket, makeContent(user, start.first, start.second, contentList(start.first, start.second), L""));
                             }
                             else
                             {
@@ -2057,8 +2136,7 @@ int Network()
                                 if (num == 98)
                                 {
                                     study(user);
-                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t98";
-                                    sendMsg(client_socket, content);
+                                    sendMsg(client_socket, makeContent(user, cNode[user], cCh[user], contentList(cNode[user], cCh[user]), L"98"));
                                 }
                                 else if (num == 982) //if not working 98 function
                                 {
@@ -2100,9 +2178,18 @@ int Network()
                                 {
                                     uchar *sheetNode = Sheet(cNode[user]);
                                     string inputText = wstringToUtf8(L"@" + charToWstring(sheetNode));
+                                     content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + L"@" + charToWstring(sheetNode);
                                     delete[] sheetNode;
-                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + L"@" + charToWstring(sheetNode);
-                                    sendMsg(client_socket, content);
+                                   sendMsg(client_socket, content);
+                                }
+                                else if (clientMvec[3][0] == L'@')
+                                {
+                                    string str = inputText.substr(1);
+                                    wstring wstr = utf8ToWstring(str);
+                                    uchar *wstr2 = wstringToUChar(wstr);
+                                    change_data(cNode[1], wstr2);
+                                    delete[] wstr2;
+                                    sendMsg(client_socket, makeContent(user, cNode[user], cCh[user], contentList(cNode[user], cCh[user]), L""));
                                 }
                                 else if (clientMvec[3] == L"save" || clientMvec[3] == L"저장")
                                 {
