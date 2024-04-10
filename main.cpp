@@ -12,6 +12,7 @@
 #include <thread>
 #include <map>
 #include <sqlite3.h>
+#include <regex>
 
 #define PORT 8080
 using namespace std;
@@ -408,7 +409,7 @@ void pushAxis3(uint node, ushort ch, uchar *bitmap)
     {
         insertArr(node, endPosi + 4, bitmap, width * height);
     }
-    //insertArr(node, endPosi + 12, bitmap, width * height);
+    // insertArr(node, endPosi + 12, bitmap, width * height);
     for (ushort i = ch + 1; i < numCh; i++)
     {
         uint temp = charTouint(CoRe[node] + 6 + 4 * i);
@@ -634,7 +635,7 @@ uchar *word(uint node)
         }
         if (ii > 4000) // 오류 처리 logic은 while 문 밖으로 꺼내는 게 좋음
         {
-            //Log(L"word Error! node: " + intToWString(node));
+            // Log(L"word Error! node: " + intToWString(node));
         }
     }
     uchar *sizeRe = uintToBytes(nowPosi - 4);
@@ -726,7 +727,8 @@ std::vector<std::string> splitLines(string &input)
 
     size_t start = 0, end = 0;
     float width = 0;
-    auto utf8CharLength = [](unsigned char byte) -> size_t {
+    auto utf8CharLength = [](unsigned char byte) -> size_t
+    {
         if (byte >= 0xF0)
             return 4;
         else if (byte >= 0xE0)
@@ -803,8 +805,10 @@ std::vector<std::wstring> splitLinesW(const std::wstring &input)
     }
     return lines;
 }
+wstring LogToClient = L"";
 void Log(wstring text)
 {
+    LogToClient = L"";
     wcout << text << endl;
     if (text != L"")
     {
@@ -819,6 +823,7 @@ void Log(wstring text)
     uchar ii = 0;
     for (int i = line; i < LogStr.size(); i++)
     {
+        LogToClient += LogStr[i] + L"\n";
         std::vector<std::wstring> lines = splitWstring(LogStr[i], L"\n");
         for (int j = 0; j < lines.size(); j++)
         {
@@ -827,7 +832,7 @@ void Log(wstring text)
             {
                 ii++;
                 string str = wstringToUtf8(line2);
-                //RenderText(str, 1000, 1000 - (500 + 15 * ii));
+                // RenderText(str, 1000, 1000 - (500 + 15 * ii));
             }
         }
     }
@@ -898,7 +903,7 @@ uchar *Sheet(uint node)
         {
             uchar *wordDD = word(dd.first); // Assuming word() allocates memory
             uint sizeWord = charTouint(wordDD);
-            //wcout << L"sizeWord = " << intToWString(sizeWord) << endl;
+            // wcout << L"sizeWord = " << intToWString(sizeWord) << endl;
             if (nowPosi + sizeWord <= reSize)
             {
                 memcpy(re + nowPosi, wordDD + 4, sizeWord);
@@ -946,7 +951,7 @@ bool startsWith(const std::wstring &str, const std::wstring &prefix)
 vector<uint> tokenize(vector<uchar> data)
 {
     uint coord = 41155;
-    //ushort ch = 0;
+    // ushort ch = 0;
     vector<uint> re;
     while (data.size() > 0) // str이 빌 때까지 반복
     {
@@ -1343,8 +1348,8 @@ void read_order(const std::string &file_path)
 }
 void sendMsg(int ClientSocket, std::wstring content)
 {
-    //wcout << "content = " << content << endl;
-    // Create a wide string converter
+    // wcout << "content = " << content << endl;
+    //  Create a wide string converter
     std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 
     // Convert the wide string to a multibyte string
@@ -1449,7 +1454,7 @@ void study2(uint user)
     uint t1 = get<0>(order[user][0]);
     ushort t2 = get<1>(order[user][0]);
     eraseOrder(t1, t2, user);
-    //study(user);
+    // study(user);
 }
 uint sizeGarbage()
 {
@@ -1671,7 +1676,7 @@ void save(string directory)
         }
     }
     file2.close();
-    //saveMapToFile(directory + "bitmapGlyphMap.bin", bitmapGlyphMap);
+    // saveMapToFile(directory + "bitmapGlyphMap.bin", bitmapGlyphMap);
     auto end = std::chrono::high_resolution_clock::now();
 
     // 경과 시간 계산 (밀리초 단위)
@@ -1752,7 +1757,7 @@ std::map<std::string, std::string> parsePostData(const std::string &postData)
             // Get the value
             std::getline(postDataStream, value);
             // Remove '\r' character from the value
-            //string value2 = value.substr(0, value.size() - 1);
+            // string value2 = value.substr(0, value.size() - 1);
 
             // Store the key-value pair in the map
             dataMap[key] = value.substr(0, value.size() - 1);
@@ -1760,6 +1765,23 @@ std::map<std::string, std::string> parsePostData(const std::string &postData)
     }
 
     return dataMap;
+}
+std::map<std::string, std::string> parseQuery(const std::string& query) {
+    std::map<std::string, std::string> data;
+    std::istringstream queryStream(query);
+    std::string pair;
+
+    while (std::getline(queryStream, pair, '&')) {
+        auto delimiterPos = pair.find('=');
+        auto key = pair.substr(0, delimiterPos);
+        auto value = pair.substr(delimiterPos + 1);
+
+        // URL 디코딩 필요 시 여기에 추가
+        value = urlDecode(value);
+        data[key] = value;
+    }
+
+    return data;
 }
 static int callback(void *NotUsed, int argc, char **argv, char **azColName)
 {
@@ -1784,7 +1806,7 @@ bool insertUser(const std::string &username, const std::string &email, const std
     }
 
     // 테이블 존재 여부 확인
-   // bool tableExists = false;
+    // bool tableExists = false;
     std::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='USERS';";
     // rc = sqlite3_exec(db, sql.c_str(), [](void *data, int argc, char **argv, char **azColName) -> int {
     //     //tableExists = true;
@@ -1831,43 +1853,54 @@ bool insertUser(const std::string &username, const std::string &email, const std
 }
 void handleSignUp(const std::string &requestBody, int clientSocket)
 {
-    auto data = parsePostData(requestBody);
+    auto data = parseQuery(requestBody);
 
     // 데이터베이스에 사용자 정보를 저장합니다. 실제 사용 시, 비밀번호 해시 등의 처리가 필요합니다.
-    if (insertUser(data["username"], data["email"], data["password"]))
-    {
-        std::string response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n\nSignup Successful!";
-        write(clientSocket, response.c_str(), response.length());
-    }
-    else
-    {
-        std::string response = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/plain\n\nSignup Failed!";
-        write(clientSocket, response.c_str(), response.length());
-    }
+    // if (insertUser(data["username"], data["email"], data["password"]))
+    // {
+    //     std::string response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n\nSignup Successful!";
+    //     write(clientSocket, response.c_str(), response.length());
+    // }
+    // else
+    // {
+    //     std::string response = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/plain\n\nSignup Failed!";
+    //     write(clientSocket, response.c_str(), response.length());
+    // }
+    std::string response = "Signup Successful!";
+    AddStringToNode(data["username"], 34196, 1);
+    uint startCoo = charTouint(CoRe[34196] + 6 + 4 * 1);
+    uint sizeCoo = charTouint(CoRe[34196] + startCoo);
+    AddStringToNode(data["password"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1);
+    AddStringToNode(data["email"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1);
+    send(clientSocket, response.c_str(), response.size(), 0);
 }
-bool checkLogin(const std::string& username, const std::string& password) {
-    sqlite3* db;
-    char* zErrMsg = 0;
+bool checkLogin(const std::string &username, const std::string &password)
+{
+    sqlite3 *db;
+    char *zErrMsg = 0;
     int rc;
     bool loginSuccess = false;
 
     // 데이터베이스 열기
     rc = sqlite3_open("example.db", &db);
-    if (rc) {
+    if (rc)
+    {
         std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
         return false;
     }
 
     std::string sql = "SELECT * FROM USERS WHERE USERNAME='" + username + "' AND PASSWORD='" + password + "';";
-    
+
     // 쿼리 실행을 위한 콜백 함수
-    auto callback = [](void* data, int argc, char** argv, char** azColName) -> int {
-        *(bool*)data = true; // 결과가 있는 경우 loginSuccess를 true로 설정
+    auto callback = [](void *data, int argc, char **argv, char **azColName) -> int
+    {
+        *(bool *)data = true; // 결과가 있는 경우 loginSuccess를 true로 설정
         return 0;
     };
     // SQL 쿼리 실행
     rc = sqlite3_exec(db, sql.c_str(), callback, &loginSuccess, &zErrMsg);
-    if (rc != SQLITE_OK) {
+    if (rc != SQLITE_OK)
+    {
         std::cerr << "SQL error: " << zErrMsg << std::endl;
         sqlite3_free(zErrMsg);
     }
@@ -1877,26 +1910,27 @@ bool checkLogin(const std::string& username, const std::string& password) {
 
     return loginSuccess;
 }
-wstring makeContent(uint user, uint node, ushort ch, wstring contentList, wstring inputText)
+wstring makeContent(uint user, uint node, ushort ch, wstring contentList, wstring inputText, wstring Log2 = L"")
 {
-    wstring content = intToWString(user) + L"\t" + intToWString(node) + L"\t" + intToWString(ch) + L"\t" + contentList + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(node, ch, user);
+    Log(Log2);
+    wstring content = intToWString(user) + L"\t" + intToWString(node) + L"\t" + intToWString(ch) + L"\t" + contentList + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(node, ch, user) + L"\t" + LogToClient;
     return content;
 }
-void handleLogin(const std::string& requestBody, int client_socket, uint user) {
+void handleLogin(const std::string &requestBody, int client_socket)
+{
     auto data = parsePostData(requestBody);
-    bool isAuthenticated = checkLogin(data["username"], data["password"]);
+    // bool isAuthenticated = checkLogin(data["username"], data["password"]);
     uchar *IDList = axis1(34196, 1);
     bool check = false;
     uint startCoo = charTouint(CoRe[34196] + 6 + 4 * 1);
-    //uint sizeCoo = charTouint(CoRe[34196] + startCoo);
     uint sizeIDList = charTouint(CoRe[34196] + startCoo);
     wstring content = L"";
-    for (int i = 0; i < sizeIDList / 6; i++)
+    for (int i = 0; i < sizeIDList / 6 - 1; i++)
     {
         if (utf8ToWstring(data["username"]) == charToWstring(Sheet(*reinterpret_cast<uint *>(&IDList[6 * i])))) // ID가 존재하는 경우
         {
             uint startCoo = startCh(34196, 1);
-            pair<uint, ushort> userID = charToPair(CoRe[34196] + startCoo + 4 + 6 * (user - 1));
+            pair<uint, ushort> userID = charToPair(CoRe[34196] + startCoo + 4 + 6 * i);
             uint startUserID = startCh(userID.first, userID.second);
             pair<uint, ushort> Pass = charToPair(CoRe[userID.first] + startUserID + 4);
             if (utf8ToWstring(data["password"]) == charToWstring(Sheet(Pass.first))) // 비밀번호가 동일한 경우
@@ -1904,11 +1938,11 @@ void handleLogin(const std::string& requestBody, int client_socket, uint user) {
                 uint startPass = startCh(Pass.first, Pass.second);
                 pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
                 // content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
-                sendMsg(client_socket, makeContent(user, start.first, start.second, contentList(start.first, start.second), L""));
+                sendMsg(client_socket, makeContent(i, start.first, start.second, contentList(start.first, start.second), L""));
             }
             else
             {
-                content = intToWString(user) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + L"비밀번호가 틀립니다. 다시 입력해 주세요." + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, node, ch, sheet 순서
+                content = intToWString(i) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + L"비밀번호가 틀립니다. 다시 입력해 주세요." + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, node, ch, sheet 순서
                 sendMsg(client_socket, content);
             }
             check = true;
@@ -1917,33 +1951,56 @@ void handleLogin(const std::string& requestBody, int client_socket, uint user) {
     }
     if (!check)
     {
-        content = intToWString(user) + L"\t" + intToWString(34198) + L"\t" + L"0" + L"\t" + L"없는 아이디입니다. 다시 아이디를 입력해 주세요."; // 다시 아이디 입력 화면을 보냄
+        content = intToWString(0) + L"\t" + intToWString(34198) + L"\t" + L"0" + L"\t" + L"없는 아이디입니다. 다시 아이디를 입력해 주세요."; // 다시 아이디 입력 화면을 보냄
         sendMsg(client_socket, content);
     }
     std::string response;
-    if (isAuthenticated) {
-        uint startCoo = startCh(34196, 1);
-        pair<uint, ushort> userID = charToPair(CoRe[34196] + startCoo + 4 + 6 * (user - 1));
-        uint startUserID = startCh(userID.first, userID.second);
-        pair<uint, ushort> Pass = charToPair(CoRe[userID.first] + startUserID + 4);
-        uint startPass = startCh(Pass.first, Pass.second);
-        pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
-        // content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
-        sendMsg(client_socket, makeContent(user, start.first, start.second, contentList(start.first, start.second), L""));
-        // response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n\nLogin Successful!";
-    }
-    else
-    {
-        response = "HTTP/1.1 401 Unauthorized\nContent-Type: text/plain\n\nLogin Failed!";
-
-        write(client_socket, response.c_str(), response.length());
-    }
+    // if (isAuthenticated)
+    // {
+    //     uint startCoo = startCh(34196, 1);
+    //     pair<uint, ushort> userID = charToPair(CoRe[34196] + startCoo + 4 + 6 * (user - 1));
+    //     uint startUserID = startCh(userID.first, userID.second);
+    //     pair<uint, ushort> Pass = charToPair(CoRe[userID.first] + startUserID + 4);
+    //     uint startPass = startCh(Pass.first, Pass.second);
+    //     pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
+    //     // content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
+    //     sendMsg(client_socket, makeContent(user, start.first, start.second, contentList(start.first, start.second), L""));
+    //     // response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n\nLogin Successful!";
+    // }
+    // else
+    // {
+    //     response = "HTTP/1.1 401 Unauthorized\nContent-Type: text/plain\n\nLogin Failed!";
+    //     write(client_socket, response.c_str(), response.length());
+    // }
 }
 void change_data(uint node, uchar *data)
 {
     clearToken(node);
     clearCh(node, 0);
     Brain(node, data);
+}
+std::string handle_check_duplicate(const std::string &request)
+{
+    // Parse username from the request
+    std::regex rgx("GET /checkDuplicate\\?username=([^ ]+) HTTP/1.1");
+    std::smatch match;
+    if (std::regex_search(request, match, rgx))
+    {
+        std::string username = match[1].str();
+        // Here you would perform the actual duplicate check
+        uchar *IDList = axis1(34196, 1);
+        uint startCoo = charTouint(CoRe[34196] + 6 + 4 * 1);
+        uint sizeIDList = charTouint(CoRe[34196] + startCoo);
+        bool check = true;
+        for (int i = 0; i < sizeIDList / 6; i++)
+        {
+            if (utf8ToWstring(username) == charToWstring(Sheet(*reinterpret_cast<uint *>(&IDList[6 * i])))) // ID가 존재하는 경우
+            {
+                return "HTTP/1.1 200 OK\nContent-Length: 18\n\nUsername not available";
+            }
+        }
+    }
+    return "HTTP/1.1 200 OK\nContent-Length: 18\n\nUsername available";
 }
 int Network()
 {
@@ -2022,16 +2079,10 @@ int Network()
                 std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + to_string(content.size()) + "\r\n\r\n" + content;
                 send(client_socket, response.c_str(), response.size(), 0);
             }
-            else if (method == L"GET /signup.html")
+            if (startsWith(method, L"GET /checkDuplicate") == true)
             {
-                std::ifstream file("signup.html");
-                if (!file.is_open())
-                {
-                    std::cerr << "Failed to open file" << std::endl;
-                    continue; // Skip this iteration
-                }
-                std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-                std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + to_string(content.size()) + "\r\n\r\n" + content;
+                string response = "";
+                response = handle_check_duplicate(request);
                 send(client_socket, response.c_str(), response.size(), 0);
             }
             else if (method == L"POST /login")
@@ -2040,7 +2091,7 @@ int Network()
                 if (contentPos != std::string::npos)
                 {
                     std::string postData = request.substr(contentPos + 4);
-                    handleLogin(postData, client_socket, user);
+                    handleLogin(postData, client_socket);
                 }
             }
             else if (method == L"POST /signup")
@@ -2060,7 +2111,7 @@ int Network()
                 if (startPos != std::wstring::npos)
                 {
                     wstring clientMessage = ws.substr(startPos + 4);
-                    //std::cerr << "clientMessage: " << wstringToUtf8(clientMessage) << std::endl;
+                    // std::cerr << "clientMessage: " << wstringToUtf8(clientMessage) << std::endl;
                     std::vector<std::wstring> clientMvec = splitWstring(clientMessage, L"\t");
                     std::cerr << "clientMvec[0]: " << wstringToUtf8(clientMvec[0]) << endl;
                     wstringstream wss(clientMvec[0]);
@@ -2086,9 +2137,10 @@ int Network()
                             cerr << "clientMvec[1] = " << wstringToUtf8(clientMvec[1]) << endl;
                             uchar *IDList = axis1(34196, 1);
                             bool check = false;
-                            int sizeIDList = charTouint(CoRe[34196] + 10);
+                            uint startCoo = charTouint(CoRe[34196] + 6 + 4 * 1);
+                            uint sizeIDList = charTouint(CoRe[34196] + startCoo);
                             wcout << L"sizeIDList = " << intToWString(sizeIDList) << endl;
-                            for (int i = 0; i < sizeIDList; i++)
+                            for (int i = 0; i < sizeIDList / 6; i++)
                             {
                                 if (clientMvec[3] == charToWstring(Sheet(*reinterpret_cast<uint *>(&IDList[6 * i])))) // ID가 존재하는 경우
                                 {
@@ -2114,7 +2166,7 @@ int Network()
                             pair<uint, ushort> userID = charToPair(CoRe[34196] + startCoo + 4 + 6 * (user - 1));
                             uint startUserID = startCh(userID.first, userID.second);
                             pair<uint, ushort> Pass = charToPair(CoRe[userID.first] + startUserID + 4);
-                            if (clientMvec[3] == charToWstring(Sheet(Pass.first))) //비밀번호가 동일한 경우
+                            if (clientMvec[3] == charToWstring(Sheet(Pass.first))) // 비밀번호가 동일한 경우
                             {
                                 uint startPass = startCh(Pass.first, Pass.second);
                                 pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
@@ -2138,7 +2190,7 @@ int Network()
                                     study(user);
                                     sendMsg(client_socket, makeContent(user, cNode[user], cCh[user], contentList(cNode[user], cCh[user]), L"98"));
                                 }
-                                else if (num == 982) //if not working 98 function
+                                else if (num == 982) // if not working 98 function
                                 {
                                     study2(user);
                                     content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t98";
@@ -2150,11 +2202,10 @@ int Network()
                                 else if ((num > 0 && num <= sizeCoo(cNode[user], cCh[user]) / 6) || (num < 0 && -num <= sizeRev(cNode[user], cCh[user]) / 6))
                                 {
                                     move(num, user);
-                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
-                                    sendMsg(client_socket, content);
+                                    sendMsg(client_socket, makeContent(user, cNode[user], cCh[user], contentList(cNode[user], cCh[user]), L""));
                                 }
                             }
-                            //catch (std::invalid_argument &e)
+                            // catch (std::invalid_argument &e)
                             else
                             {
                                 std::cout << "Invalid argument: the wstring cannot be converted to an integer." << std::endl;
@@ -2178,9 +2229,9 @@ int Network()
                                 {
                                     uchar *sheetNode = Sheet(cNode[user]);
                                     string inputText = wstringToUtf8(L"@" + charToWstring(sheetNode));
-                                     content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + L"@" + charToWstring(sheetNode);
+                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + L"@" + charToWstring(sheetNode);
                                     delete[] sheetNode;
-                                   sendMsg(client_socket, content);
+                                    sendMsg(client_socket, content);
                                 }
                                 else if (clientMvec[3][0] == L'@')
                                 {
@@ -2194,14 +2245,14 @@ int Network()
                                 else if (clientMvec[3] == L"save" || clientMvec[3] == L"저장")
                                 {
                                     save("");
-                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
-                                    sendMsg(client_socket, content);
+                                    // content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
+                                    sendMsg(client_socket, makeContent(user, cNode[user], cCh[user], contentList(cNode[user], cCh[user]), L"", L"save complete!"));
                                 }
                                 else if (inputText == "del98")
                                 { // 삭제하고 + 98
                                     deleteNode(cNode[1]);
                                     study(1);
-                                    //display(cNode[1], cCh[1]);
+                                    // display(cNode[1], cCh[1]);
                                     inputText = "98";
                                     info();
                                 }
@@ -2259,6 +2310,9 @@ int Network()
                                         std::cout << "Error opening file.\n";
                                     }
                                 }
+                                else if (inputText == "checkDuplicate")
+                                {
+                                }
                                 else if (inputText.size() >= 4 && inputText.substr(0, 4) == "103,")
                                 { // 연결 해제
                                     vector<string> spl = splitStringASCII(inputText, ',');
@@ -2273,7 +2327,7 @@ int Network()
                                     {
                                         Log(L"올바른 입력 형식이 아닙니다. ");
                                     }
-                                    //display(cNode[1], cCh[1]);
+                                    // display(cNode[1], cCh[1]);
                                     inputText.clear();
                                 }
                                 else if (inputText.size() >= 4 && inputText.substr(0, 4) == "104,")
@@ -2293,7 +2347,7 @@ int Network()
                                     {
                                         Log(L"올바른 입력 형식이 아닙니다. ");
                                     }
-                                    //clearInputText();
+                                    // clearInputText();
                                 }
                                 else if (inputText.size() >= 4 && inputText.substr(0, 4) == "del,")
                                 {
@@ -2312,7 +2366,7 @@ int Network()
                                         Log(L"올바른 입력 형식이 아닙니다. ");
                                     }
                                     info();
-                                    //clearInputText();
+                                    // clearInputText();
                                 }
                                 else if (inputText.size() >= 5 && inputText.substr(0, 5) == "move,")
                                 {
@@ -2331,7 +2385,7 @@ int Network()
                                     {
                                         Log(L"올바른 입력 형식이 아닙니다. ");
                                     }
-                                    //clearInputText();
+                                    // clearInputText();
                                 }
                             }
                         }
@@ -2356,7 +2410,7 @@ int main(int argc, char const *argv[])
     std::wcout.imbue(std::locale());
     // RAM에 Brain UpRoad
     std::ifstream in("Brain3-test.bin", std::ios::binary);
-    //int ii = 0;
+    // int ii = 0;
     uchar *size2 = new uchar[4];
     in.read(reinterpret_cast<char *>(size2), sizeof(uint));
     uint size3 = charTouint(size2);
@@ -2385,7 +2439,7 @@ int main(int argc, char const *argv[])
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    //Log(L"loading time: " + intToWString(duration.count()) + L"ms");
+    Log(L"loading time: " + intToWString(duration.count()) + L"ms");
 
     thread t1(Network);
     t1.join();

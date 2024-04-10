@@ -13,49 +13,66 @@
             display: inline-block;
         }
 
-        #loginForm {
-            width: 300px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f2f2f2;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        #loginForm div {
-            margin-bottom: 15px;
-        }
-
-        #loginForm label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        #loginForm input[type="text"],
-        #loginForm input[type="password"] {
-            width: calc(100% - 10px);
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
             padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
         }
 
-        #loginForm button {
+        .form-style {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: 10px auto;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .form-group input {
+            width: 90%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-actions {
+            text-align: right;
+        }
+
+        .btn {
             padding: 10px 20px;
             border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: #fff;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
         }
 
-        #loginForm button[type="submit"] {
+        .btn.login {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn.signup {
             background-color: #28a745;
+            color: white;
+            margin-left: 10px;
         }
 
-        #loginForm button[type="submit"]:hover,
-        #loginForm button[type="button"]:hover {
-            background-color: #0056b3;
+        /* Extra styles for placeholders */
+        ::placeholder {
+            color: #bbb;
         }
+
 
         #filecontent {
             display: none;
@@ -123,77 +140,91 @@
         #ui {
             width: 200px;
         }
+
+        .container {
+            position: relative;
+        }
+
+        #overlay {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            background-color: rgba(219, 217, 217, 0.76);
+            color: rgb(10, 9, 9);
+            font-family: monospace;
+            padding: 1em;
+            border-radius: 1em;
+            border: 1px solid rgba(255, 0, 0, 0.425);
+            /* text-shadow: 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white; */
+        }
     </style>
 </head>
 
 <body onload="start()">
-    <!-- 홈 버튼 -->
-    <a href="#" class="home-button" onclick="sendTextToServer('start')"><i class="fas fa-home"></i></a>
-    <div id="clock"></div><br />
-    <form id="loginForm">
-        <div>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+    <div class="container">
+        <canvas id="canvas"></canvas>
+        <div id="overlay">
+            <a href="#" class="home-button" onclick="home()"><i class="fas fa-home"></i></a>
+            <div id="clock"></div><br />
+            <form id="loginForm" class="form-style">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn login">Login</button>
+                    <button type="button" id="showSignUpForm" class="btn signup">Sign Up</button>
+                </div>
+            </form>
+
+            <form id="signupForm" class="form-style" action="/signup" method="POST" onsubmit="return validatePassword()"
+                style="display: none;">
+                <div class="form-group">
+                    <label for="newUsername">Username:</label>
+                    <input type="text" id="newUsername" name="username" placeholder="Choose a username" required>
+                    <button type="button" id="checkDuplicate">Check Duplicate</button>
+                    <span id="usernameValidationMessage"></span>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" placeholder="Your email address" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">Password:</label>
+                    <input type="password" id="newPassword" name="password" placeholder="Create a password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password:</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn signup" id="signupButton" disabled>Sign Up</button>
+                </div>
+            </form>
+
+            <div id="contents"></div><br />
+            <textarea id="textinput" placeholder="Enter text..."></textarea><br />
+            <button class="button" id="Button_Enter"
+                onclick="sendTextToServer(document.getElementById('textinput').value)">Enter</button>
+            <button class="button" id="Button_Review" onclick="sendTextToServer('98')">Review</button>
+            <button class="button" id="Button_Copy" onclick="sendTextToServer('98')">Copy</button>
+            <button class="button" id="Button_Paste" onclick="sendTextToServer('98')">Paste</button>
+            <button class="button" id="Button_Save" onclick="sendTextToServer('save')">Save</button><br />
+            <div id="info"></div><br />
+            <div id="Log"></div><br />
+            <textarea id="fileContent" rows="1"></textarea><br />
+            <button id="saveFileChanges" onclick="saveFileChanges()">Save Changes</button>
+            <div>Time: <span id="time"></span></div>
         </div>
-        <div>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <div>
-            <button type="submit">Login</button>
-            <button type="button" onclick="location.href='/signup.html'">Sign Up</button>
-        </div>
-    </form>
-    <div id="contents"></div><br />
-    <textarea id="textinput" placeholder="Enter text..."></textarea><br />
-    <button class="button" id="Button_Save" onclick="sendTextToServer('save')">Save</button>
-    <button class="button" id="Button_Enter"
-        onclick="sendTextToServer(document.getElementById('textinput').value)">Enter</button>
-    <button class="button" id="Button_Review" onclick="sendTextToServer('98')">Review</button><br />
-    <div id="info"></div><br />
-    <div id="Log"></div><br />
-    <textarea id="fileContent" rows="1"></textarea><br />
-    <button id="saveFileChanges" onclick="saveFileChanges()">Save Changes</button>
-    <canvas id="c"></canvas>
-    <div id="uiContainer">
-        <div id="ui">
-            <div id="x"></div>
-            <div id="y"></div>
-            <div id="z"></div>
-            <div id="angleX"></div>
-            <div id="angleY"></div>
-            <div id="angleZ"></div>
-            <div id="scaleX"></div>
-            <div id="scaleY"></div>
-            <div id="scaleZ"></div>
+        <div id="uiContainer">
+            <div id="ui">
+            </div>
         </div>
     </div>
-    <script id="vertex-shader-2d" type="notjs">
-
-    // an attribute will receive data from a buffer
-    attribute vec4 a_position;
-    uniform mat4 u_matrix;
-    
-    // all shaders have a main function
-    void main() {
-        // 위치에 행렬 곱하기
-        gl_Position = u_matrix * a_position;
-    }
-  
-  </script>
-    <script id="fragment-shader-2d" type="notjs">
-
-    // fragment shaders don't have a default precision so we need
-    // to pick one. mediump is a good default
-    precision mediump float;
-    uniform vec4 u_color;
-    
-    void main() {
-        gl_FragColor = u_color;
-      }
-  
-  </script>
-    </script>
     <!--
   for most samples webgl-utils only provides shader compiling/linking and
   canvas resizing because why clutter the examples with code that's the same in every sample.
@@ -201,8 +232,9 @@
   and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
   for webgl-utils, m3, m4, and webgl-lessons-ui.
   -->
-    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/webgl-lessons-ui.js"></script>
+    <script src="https://webgl2fundamentals.org/webgl/resources/webgl-lessons-ui.js"></script>
+    <script src="https://webgl2fundamentals.org/webgl/resources/twgl-full.min.js"></script>
+    <script src="https://webgl2fundamentals.org/webgl/resources/m4.js"></script>
 
     <script>
         let user = 0, node = 0, ch = 0;
@@ -232,7 +264,6 @@
                 console.error('Request failed.');
             };
             xhr.send(text);
-            document.getElementById("textinput").focus();
         }
         function updateUI(res) {
             user = res[0];
@@ -249,7 +280,15 @@
             }
             info.textContent = `user: ${res[0]}, node: ${res[1]}/${res[4]}, ch: ${res[2]}, Last: ${res[6]}`;
             document.getElementById("textinput").value = res[5];
+            document.getElementById('Log').innerText = res[7];
             console.log(res);
+            if (document.getElementById("textinput").value == '98') {
+                document.getElementById('Button_Review').focus();
+                console.log('Review button clicked.');
+            } else {
+                document.getElementById("textinput").focus();
+                console.log('focused on inputtext.');
+            }
         }
         function saveFileChanges() {
             if (document.getElementById("textinput").value === "html") {
@@ -260,11 +299,46 @@
             sendTextToServer();
             //location.reload();
         }
+        // 중복 확인 버튼 클릭 시 이벤트 핸들러 등록
+        document.getElementById('checkDuplicate').addEventListener('click', function () {
+            checkDuplicate();
+        });
+        function checkDuplicate() {
+            var username = document.getElementById('newUsername').value;
+
+            // AJAX 요청을 보내기 위한 XMLHttpRequest 객체 생성
+            var xhr = new XMLHttpRequest();
+
+            // 요청 완료 후 처리할 함수 등록
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        // 요청이 성공하면 응답을 처리
+                        var response = xhr.responseText;
+                        if (response === "Username available") {
+                            document.getElementById('usernameValidationMessage').innerText = "Username is available";
+                            document.getElementById('signupButton').disabled = false; // 회원가입 버튼 활성화
+                        } else {
+                            document.getElementById('usernameValidationMessage').innerText = "Username is already taken";
+                        }
+                    } else {
+                        // 요청이 실패하면 오류 메시지를 표시
+                        console.error('Request failed: ', xhr.status);
+                    }
+                }
+            };
+
+            // 서버로 요청을 보냄
+            xhr.open('GET', '/checkDuplicate?username=' + encodeURIComponent(username), true);
+            xhr.send();
+        }
+
         window.onload = function () {
             document.getElementById('Log').innerText = 'Page is fully loaded.';
             updateClock();
             setInterval(updateClock, 1000);
             sendTextToServer();
+            document.getElementById('signupForm').style.display = 'none';
         }
         document.getElementById("loginForm").addEventListener("submit", function (event) {
             event.preventDefault(); // Prevent the form from submitting
@@ -294,383 +368,487 @@
                     console.error('There was a problem with the fetch operation:', error);
                 });
         });
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('showSignUpForm').addEventListener('click', function () {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('signupForm').style.display = 'block';
+            });
+        });
 
+        function validatePassword() {
+            var password = document.getElementById("newPassword").value;
+            var confirmPassword = document.getElementById("confirmPassword").value;
+            console.log(password + ", " + confirmPassword);
+            if (password != confirmPassword) {
+                alert("Passwords do not match.");
+                return false;
+            }
+            return true;
+        }
+        function home() {
+            const signupForm = document.getElementById('signupForm');
+            if (signupForm.style.display == 'block') {
+                document.getElementById('loginForm').style.display = 'block';
+                signupForm.style.display = 'none';
+            } else {
+                sendTextToServer('start');
+            }
+        }
         /* eslint no-console:0 consistent-return:0 */
-        "use strict";
+        'use strict';
+
+        const vs = `#version 300 es
+in vec4 a_position;
+in vec2 a_texcoord;
+in vec3 a_normal;
+
+uniform mat4 u_projection;
+uniform mat4 u_view;
+uniform mat4 u_world;
+uniform mat4 u_textureMatrix;
+
+out vec2 v_texcoord;
+out vec4 v_projectedTexcoord;
+out vec3 v_normal;
+
+void main() {
+  // Multiply the position by the matrix.
+  vec4 worldPosition = u_world * a_position;
+
+  gl_Position = u_projection * u_view * worldPosition;
+
+  // Pass the texture coord to the fragment shader.
+  v_texcoord = a_texcoord;
+
+  v_projectedTexcoord = u_textureMatrix * worldPosition;
+
+  // orient the normals and pass to the fragment shader
+  v_normal = mat3(u_world) * a_normal;
+}
+`;
+        const fs = `#version 300 es
+precision highp float;
+
+// Passed in from the vertex shader.
+in vec2 v_texcoord;
+in vec4 v_projectedTexcoord;
+in vec3 v_normal;
+
+uniform vec4 u_colorMult;
+uniform sampler2D u_texture;
+uniform sampler2D u_projectedTexture;
+uniform float u_bias;
+uniform vec3 u_reverseLightDirection;
+
+out vec4 outColor;
+
+void main() {
+  // because v_normal is a varying it's interpolated
+  // so it will not be a unit vector. Normalizing it
+  // will make it a unit vector again
+  vec3 normal = normalize(v_normal);
+
+  float light = dot(normal, u_reverseLightDirection);
+
+  vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
+  float currentDepth = projectedTexcoord.z + u_bias;
+
+  bool inRange =
+      projectedTexcoord.x >= 0.0 &&
+      projectedTexcoord.x <= 1.0 &&
+      projectedTexcoord.y >= 0.0 &&
+      projectedTexcoord.y <= 1.0;
+
+  // the 'r' channel has the depth values
+  float projectedDepth = texture(u_projectedTexture, projectedTexcoord.xy).r;
+  float shadowLight = (inRange && projectedDepth <= currentDepth) ? 0.0 : 1.0;
+
+  vec4 texColor = texture(u_texture, v_texcoord) * u_colorMult;
+  outColor = vec4(
+      texColor.rgb * light * shadowLight,
+      texColor.a);
+}
+`;
+        const colorVS = `#version 300 es
+in vec4 a_position;
+
+uniform mat4 u_projection;
+uniform mat4 u_view;
+uniform mat4 u_world;
+
+void main() {
+  // Multiply the position by the matrices.
+  gl_Position = u_projection * u_view * u_world * a_position;
+}
+`;
+        const colorFS = `#version 300 es
+precision highp float;
+
+uniform vec4 u_color;
+
+out vec4 outColor;
+
+void main() {
+  outColor = u_color;
+}
+`;
 
         function main() {
             // Get A WebGL context
             /** @type {HTMLCanvasElement} */
-            var canvas = document.querySelector("#c");
-            var gl = canvas.getContext("webgl");
+            const canvas = document.querySelector('#canvas');
+            const gl = canvas.getContext('webgl2');
             if (!gl) {
                 return;
             }
 
-            // setup GLSL program
-            var program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "fragment-shader-2d"]);
-            gl.useProgram(program);
+            // setup GLSL programs
+            // note: Since we're going to use the same VAO with multiple
+            // shader programs we need to make sure all programs use the
+            // same attribute locations. There are 2 ways to do that.
+            // (1) assign them in GLSL. (2) assign them by calling `gl.bindAttribLocation`
+            // before linking. We're using method 2 as it's more. D.R.Y.
+            const programOptions = {
+                attribLocations: {
+                    'a_position': 0,
+                    'a_normal': 1,
+                    'a_texcoord': 2,
+                    'a_color': 3,
+                },
+            };
+            const textureProgramInfo = twgl.createProgramInfo(gl, [vs, fs], programOptions);
+            const colorProgramInfo = twgl.createProgramInfo(gl, [colorVS, colorFS], programOptions);
 
-            // look up where the vertex data needs to go.
-            var positionLocation = gl.getAttribLocation(program, "a_position");
-            var colorLocation = gl.getUniformLocation(program, "u_color");
-            var matrixLocation = gl.getUniformLocation(program, "u_matrix");
+            // Tell the twgl to match position with a_position,
+            // normal with a_normal etc..
+            twgl.setAttributePrefix("a_");
 
-            // Create a buffer to put positions in
-            var positionBuffer = gl.createBuffer();
-            // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            // Put geometry data into buffer
-            setGeometry(gl);
-            function radToDeg(r) {
-    return r * 180 / Math.PI;
-  }
+            const sphereBufferInfo = twgl.primitives.createSphereBufferInfo(
+                gl,
+                1,  // radius
+                32, // subdivisions around
+                24, // subdivisions down
+            );
+            const sphereVAO = twgl.createVAOFromBufferInfo(
+                gl, textureProgramInfo, sphereBufferInfo);
+            const planeBufferInfo = twgl.primitives.createPlaneBufferInfo(
+                gl,
+                40,  // width
+                40,  // height
+                1,   // subdivisions across
+                1,   // subdivisions down
+            );
+            const planeVAO = twgl.createVAOFromBufferInfo(
+                gl, textureProgramInfo, planeBufferInfo);
+            const cubeBufferInfo = twgl.primitives.createCubeBufferInfo(
+                gl,
+                2,  // size
+            );
+            const cubeVAO = twgl.createVAOFromBufferInfo(
+                gl, textureProgramInfo, cubeBufferInfo);
+            const cubeLinesBufferInfo = twgl.createBufferInfoFromArrays(gl, {
+                position: [
+                    -1, -1, -1,
+                    1, -1, -1,
+                    -1, 1, -1,
+                    1, 1, -1,
+                    -1, -1, 1,
+                    1, -1, 1,
+                    -1, 1, 1,
+                    1, 1, 1,
+                ],
+                indices: [
+                    0, 1,
+                    1, 3,
+                    3, 2,
+                    2, 0,
 
-  function degToRad(d) {
-    return d * Math.PI / 180;
-  }
-            var translation = [0, 0];
-            var color = [Math.random(), Math.random(), Math.random(), 1];
-  var rotation = [degToRad(40), degToRad(25), degToRad(325)];
-            var scale = [1, 1];
+                    4, 5,
+                    5, 7,
+                    7, 6,
+                    6, 4,
 
-            drawScene();
+                    0, 4,
+                    1, 5,
+                    3, 7,
+                    2, 6,
+                ],
+            });
+            const cubeLinesVAO = twgl.createVAOFromBufferInfo(
+                gl, colorProgramInfo, cubeLinesBufferInfo);
 
-            // Setup a ui.
-            webglLessonsUI.setupSlider("#x", {value: translation[0], slide: updatePosition(0), max: gl.canvas.width });
-  webglLessonsUI.setupSlider("#y", {value: translation[1], slide: updatePosition(1), max: gl.canvas.height});
-  webglLessonsUI.setupSlider("#z", {value: translation[2], slide: updatePosition(2), max: gl.canvas.height});
-  webglLessonsUI.setupSlider("#angleX", {value: radToDeg(rotation[0]), slide: updateRotation(0), max: 360});
-  webglLessonsUI.setupSlider("#angleY", {value: radToDeg(rotation[1]), slide: updateRotation(1), max: 360});
-  webglLessonsUI.setupSlider("#angleZ", {value: radToDeg(rotation[2]), slide: updateRotation(2), max: 360});
-  webglLessonsUI.setupSlider("#scaleX", {value: scale[0], slide: updateScale(0), min: -5, max: 5, step: 0.01, precision: 2});
-  webglLessonsUI.setupSlider("#scaleY", {value: scale[1], slide: updateScale(1), min: -5, max: 5, step: 0.01, precision: 2});
-  webglLessonsUI.setupSlider("#scaleZ", {value: scale[2], slide: updateScale(2), min: -5, max: 5, step: 0.01, precision: 2});
+            // make a 8x8 checkerboard texture
+            const checkerboardTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, checkerboardTexture);
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0,                // mip level
+                gl.LUMINANCE,     // internal format
+                8,                // width
+                8,                // height
+                0,                // border
+                gl.LUMINANCE,     // format
+                gl.UNSIGNED_BYTE, // type
+                new Uint8Array([  // data
+                    0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
+                    0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
+                    0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
+                    0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
+                    0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
+                    0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
+                    0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
+                    0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
+                ]));
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
+            const depthTexture = gl.createTexture();
+            const depthTextureSize = 512;
+            gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+            gl.texImage2D(
+                gl.TEXTURE_2D,      // target
+                0,                  // mip level
+                gl.DEPTH_COMPONENT32F, // internal format
+                depthTextureSize,   // width
+                depthTextureSize,   // height
+                0,                  // border
+                gl.DEPTH_COMPONENT, // format
+                gl.FLOAT,           // type
+                null);              // data
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-            function updatePosition(index) {
-                return function (event, ui) {
-                    translation[index] = ui.value;
-                    drawScene();
-                };
+            const depthFramebuffer = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
+            gl.framebufferTexture2D(
+                gl.FRAMEBUFFER,       // target
+                gl.DEPTH_ATTACHMENT,  // attachment point
+                gl.TEXTURE_2D,        // texture target
+                depthTexture,         // texture
+                0);                   // mip level
+
+            function degToRad(d) {
+                return d * Math.PI / 180;
             }
-            function updateRotation(index) {
-    return function(event, ui) {
-      var angleInDegrees = ui.value;
-      var angleInRadians = angleInDegrees * Math.PI / 180;
-      rotation[index] = angleInRadians;
-      drawScene();
-    };
-  }
-            function updateScale(index) {
-                return function (event, ui) {
-                    scale[index] = ui.value;
-                    drawScene();
-                };
+
+            const settings = {
+                cameraX: 6,
+                cameraY: 12,
+                posX: 2.5,
+                posY: 4.8,
+                posZ: 7,
+                targetX: 3.5,
+                targetY: 0,
+                targetZ: 3.5,
+                projWidth: 20,
+                projHeight: 20,
+                perspective: false,
+                fieldOfView: 120,
+                bias: -0.006,
+            };
+            webglLessonsUI.setupUI(document.querySelector('#ui'), settings, [
+                { type: 'slider', key: 'cameraX', min: -10, max: 10, change: render, precision: 2, step: 0.001, },
+                { type: 'slider', key: 'cameraY', min: 1, max: 20, change: render, precision: 2, step: 0.001, },
+                { type: 'slider', key: 'posX', min: -10, max: 10, change: render, precision: 2, step: 0.001, },
+                { type: 'slider', key: 'posY', min: 1, max: 20, change: render, precision: 2, step: 0.001, },
+                { type: 'slider', key: 'posZ', min: 1, max: 20, change: render, precision: 2, step: 0.001, },
+                { type: 'slider', key: 'targetX', min: -10, max: 10, change: render, precision: 2, step: 0.001, },
+                { type: 'slider', key: 'targetY', min: 0, max: 20, change: render, precision: 2, step: 0.001, },
+                { type: 'slider', key: 'targetZ', min: -10, max: 20, change: render, precision: 2, step: 0.001, },
+                { type: 'slider', key: 'projWidth', min: 0, max: 200, change: render, precision: 4, step: 0.002, },
+                { type: 'slider', key: 'projHeight', min: 0, max: 200, change: render, precision: 4, step: 0.002, },
+                { type: 'checkbox', key: 'perspective', change: render, },
+                { type: 'slider', key: 'fieldOfView', min: 1, max: 179, change: render, },
+                { type: 'slider', key: 'bias', min: -0.01, max: 0.00001, change: render, precision: 4, step: 0.0001, },
+            ]);
+
+            const fieldOfViewRadians = degToRad(60);
+
+            // Uniforms for each object.
+            const planeUniforms = {
+                u_colorMult: [0.5, 0.5, 1, 1],  // lightblue
+                u_color: [1, 0, 0, 1],
+                u_texture: checkerboardTexture,
+                u_world: m4.translation(0, 0, 0),
+            };
+            const sphereUniforms = {
+                u_colorMult: [1, 0.5, 0.5, 1],  // pink
+                u_color: [0, 0, 1, 1],
+                u_texture: checkerboardTexture,
+                u_world: m4.translation(2, 3, 4),
+            };
+            const cubeUniforms = {
+                u_colorMult: [0.5, 1, 0.2, 0.9],  // lightgreen
+                u_color: [0, 0, 1, 1],
+                u_texture: checkerboardTexture,
+                u_world: m4.translation(3, 1, 0),
+            };
+
+            function drawScene(
+                projectionMatrix,
+                cameraMatrix,
+                textureMatrix,
+                lightWorldMatrix,
+                programInfo) {
+                // Make a view matrix from the camera matrix.
+                const viewMatrix = m4.inverse(cameraMatrix);
+
+                gl.useProgram(programInfo.program);
+
+                // set uniforms that are the same for both the sphere and plane
+                // note: any values with no corresponding uniform in the shader
+                // are ignored.
+                twgl.setUniforms(programInfo, {
+                    u_view: viewMatrix,
+                    u_projection: projectionMatrix,
+                    u_bias: settings.bias,
+                    u_textureMatrix: textureMatrix,
+                    u_projectedTexture: depthTexture,
+                    u_reverseLightDirection: lightWorldMatrix.slice(8, 11),
+                });
+
+                // ------ Draw the sphere --------
+
+                // Setup all the needed attributes.
+                gl.bindVertexArray(sphereVAO);
+
+                // Set the uniforms unique to the sphere
+                twgl.setUniforms(programInfo, sphereUniforms);
+
+                // calls gl.drawArrays or gl.drawElements
+                twgl.drawBufferInfo(gl, sphereBufferInfo);
+
+                // ------ Draw the cube --------
+
+                // Setup all the needed attributes.
+                gl.bindVertexArray(cubeVAO);
+
+                // Set the uniforms unique to the cube
+                twgl.setUniforms(programInfo, cubeUniforms);
+
+                // calls gl.drawArrays or gl.drawElements
+                twgl.drawBufferInfo(gl, cubeBufferInfo);
+
+                // ------ Draw the plane --------
+
+                // Setup all the needed attributes.
+                gl.bindVertexArray(planeVAO);
+
+                // Set the uniforms unique to the cube
+                twgl.setUniforms(programInfo, planeUniforms);
+
+                // calls gl.drawArrays or gl.drawElements
+                twgl.drawBufferInfo(gl, planeBufferInfo);
             }
+
             // Draw the scene.
-            function drawScene() {
-                webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+            function render() {
+                twgl.resizeCanvasToDisplaySize(gl.canvas);
 
-                // Tell WebGL how to convert from clip space to pixels
+                gl.enable(gl.CULL_FACE);
+                gl.enable(gl.DEPTH_TEST);
+
+                // first draw from the POV of the light
+                const lightWorldMatrix = m4.lookAt(
+                    [settings.posX, settings.posY, settings.posZ],          // position
+                    [settings.targetX, settings.targetY, settings.targetZ], // target
+                    [0, 1, 0],                                              // up
+                );
+                const lightProjectionMatrix = settings.perspective
+                    ? m4.perspective(
+                        degToRad(settings.fieldOfView),
+                        settings.projWidth / settings.projHeight,
+                        0.5,  // near
+                        100)   // far
+                    : m4.orthographic(
+                        -settings.projWidth / 2,   // left
+                        settings.projWidth / 2,   // right
+                        -settings.projHeight / 2,  // bottom
+                        settings.projHeight / 2,  // top
+                        0.5,                      // near
+                        100);                      // far
+
+                // draw to the depth texture
+                gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
+                gl.viewport(0, 0, depthTextureSize, depthTextureSize);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+                drawScene(
+                    lightProjectionMatrix,
+                    lightWorldMatrix,
+                    m4.identity(),
+                    lightWorldMatrix,
+                    colorProgramInfo);
+
+                // now draw scene to the canvas projecting the depth texture into the scene
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+                gl.clearColor(0, 0, 0, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-                // Clear the canvas.
-                gl.clear(gl.COLOR_BUFFER_BIT);
+                let textureMatrix = m4.identity();
+                textureMatrix = m4.translate(textureMatrix, 0.5, 0.5, 0.5);
+                textureMatrix = m4.scale(textureMatrix, 0.5, 0.5, 0.5);
+                textureMatrix = m4.multiply(textureMatrix, lightProjectionMatrix);
+                // use the inverse of this world matrix to make
+                // a matrix that will transform other positions
+                // to be relative this this world space.
+                textureMatrix = m4.multiply(
+                    textureMatrix,
+                    m4.inverse(lightWorldMatrix));
 
-                // Tell it to use our program (pair of shaders)
-                gl.useProgram(program);
+                // Compute the projection matrix
+                const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+                const projectionMatrix =
+                    m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
-                // Turn on the attribute
-                gl.enableVertexAttribArray(positionLocation);
+                // Compute the camera's matrix using look at.
+                const cameraPosition = [settings.cameraX, settings.cameraY, 20];
+                const target = [0, 0, 0];
+                const up = [0, 1, 0];
+                const cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
-                // Bind the position buffer.
-                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                drawScene(
+                    projectionMatrix,
+                    cameraMatrix,
+                    textureMatrix,
+                    lightWorldMatrix,
+                    textureProgramInfo);
 
-                // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-                var size = 3;          // 2 components per iteration
-                var type = gl.FLOAT;   // the data is 32bit floats
-                var normalize = false; // don't normalize the data
-                var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-                var offset = 0;        // start at the beginning of the buffer
-                gl.vertexAttribPointer(
-                    positionLocation, size, type, normalize, stride, offset);
+                // ------ Draw the frustum ------
+                {
+                    const viewMatrix = m4.inverse(cameraMatrix);
 
-                // set the color
-                gl.uniform4fv(colorLocation, color);
+                    gl.useProgram(colorProgramInfo.program);
 
-  // 행렬 계산
-  var matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-  matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-  matrix = m4.xRotate(matrix, rotation[0]);
-  matrix = m4.yRotate(matrix, rotation[1]);
-  matrix = m4.zRotate(matrix, rotation[2]);
-  matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
+                    // Setup all the needed attributes.
+                    gl.bindVertexArray(cubeLinesVAO);
 
-                // Set the matrix.
-                gl.uniformMatrix4fv(matrixLocation, false, matrix);
+                    // scale the cube in Z so it's really long
+                    // to represent the texture is being projected to
+                    // infinity
+                    const mat = m4.multiply(
+                        lightWorldMatrix, m4.inverse(lightProjectionMatrix));
 
-                // Draw the geometry.
-                var primitiveType = gl.TRIANGLES;
-                var offset = 0;
-                var count = 18;  // 6 triangles in the 'F', 3 points per triangle
-                gl.drawArrays(primitiveType, offset, count);
+                    // Set the uniforms we just computed
+                    twgl.setUniforms(colorProgramInfo, {
+                        u_color: [1, 1, 1, 1],
+                        u_view: viewMatrix,
+                        u_projection: projectionMatrix,
+                        u_world: mat,
+                    });
+
+                    // calls gl.drawArrays or gl.drawElements
+                    twgl.drawBufferInfo(gl, cubeLinesBufferInfo, gl.LINES);
+                }
             }
-        }
-        var m3 = {
-            projection: function (width, height) {
-                // 참고: 이 행렬은 Y축을 뒤집어서 0이 위쪽에 있도록 합니다.
-                return [
-                    2 / width, 0, 0,
-                    0, -2 / height, 0,
-                    -1, 1, 1
-                ];
-            },
-            identity: function () {
-                return [
-                    1, 0, 0,
-                    0, 1, 0,
-                    0, 0, 1,
-                ];
-            },
-            translation: function (tx, ty) {
-                return [
-                    1, 0, 0,
-                    0, 1, 0,
-                    tx, ty, 1,
-                ];
-            },
-
-            rotation: function (angleInRadians) {
-                var c = Math.cos(angleInRadians);
-                var s = Math.sin(angleInRadians);
-                return [
-                    c, -s, 0,
-                    s, c, 0,
-                    0, 0, 1,
-                ];
-            },
-
-            scaling: function (sx, sy) {
-                return [
-                    sx, 0, 0,
-                    0, sy, 0,
-                    0, 0, 1,
-                ];
-            },
-            translate: function (m, tx, ty) {
-                return m3.multiply(m, m3.translation(tx, ty));
-            },
-
-            rotate: function (m, angleInRadians) {
-                return m3.multiply(m, m3.rotation(angleInRadians));
-            },
-
-            scale: function (m, sx, sy) {
-                return m3.multiply(m, m3.scaling(sx, sy));
-            },
-
-            multiply: function (a, b) {
-                var a00 = a[0 * 3 + 0];
-                var a01 = a[0 * 3 + 1];
-                var a02 = a[0 * 3 + 2];
-                var a10 = a[1 * 3 + 0];
-                var a11 = a[1 * 3 + 1];
-                var a12 = a[1 * 3 + 2];
-                var a20 = a[2 * 3 + 0];
-                var a21 = a[2 * 3 + 1];
-                var a22 = a[2 * 3 + 2];
-                var b00 = b[0 * 3 + 0];
-                var b01 = b[0 * 3 + 1];
-                var b02 = b[0 * 3 + 2];
-                var b10 = b[1 * 3 + 0];
-                var b11 = b[1 * 3 + 1];
-                var b12 = b[1 * 3 + 2];
-                var b20 = b[2 * 3 + 0];
-                var b21 = b[2 * 3 + 1];
-                var b22 = b[2 * 3 + 2];
-                return [
-                    b00 * a00 + b01 * a10 + b02 * a20,
-                    b00 * a01 + b01 * a11 + b02 * a21,
-                    b00 * a02 + b01 * a12 + b02 * a22,
-                    b10 * a00 + b11 * a10 + b12 * a20,
-                    b10 * a01 + b11 * a11 + b12 * a21,
-                    b10 * a02 + b11 * a12 + b12 * a22,
-                    b20 * a00 + b21 * a10 + b22 * a20,
-                    b20 * a01 + b21 * a11 + b22 * a21,
-                    b20 * a02 + b21 * a12 + b22 * a22,
-                ];
-            },
-        };
-        var m4 = {
-            projection: function(width, height, depth) {
-    // 참고: 이 행렬은 Y축을 뒤집기 때문에 0이 상단입니다.
-    return [
-       2 / width, 0, 0, 0,
-       0, -2 / height, 0, 0,
-       0, 0, 2 / depth, 0,
-      -1, 1, 0, 1,
-    ];
-  },
-            translation: function (tx, ty, tz) {
-                return [
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    tx, ty, tz, 1,
-                ];
-            },
-
-            xRotation: function (angleInRadians) {
-                var c = Math.cos(angleInRadians);
-                var s = Math.sin(angleInRadians);
-
-                return [
-                    1, 0, 0, 0,
-                    0, c, s, 0,
-                    0, -s, c, 0,
-                    0, 0, 0, 1,
-                ];
-            },
-
-            yRotation: function (angleInRadians) {
-                var c = Math.cos(angleInRadians);
-                var s = Math.sin(angleInRadians);
-
-                return [
-                    c, 0, -s, 0,
-                    0, 1, 0, 0,
-                    s, 0, c, 0,
-                    0, 0, 0, 1,
-                ];
-            },
-
-            zRotation: function (angleInRadians) {
-                var c = Math.cos(angleInRadians);
-                var s = Math.sin(angleInRadians);
-
-                return [
-                    c, s, 0, 0,
-                    -s, c, 0, 0,
-                    0, 0, 1, 0,
-                    0, 0, 0, 1,
-                ];
-            },
-
-            scaling: function (sx, sy, sz) {
-                return [
-                    sx, 0, 0, 0,
-                    0, sy, 0, 0,
-                    0, 0, sz, 0,
-                    0, 0, 0, 1,
-                ];
-            },
-            translate: function (m, tx, ty, tz) {
-                return m4.multiply(m, m4.translation(tx, ty, tz));
-            },
-
-            xRotate: function (m, angleInRadians) {
-                return m4.multiply(m, m4.xRotation(angleInRadians));
-            },
-
-            yRotate: function (m, angleInRadians) {
-                return m4.multiply(m, m4.yRotation(angleInRadians));
-            },
-
-            zRotate: function (m, angleInRadians) {
-                return m4.multiply(m, m4.zRotation(angleInRadians));
-            },
-
-            scale: function (m, sx, sy, sz) {
-                return m4.multiply(m, m4.scaling(sx, sy, sz));
-            },
-            multiply: function (a, b) {
-                var b00 = b[0 * 4 + 0];
-                var b01 = b[0 * 4 + 1];
-                var b02 = b[0 * 4 + 2];
-                var b03 = b[0 * 4 + 3];
-                var b10 = b[1 * 4 + 0];
-                var b11 = b[1 * 4 + 1];
-                var b12 = b[1 * 4 + 2];
-                var b13 = b[1 * 4 + 3];
-                var b20 = b[2 * 4 + 0];
-                var b21 = b[2 * 4 + 1];
-                var b22 = b[2 * 4 + 2];
-                var b23 = b[2 * 4 + 3];
-                var b30 = b[3 * 4 + 0];
-                var b31 = b[3 * 4 + 1];
-                var b32 = b[3 * 4 + 2];
-                var b33 = b[3 * 4 + 3];
-                var a00 = a[0 * 4 + 0];
-                var a01 = a[0 * 4 + 1];
-                var a02 = a[0 * 4 + 2];
-                var a03 = a[0 * 4 + 3];
-                var a10 = a[1 * 4 + 0];
-                var a11 = a[1 * 4 + 1];
-                var a12 = a[1 * 4 + 2];
-                var a13 = a[1 * 4 + 3];
-                var a20 = a[2 * 4 + 0];
-                var a21 = a[2 * 4 + 1];
-                var a22 = a[2 * 4 + 2];
-                var a23 = a[2 * 4 + 3];
-                var a30 = a[3 * 4 + 0];
-                var a31 = a[3 * 4 + 1];
-                var a32 = a[3 * 4 + 2];
-                var a33 = a[3 * 4 + 3];
-
-                return [
-                    b00 * a00 + b01 * a10 + b02 * a20 + b03 * a30,
-                    b00 * a01 + b01 * a11 + b02 * a21 + b03 * a31,
-                    b00 * a02 + b01 * a12 + b02 * a22 + b03 * a32,
-                    b00 * a03 + b01 * a13 + b02 * a23 + b03 * a33,
-                    b10 * a00 + b11 * a10 + b12 * a20 + b13 * a30,
-                    b10 * a01 + b11 * a11 + b12 * a21 + b13 * a31,
-                    b10 * a02 + b11 * a12 + b12 * a22 + b13 * a32,
-                    b10 * a03 + b11 * a13 + b12 * a23 + b13 * a33,
-                    b20 * a00 + b21 * a10 + b22 * a20 + b23 * a30,
-                    b20 * a01 + b21 * a11 + b22 * a21 + b23 * a31,
-                    b20 * a02 + b21 * a12 + b22 * a22 + b23 * a32,
-                    b20 * a03 + b21 * a13 + b22 * a23 + b23 * a33,
-                    b30 * a00 + b31 * a10 + b32 * a20 + b33 * a30,
-                    b30 * a01 + b31 * a11 + b32 * a21 + b33 * a31,
-                    b30 * a02 + b31 * a12 + b32 * a22 + b33 * a32,
-                    b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33,
-                ];
-            },
-        };
-        // Fill the buffer with the values that define a letter 'F'.
-        function setGeometry(gl) {
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array([
-                    // left column
-                    0, 0,
-                    30, 0,
-                    0, 150,
-                    0, 150,
-                    30, 0,
-                    30, 150,
-
-                    // top rung
-                    30, 0,
-                    100, 0,
-                    30, 30,
-                    30, 30,
-                    100, 0,
-                    100, 30,
-
-                    // middle rung
-                    30, 60,
-                    67, 60,
-                    30, 90,
-                    30, 90,
-                    67, 60,
-                    67, 90,
-                ]),
-                gl.STATIC_DRAW);
+            render();
         }
 
         main();
+
 
     </script>
 </body>
