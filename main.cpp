@@ -1938,11 +1938,11 @@ void handleLogin(const std::string &requestBody, int client_socket)
                 uint startPass = startCh(Pass.first, Pass.second);
                 pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
                 // content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
-                sendMsg(client_socket, makeContent(i, start.first, start.second, contentList(start.first, start.second), L""));
+                sendMsg(client_socket, makeContent(i + 1, start.first, start.second, contentList(start.first, start.second), L""));
             }
             else
             {
-                content = intToWString(i) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + L"비밀번호가 틀립니다. 다시 입력해 주세요." + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, node, ch, sheet 순서
+                content = intToWString(0) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + L"비밀번호가 틀립니다. 다시 입력해 주세요." + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, node, ch, sheet 순서
                 sendMsg(client_socket, content);
             }
             check = true;
