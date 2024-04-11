@@ -131,10 +131,17 @@
             background-color: #0056b3;
         }
 
-        canvas {
-            width: 100vw;
-            height: 100vh;
+        #canvas {
+            /* width: 100vw;
+            height: 100vh; */
+            position: absolute;
+            left: 500px;
             display: block;
+        }
+        #canvas2 {
+            position: absolute;
+            left: 500px;
+            top: 300px;
         }
 
         #ui {
@@ -157,12 +164,13 @@
             border: 1px solid rgba(255, 0, 0, 0.425);
             /* text-shadow: 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white; */
         }
+        
     </style>
 </head>
 
 <body onload="start()">
     <div class="container">
-        <canvas id="canvas"></canvas>
+        <canvas id="canvas" width='600' height='300'></canvas>
         <div id="overlay">
             <a href="#" class="home-button" onclick="home()"><i class="fas fa-home"></i></a>
             <div id="clock"></div><br />
@@ -225,6 +233,7 @@
             </div>
         </div>
     </div>
+    <canvas id="canvas2" width='300' height="300"></canvas>
     <!--
   for most samples webgl-utils only provides shader compiling/linking and
   canvas resizing because why clutter the examples with code that's the same in every sample.
@@ -394,6 +403,63 @@
                 sendTextToServer('start');
             }
         }
+        
+        var canvas2 = document.getElementById('canvas2'),
+        context = canvas2.getContext('2d'),
+        FONT_HEIGHT = 15,
+        MARGIN = 35,
+        HAND_TRUNCATION = canvas2.width/25,
+        HOUR_HAND_TRUNCATION = canvas2.width/10,
+        NUMERAL_SPACING = 20,
+        RADIUS = canvas2.width/2 - MARGIN,
+        HAND_RADIUS = RADIUS + NUMERAL_SPACING;
+
+        function drawCircle(){
+            context.beginPath();
+            context.arc(canvas2.width/2, canvas2.height/2, RADIUS, 0, Math.PI*2, true);
+            context.stroke();
+        }
+        function drawNumerals(){
+            var numerals = [1,2,3,4,5,6,7,8,9,10,11,12],
+            angle = 0,
+            numeralWidth = 0;
+            numerals.forEach(function(numeral){
+                angle = Math.PI/6 * (numeral-3);
+                numeralWidth = context.measureText(numeral).width;
+                context.fillText(numeral, canvas2.width/2 + Math.cos(angle)*(HAND_RADIUS) - numeralWidth/2, canvas2.height/2 + Math.sin(angle)*(HAND_RADIUS) + FONT_HEIGHT/3);
+            });
+        }
+        function drawCenter(){
+            context.beginPath();
+            context.arc(canvas2.width/2, canvas2.height/2, 5, 0, Math.PI*2, true);
+            context.fill();
+        }
+        function drawHand(loc, isHour){
+            var angle = (Math.PI*2)*(loc/60) - Math.PI/2,
+            handRadius = isHour ? RADIUS - HAND_TRUNCATION - HOUR_HAND_TRUNCATION : RADIUS - HAND_TRUNCATION;
+            context.moveTo(canvas2.width/2, canvas2.height/2);
+            context.lineTo(canvas2.width/2 + Math.cos(angle)*handRadius, canvas2.height/2 + Math.sin(angle) * handRadius);
+            context.stroke();
+        }
+        function drawHands(){
+            var date = new Date,
+            hour = date.getHours();
+            hour = hour > 12 ? hour - 12 : hour;
+            drawHand(hour*5 + (date.getMinutes()/60)* 5, true, 0.5);
+            drawHand(date.getMinutes(), false, 0.5);
+            drawHand(date.getSeconds(), false, 0.2);
+        }
+        function drawClock(){
+            context.clearRect(0, 0, canvas2.width, canvas.height);
+            drawCircle();
+            drawCenter();
+            drawHands();
+            drawNumerals();
+        }
+        context.font = FONT_HEIGHT + 'px Arial';
+        loop = setInterval(drawClock, 1000);
+        
+        
         /* eslint no-console:0 consistent-return:0 */
         'use strict';
 
