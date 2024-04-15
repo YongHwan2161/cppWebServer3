@@ -135,12 +135,11 @@
         canvas {
             width: 100vw;
             height: 100vh;
-            display: block;
+            display: none;
         }
         #canvas2 {
             position: absolute;
-            left: 500px;
-            top: 300px;
+            display: none;
         }
 
         #ui {
@@ -226,10 +225,7 @@
             <textarea id="fileContent" rows="1"></textarea><br />
             <button id="saveFileChanges" onclick="saveFileChanges()">Save Changes</button>
             <div>coordinates: <span id="readout"></span></div>
-        </div>
-        <div id="uiContainer">
-            <div id="ui">
-            </div>
+            <canvas id="canvas2" width="150" height="150"></canvas>
         </div>
     </div>
     <!--
