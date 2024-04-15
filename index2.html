@@ -132,19 +132,15 @@
             background-color: #0056b3;
         }
 
-        #canvas {
-            /* width: 100vw;
-            height: 100vh; */
-            position: absolute;
-            left: 500px;
-            display: none;
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
         }
-
         #canvas2 {
             position: absolute;
             left: 500px;
-            top: 400px;
-            display: none;
+            top: 300px;
         }
 
         #ui {
@@ -167,12 +163,13 @@
             border: 1px solid rgba(255, 0, 0, 0.425);
             /* text-shadow: 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white; */
         }
+        
     </style>
 </head>
 
 <body onload="start()">
     <div class="container">
-        <canvas id="canvas" width='900' height='600'></canvas>
+        <canvas id="canvas"></canvas>
         <div id="overlay">
             <a href="#" class="home-button" onclick="home()"><i class="fas fa-home"></i></a>
             <div id="clock"></div><br />
@@ -230,8 +227,11 @@
             <button id="saveFileChanges" onclick="saveFileChanges()">Save Changes</button>
             <div>coordinates: <span id="readout"></span></div>
         </div>
+        <div id="uiContainer">
+            <div id="ui">
+            </div>
+        </div>
     </div>
-    <canvas id="canvas2" width='150' height="150"></canvas>
     <!--
   for most samples webgl-utils only provides shader compiling/linking and
   canvas resizing because why clutter the examples with code that's the same in every sample.
@@ -831,16 +831,8 @@
                 sendTextToServer('start');
             }
         }
-
-        function windowToCanvas(canvas, x, y) {
-            var bbox = canvas.getBoundingClientRect();
-            return {
-                x: x - bbox.left * (canvas.width / bbox.width),
-                y: y - bbox.top * (canvas.height / bbox.height)
-            };
-        };
-        //         /* eslint no-console:0 consistent-return:0 */
-        //         'use strict';
+        /* eslint no-console:0 consistent-return:0 */
+        'use strict';
 
         //         const vs = `#version 300 es
         // in vec4 a_position;
