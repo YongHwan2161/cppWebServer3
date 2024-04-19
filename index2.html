@@ -137,6 +137,7 @@
             height: 100vh;
             display: none;
         }
+
         #canvas2 {
             position: absolute;
             display: none;
@@ -148,6 +149,7 @@
 
         .container {
             position: relative;
+            z-index: 2;
         }
 
         #overlay {
@@ -162,72 +164,135 @@
             border: 1px solid rgba(255, 0, 0, 0.425);
             /* text-shadow: 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white; */
         }
-        
+
+        #control-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 10%;
+            transform: translateX(-50%);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 10px;
+            width: 120px;
+            text-align: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .direction-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            border: none;
+            border-radius: 50%;
+            background-color: #007BFF;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: manipulation;
+            /* Improves responsiveness for touch by disabling double-tap zoom */
+        }
+
+        .direction-btn.forward {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+        }
+
+        .direction-btn.left {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+        }
+
+        .direction-btn.right {
+            grid-column: 3 / 4;
+            grid-row: 2 / 3;
+        }
+
+        .direction-btn.backward {
+            grid-column: 2 / 3;
+            grid-row: 3 / 4;
+        }
     </style>
 </head>
 
 <body onload="start()">
+    <button id="toggleButton" onclick="toggleContainer()">Minimize</button>
     <div class="container">
-        <canvas id="canvas"></canvas>
-        <div id="overlay">
-            <a href="#" class="home-button" onclick="home()"><i class="fas fa-home"></i></a>
-            <div id="clock"></div><br />
-            <form id="loginForm" class="form-style">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn login">Login</button>
-                    <button type="button" id="showSignUpForm" class="btn signup">Sign Up</button>
-                </div>
-            </form>
+        <div id="content" style="display: block;">
+            <canvas id="canvas"></canvas>
+            <div id="overlay">
+                <a href="#" class="home-button" onclick="home()"><i class="fas fa-home"></i></a>
+                <div id="clock"></div><br />
+                <form id="loginForm" class="form-style">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn login">Login</button>
+                        <button type="button" id="showSignUpForm" class="btn signup">Sign Up</button>
+                    </div>
+                </form>
 
-            <form id="signupForm" class="form-style" action="/signup" method="POST" onsubmit="return validatePassword()"
-                style="display: none;">
-                <div class="form-group">
-                    <label for="newUsername">Username:</label>
-                    <input type="text" id="newUsername" name="username" placeholder="Choose a username" required>
-                    <button type="button" id="checkDuplicate">Check Duplicate</button>
-                    <span id="usernameValidationMessage"></span>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" placeholder="Your email address" required>
-                </div>
-                <div class="form-group">
-                    <label for="newPassword">Password:</label>
-                    <input type="password" id="newPassword" name="password" placeholder="Create a password" required>
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password:</label>
-                    <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn signup" id="signupButton" disabled>Sign Up</button>
-                </div>
-            </form>
+                <form id="signupForm" class="form-style" action="/signup" method="POST"
+                    onsubmit="return validatePassword()" style="display: none;">
+                    <div class="form-group">
+                        <label for="newUsername">Username:</label>
+                        <input type="text" id="newUsername" name="username" placeholder="Choose a username" required>
+                        <button type="button" id="checkDuplicate">Check Duplicate</button>
+                        <span id="usernameValidationMessage"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" placeholder="Your email address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Password:</label>
+                        <input type="password" id="newPassword" name="password" placeholder="Create a password"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password:</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn signup" id="signupButton" disabled>Sign Up</button>
+                    </div>
+                </form>
 
-            <div id="contents"></div><br />
-            <textarea id="textinput" placeholder="Enter text..."></textarea><br />
-            <button class="button" id="Button_Enter"
-                onclick="sendTextToServer(document.getElementById('textinput').value)">Enter</button>
-            <button class="button" id="Button_Review" onclick="sendTextToServer('98')">Review</button>
-            <button class="button" id="Button_Copy" onclick="sendTextToServer('98')">Copy</button>
-            <button class="button" id="Button_Paste" onclick="sendTextToServer('98')">Paste</button>
-            <button class="button" id="Button_Save" onclick="sendTextToServer('save')">Save</button><br />
-            <div id="info"></div><br />
-            <div id="Log"></div><br />
-            <textarea id="fileContent" rows="1"></textarea><br />
-            <button id="saveFileChanges" onclick="saveFileChanges()">Save Changes</button>
-            <div>coordinates: <span id="readout"></span></div>
-            <canvas id="canvas2" width="150" height="150"></canvas>
+                <div id="contents"></div><br />
+                <textarea id="textinput" placeholder="Enter text..."></textarea><br />
+                <button class="button" id="Button_Enter"
+                    onclick="sendTextToServer(document.getElementById('textinput').value)">Enter</button>
+                <button class="button" id="Button_Review" onclick="sendTextToServer('98')">Review</button>
+                <button class="button" id="Button_Copy" onclick="sendTextToServer('98')">Copy</button>
+                <button class="button" id="Button_Paste" onclick="sendTextToServer('98')">Paste</button>
+                <button class="button" id="Button_Save" onclick="sendTextToServer('save')">Save</button><br />
+                <div id="info"></div><br />
+                <div id="Log"></div><br />
+                <textarea id="fileContent" rows="1"></textarea><br />
+                <button id="saveFileChanges" onclick="saveFileChanges()">Save Changes</button>
+                <div>coordinates: <span id="readout"></span></div>
+                <canvas id="canvas2" width="150" height="150"></canvas>
+                <p id="deviceInfo"></p>
+            </div>
         </div>
     </div>
+    <div id="control-buttons">
+        <button id="moveForward" class="direction-btn forward">&#9650;</button>
+        <button id="moveLeft" class="direction-btn left">&#9664;</button>
+        <button id="moveRight" class="direction-btn right">&#9654;</button>
+        <button id="moveBackward" class="direction-btn backward">&#9660;</button>
+    </div>
+
+
     <!--
   for most samples webgl-utils only provides shader compiling/linking and
   canvas resizing because why clutter the examples with code that's the same in every sample.
@@ -243,6 +308,31 @@
     <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 
     <script>
+        function toggleContainer() {
+            var contentDiv = document.getElementById("content");
+            var toggleBtn = document.getElementById("toggleButton");
+            if (contentDiv.style.display === "none") {
+                contentDiv.style.display = "block";
+                toggleBtn.innerText = "Minimize";
+            } else {
+                contentDiv.style.display = "none";
+                toggleBtn.innerText = "Restore";
+            }
+        }
+        function detectDeviceType() {
+            const ua = navigator.userAgent;
+            if (/mobile/i.test(ua)) {
+                return 'Mobile';
+            } else if (/tablet|ipad/i.test(ua)) {
+                return 'Tablet';
+            } else {
+                return 'Desktop';
+            }
+        }
+
+        const deviceType = detectDeviceType();
+        document.getElementById('deviceInfo').innerHTML = `접속한 디바이스 타입: ${deviceType}`;
+
         // import * as THREE from 'three';
 
         // Set up the scene, camera, and renderer
@@ -259,13 +349,12 @@
         document.body.appendChild(renderer.domElement);
 
         // 키 입력 및 마우스 상태 관리
-        const keys = {};
         let isDragging = false;
         let previousMouseX = 0, previousMouseY = 0;
         let rotationSpeed = 0.005;
 
         // Add ambient light
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Soft white light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Soft white light
         scene.add(ambientLight);
 
         // Add directional light
@@ -293,23 +382,39 @@
 
         }
         // 키보드 이벤트 리스너
-        document.addEventListener('keydown', (event) => {
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(event.key)) {
-                event.preventDefault();  // 기본 동작 방지
-                keys[event.key] = true;
-            }
-            if (event.code === 'Space' && onGround) {
-                camera.position.y = 2;
-                velocityY = 0.4; // 점프 초기 속도 설정
-                onGround = false; // 공중에 떠있음
-            }
-        });
+        const keys = {};
+        const keyActions = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '];
+        const directions = {
+            'moveForward': 'ArrowUp',
+            'moveBackward': 'ArrowDown',
+            'moveLeft': 'ArrowLeft',
+            'moveRight': 'ArrowRight'
+        };
 
-        document.addEventListener('keyup', (event) => {
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(event.key)) {
-                event.preventDefault();  // 기본 동작 방지
-                keys[event.key] = false;
+        function setKeyState(key, state) {
+            if (keyActions.includes(key)) {
+                event.preventDefault();
+                keys[key] = state;
+                if (key === ' ' && state === true && onGround) { //'Space' key is set as ' ';
+                    console.log("key = " + key + ", state = " + state + ", onGround = " + onGround);
+                    performJump();
+                }
             }
+        }
+
+        function performJump() {
+            camera.position.y = 2;
+            velocityY = 0.4;
+            onGround = false;
+        }
+
+        document.addEventListener('keydown', (event) => setKeyState(event.key, true));
+        document.addEventListener('keyup', (event) => setKeyState(event.key, false));
+
+        Object.entries(directions).forEach(([buttonId, keyName]) => {
+            const button = document.getElementById(buttonId);
+            button.addEventListener('touchstart', (event) => setKeyState(keyName, true));
+            button.addEventListener('touchend', (event) => setKeyState(keyName, false));
         });
 
         // 마우스 이벤트 리스너
@@ -318,11 +423,9 @@
             previousMouseX = event.clientX;
             previousMouseY = event.clientY;
         });
-
         document.addEventListener('mouseup', () => {
             isDragging = false;
         });
-
         document.addEventListener('mousemove', (event) => {
             if (isDragging) {
                 const deltaX = event.clientX - previousMouseX;
@@ -334,6 +437,29 @@
                 camera.updateProjectionMatrix();
             }
         });
+        var touchX, touchY, moveX, moveY;
+
+        // 터치 이벤트 리스너 추가
+        document.addEventListener('touchstart', function (e) {
+            touchX = e.touches[0].clientX;
+            touchY = e.touches[0].clientY;
+        }, false);
+
+        document.addEventListener('touchmove', function (e) {
+            e.preventDefault(); // 스크롤 방지
+            moveX = e.touches[0].clientX - touchX;
+            moveY = e.touches[0].clientY - touchY;
+            touchX = e.touches[0].clientX;
+            touchY = e.touches[0].clientY;
+
+            // 카메라 회전
+            camera.rotation.y -= moveX * 0.005;
+            camera.rotation.x -= moveY * 0.005;
+        }, false);
+
+        document.addEventListener('touchend', function (e) {
+        }, false);
+
         // 충돌을 감지하는 함수
         function checkCollision(cameraPosition, direction, distance) {
             const raycaster = new THREE.Raycaster(cameraPosition, direction);
@@ -350,6 +476,7 @@
             // 충돌 없음
             return false;
         }
+
         // 카메라 이동 업데이트
         function updateCamera() {
             const speed = 0.1;
@@ -389,7 +516,7 @@
         }
 
         // Create a cube
-        const cubeGeometry = new THREE.BoxGeometry();
+        const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
         const cubeMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 }); // Green cube
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.position.y = 1;
@@ -403,19 +530,33 @@
         // const floorTextureURL = 'https://img.freepik.com/free-photo/marble-texture-background_1048-9588.jpg?w=1060&t=st=1713152819~exp=1713153419~hmac=87fc42cfcc097765b166e1181a3474b0bd0afa27203ef1c9124160081d7b97b2'; // 여기에 실제 텍스처 링크를 입력하세요
         // // 텍스처 로드
         // const floorTexture = textureLoader.load(floorTextureURL);
-        const floorGeometry = new THREE.PlaneGeometry(200, 200);
-        const floorMaterial = new THREE.MeshPhongMaterial({ color: 0x887799, side: THREE.DoubleSide });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2; // Rotate the plane to be horizontal
-        floor.position.y = 0; // Position the floor slightly below the cube
-        floor.receiveShadow = true;
-        scene.add(floor);
+        function createFloor(width, height, color, position) {
+            const geometry = new THREE.PlaneGeometry(width, height);
+            const material = new THREE.MeshPhongMaterial({ color: color, side: THREE.DoubleSide });
+            const floor = new THREE.Mesh(geometry, material);
+            floor.rotation.x = -Math.PI / 2; // Rotate the plane to be horizontal
+            floor.position.copy(position);
+            floor.receiveShadow = true;
+            scene.add(floor);
+        }
+        // const floorGeometry = new THREE.PlaneGeometry(200, 200);
+        // const floorMaterial = new THREE.MeshPhongMaterial({ color: 0x887799, side: THREE.DoubleSide });
+        // const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        // floor.rotation.x = -Math.PI / 2; // Rotate the plane to be horizontal
+        // floor.position.y = 0; // Position the floor slightly below the cube
+        // floor.receiveShadow = true;
+        // scene.add(floor);
+        createFloor(200, 200, 0x778899, new THREE.Vector3(0, 0, 0));
+        createFloor(2, 20, 0x556677, new THREE.Vector3(1, 0.02, 0));
+
         // 격자 무늬를 추가할 GridHelper 생성
         const gridSize = 200; // 격자의 전체 크기
         const gridSpacing = 1; // 격자의 간격
-        const gridHelper = new THREE.GridHelper(gridSize, gridSize / gridSpacing, 0x000000, 0x000000); // 첫 번째 매개변수는 전체 크기, 두 번째 매개변수는 격자 개수, 세 번째 매개변수는 격자 색상, 네 번째 매개변수는 선 색상
+        const gridHelper = new THREE.GridHelper(gridSize, gridSize / gridSpacing, 0x666666, 0x666666); // 첫 번째 매개변수는 전체 크기, 두 번째 매개변수는 격자 개수, 세 번째 매개변수는 격자 색상, 네 번째 매개변수는 선 색상
         gridHelper.position.y = 0.01; // 바닥 평면과 겹치지 않도록 약간 띄웁니다.
         scene.add(gridHelper);
+
+
 
         function createBox(width, height, depth, color, position) {
             const geometry = new THREE.BoxGeometry(width, height, depth);
@@ -426,8 +567,8 @@
         }
         // 첫 번째 직육면체 생성
         createBox(10, 4, 0.1, 0xeeeeee, new THREE.Vector3(-5, 2, -10));
-        // 두 번째 직육면체 생성
         createBox(8, 4, 0.1, 0xeeeeee, new THREE.Vector3(6, 2, -10));
+        createBox(20, 1, 0.1, 0xeeeeee, new THREE.Vector3(0, 4.5, -10));
 
         // 텍스처 링크
         const woodTextureURL = 'https://cdn.pixabay.com/photo/2017/02/07/09/02/wood-2045379_1280.jpg'; // 여기에 실제 텍스처 링크를 입력하세요
@@ -655,11 +796,15 @@
             if (camera.position.y > 1) {
                 velocityY += gravity;
                 camera.position.y += velocityY;
-                if (camera.position.y <= 1) {
-                    camera.position.y = 1;
-                    velocityY = 0;
-                    onGround = true; // 다시 바닥에 도착
-                }
+                // if (camera.position.y <= 1) {
+                //     camera.position.y = 1;
+                //     velocityY = 0;
+                //     onGround = true; // 다시 바닥에 도착
+                // }
+            } else if (camera.position.y <= 1) {
+                camera.position.y = 1;
+                velocityY = 0;
+                onGround = true; // 다시 바닥에 도착
             }
             updateCamera();
             renderer.render(scene, camera);
