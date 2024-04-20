@@ -13,15 +13,18 @@
 #include <map>
 #include <sqlite3.h>
 #include <regex>
+// #include <nlohmann/json.hpp>
 
 #define PORT 8080
 using namespace std;
 using uint = unsigned int;
 using ushort = unsigned short;
 using uchar = unsigned char;
+// using json = nlohmann::json;
 
 std::vector<uchar *> CoRe;
-std::vector<vector<tuple<int, ushort, long long>>> order;
+std::vector<vector<tuple<int, ushort, long long, long long>>> order;
+uint user = 1;
 uint cNode[10];
 ushort cCh[10];
 uint pageNum[10];
@@ -324,7 +327,7 @@ void pushCoo(uint node, ushort ch, uchar *add)
             CoRe[node][i] = add[i - startRev];
         }
     }
-    delete[] add;
+    // delete[] add;
 }
 void pushRev(uint node, ushort ch, uchar *add)
 {
@@ -390,15 +393,15 @@ void pushAxis3(uint node, ushort ch, uchar *bitmap)
     uint sizeAxis3 = charTouint(CoRe[node] + startAxis3);
     uint endPosi = startAxis3 + 4 + sizeAxis3;
     ushort numCh = charToushort(CoRe[node] + 4);
-    uint startCoo2 = 0;
-    if (ch < numCh - 1)
-    {
-        startCoo2 = charTouint(CoRe[node] + 6 + 4 * (ch + 1));
-    }
-    else
-    {
-        startCoo2 = 4 + charTouint(CoRe[node]);
-    }
+    // uint startCoo2 = 0;
+    // if (ch < numCh - 1)
+    // {
+    //     startCoo2 = charTouint(CoRe[node] + 6 + 4 * (ch + 1));
+    // }
+    // else
+    // {
+    //     startCoo2 = 4 + charTouint(CoRe[node]);
+    // }
     // uchar *add = uintToBytes(8);
     // insertArr(node, endPosi, add, 4);
     uint width = charTouint(CoRe[node] + startAxis3 + 4);
@@ -472,7 +475,8 @@ vector<uint> sizeCoRe(uint node, ushort ch)
 }
 void CoMove(uint ori, ushort oriCh, uint From, uint To, ushort ToCh)
 {
-    uchar *ToCoo = new uchar[6];
+    // uchar *ToCoo = new uchar[6];
+    uchar ToCoo[6] = {0};
     uint start = startCh(ori, oriCh);
     for (int i = 0; i < charTouint(CoRe[ori] + start) / 6; i++)
     {
@@ -1142,7 +1146,10 @@ void Brain(uint node, uchar *data) // 사이즈 정보 포함해서 받아야 �
         {
             if (beforeCd == coord && beforeCh == i)
                 continue;
-            if (isZ8(chVec(coord, i)))
+            uchar *chVecA = chVec(coord, i);
+            bool isZ8A = isZ8(chVecA);
+            delete[] chVecA;
+            if (isZ8A)
             {
                 ch = i;
                 check2 = true;
@@ -1299,17 +1306,20 @@ wstring timeW(time_t timer)
 wstring findAndUpdateOrder(uint node, ushort ch, ushort num)
 {
     wstring re = L"";
+    long long tmp = 0;
     for (int i = 0; i < order[num].size(); i++)
     {
         if (node == get<0>(order[num][i]) && ch == get<1>(order[num][i]))
         {
             re = timeW(get<2>(order[num][i]));
+            tmp = get<3>(order[num][i]);
+            re = re + L"\t" + timeW(tmp);
             order[num].erase(order[num].begin() + i);
         }
     }
     time_t timer;
     time(&timer);
-    order[num].push_back(make_tuple(node, ch, timer));
+    order[num].push_back(make_tuple(node, ch, timer, tmp));
     return re;
 }
 void eraseOrder(uint node, ushort ch, ushort num)
@@ -1331,16 +1341,18 @@ void read_order(const std::string &file_path)
         file.read(reinterpret_cast<char *>(&size), sizeof(size));
         if (!file)
             break;
-        vector<tuple<int, ushort, long long>> inner_v(size);
+        vector<tuple<int, ushort, long long, long long>> inner_v(size);
         for (auto &t : inner_v)
         {
             int i;
             ushort us;
             long long tt;
+            long long tt2;
             file.read(reinterpret_cast<char *>(&i), sizeof(i));
             file.read(reinterpret_cast<char *>(&us), sizeof(us));
             file.read(reinterpret_cast<char *>(&tt), sizeof(tt));
-            t = make_tuple(i, us, tt);
+            file.read(reinterpret_cast<char *>(&tt2), sizeof(tt2));
+            t = make_tuple(i, us, tt, tt2);
         }
         order.push_back(inner_v);
     }
@@ -1388,7 +1400,9 @@ wstring contentList(uint node, ushort ch)
         for (int i = 0; i < sizeRev / 6; i++)
         {
             wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonRev" + intToWString(i + 1) + L"\", \"\")' onclick='sendTextToServer(" + intToWString(-(i + 1)) + L"); return false;'>" + intToWString(-(i + 1)) + L"</a>";
-            prev += hpL + L". " + charToWstring(Sheet(charTouint(prevNode + 6 * i))) + L"<br/>";
+            uchar *sheetPrev = Sheet(charTouint(prevNode + 6 * i));
+            prev += hpL + L". " + charToWstring(sheetPrev) + L"<br/>";
+            delete[] sheetPrev;
             // prev += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&prevNode[6 * i]))) + L"<br/>";
             uint node2 = charTouint(prevNode + 6 * i);
             ushort ch2 = charToushort(prevNode + 4 + 6 * i);
@@ -1401,12 +1415,16 @@ wstring contentList(uint node, ushort ch)
             for (int j = 0; j < sizeRev2 / 6; j++)
             {
                 // pprev += intToWString(-(i + 1)) + L"." + intToWString(j + 1) + L" " + charToWstring(Sheet(*reinterpret_cast<uint *>(&splPrev2[6 * j]))) + L"<br/>";
-                pprev += intToWString(-(i + 1)) + L"." + intToWString(j + 1) + L" " + charToWstring(Sheet(charTouint(splPrev2 + 6 * j))) + L"<br/>";
+                uchar *sheetPP = Sheet(charTouint(splPrev2 + 6 * j));
+                pprev += intToWString(-(i + 1)) + L"." + intToWString(j + 1) + L" " + charToWstring(sheetPP) + L"<br/>";
+                delete[] sheetPP;
             }
         }
         ws += pprev + L"<p class='prev'>" + prev;
     }
-    ws += L"<p class='this'>" + charToWstring(Sheet(node)) + L"<br/>" + L"<p class='next'>"; // 현재 단계
+    uchar *sheetNode = Sheet(node);
+    ws += L"<p class='this'>" + charToWstring(sheetNode) + L"<br/>" + L"<p class='next'>"; // 현재 단계
+    delete[] sheetNode;
 
     uchar *nextNode = CoRe[node] + startCoo + 4;
     uint page = 1;
@@ -1418,7 +1436,9 @@ wstring contentList(uint node, ushort ch)
         }
         wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonNext" + intToWString(i + 1) + L"\", \"\")' onclick='sendTextToServer(" + intToWString(i + 1) + L"); return false;'>" + intToWString(i + 1) + L"</a>";
         // ws += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&nextNode[6 * i]))) + L"<br/>";
-        ws += hpL + L". " + charToWstring(Sheet(charTouint(nextNode + 6 * i))) + L"<br/>";
+        uchar *sheetNext = Sheet(charTouint(nextNode + 6 * i));
+        ws += hpL + L". " + charToWstring(sheetNext) + L"<br/>";
+        delete[] sheetNext;
     }
     if (sizeCoo / 6 > 50)
     {
@@ -1431,6 +1451,7 @@ wstring contentList(uint node, ushort ch)
     ws += L"<style> .prev{margin-left: 10px;} .this{margin-left: 20px;} .next{margin-left:30px;}</style>";
     return ws;
 }
+
 void study(uint user)
 {
     uint t1 = get<0>(order[user][0]);
@@ -1445,7 +1466,7 @@ void study(uint user)
     cCh[user] = t2;
     wcout << "98Node = " << intToWString(t1) << endl;
     wcout << "98Ch = " << to_wstring(t2) << endl;
-    tuple<int, ushort, time_t> temp = order[user][0];
+    tuple<int, ushort, time_t, time_t> temp = order[user][0];
     eraseOrder(t1, t2, user);
     order[user].push_back(temp);
 }
@@ -1469,17 +1490,43 @@ uint sizeGarbage()
 }
 size_t vmSize = 0, vmRSS = 0;
 int fps = 0;
+bool getMemoryUsage(size_t &vmSize, size_t &vmRSS)
+{
+    std::ifstream statusFile("/proc/self/status");
+    std::string line;
+
+    if (!statusFile.is_open())
+    {
+        return false;
+    }
+
+    while (std::getline(statusFile, line))
+    {
+        if (line.substr(0, 6) == "VmSize")
+        {
+            sscanf(line.c_str(), "VmSize: %lu kB", &vmSize);
+        }
+        else if (line.substr(0, 6) == "VmRSS:")
+        {
+            sscanf(line.c_str(), "VmRSS: %lu kB", &vmRSS);
+        }
+    }
+
+    statusFile.close();
+    return true;
+}
+wstring infoStr = L"";
 void info()
 {
     uchar *sh1 = Sheet(34875);
     uchar *sh2 = Sheet(34878);
     uchar *sh3 = Sheet(34880);
-    wstring ww = L"\norder.size: " + intToWString(order[1].size() - 1) + L"\nGarbage.size: " + intToWString(sizeGarbage()) + L"\nCsave: " + charToWstring(sh1) + L"," + charToWstring(sh2) + L"," + charToWstring(sh3) + L"\nvmSize: " + intToWString(vmSize) + L" kB\nvmRSS: " + intToWString(vmRSS) + L" kB\nFPS: " + intToWString(fps);
-    wcout << ww << endl;
+    infoStr = L"\norder.size: " + intToWString(order[1].size() - 1) + L"\nGarbage.size: " + intToWString(sizeGarbage()) + L"\nCsave: " + charToWstring(sh1) + L"," + charToWstring(sh2) + L"," + charToWstring(sh3) + L"\nvmSize: " + intToWString(vmSize) + L" kB\nvmRSS: " + intToWString(vmRSS) + L" kB\nFPS: " + intToWString(fps);
+    wcout << infoStr << endl;
     delete[] sh1;
     delete[] sh2;
     delete[] sh3;
-    std::vector<std::wstring> lines = splitWstring(ww, L"\n");
+    std::vector<std::wstring> lines = splitWstring(infoStr, L"\n");
     short ll = lines.size();
     for (int i = 0; i < ll; ++i)
     {
@@ -1491,14 +1538,18 @@ void pushGarbage(uint node)
 {
     uint next = charTouint(CoRe[gar] + 10);
     uchar newCh[18] = {14, 0, 0, 0, 1, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    delete[] CoRe[gar];
+    //delete[] CoRe[gar]; //pushCoo에서 CoRe[gar]를 사용하므로 메모리 해제하면 안됨
     CoRe[gar] = newCh;
 
     uchar newCh2[18] = {14, 0, 0, 0, 1, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     delete[] CoRe[node];
     CoRe[node] = newCh2;
-    pushCoo(gar, 0, pairToBytes(node, 0));
-    pushCoo(node, 0, pairToBytes(next, 0));
+    uchar *ptb = pairToBytes(node, 0);
+    uchar *ptb2 = pairToBytes(next, 0);
+    pushCoo(gar, 0, ptb);
+    pushCoo(node, 0, ptb2);
+    delete[] ptb;
+    delete[] ptb2;
 }
 void clearToken(uint node)
 {
@@ -1582,7 +1633,7 @@ void cut(uint node, ushort ch, uint index)
     vector<uint> sizeCRn = sizeCoRe(node, ch);
     uint startCoo = startCh(node, ch);
     pair<uint, ushort> temp = charToPair(CoRe[node] + startCoo + 4 + 6 * index);
-    uint startTemp = startCh(temp.first, temp.second);
+    // uint startTemp = startCh(temp.first, temp.second);
     int size = numCh(temp.first);
     if (size > 0 && size <= temp.second + 1)
     {
@@ -1609,7 +1660,9 @@ uint popGarbage()
     uint next = charTouint(CoRe[re] + 14);
     clearCh(re, 0);
     clearCh(gar, 0);
-    pushCoo(gar, 0, pairToBytes(next, 0));
+    uchar *ptb = pairToBytes(next, 0);
+    pushCoo(gar, 0, ptb);
+    delete[] ptb;
     return re;
 }
 void AddStringToNode(const string &str, uint node, ushort ch)
@@ -1627,7 +1680,7 @@ void AddStringToNode(const string &str, uint node, ushort ch)
         wcout << L"popGarbage(l = " << intToWString(newcd) << endl;
         addCh(newcd); // make count of ch as 2
         link(node, ch, newcd, 1);
-        order[1].push_back(make_tuple(newcd, 1, timer));
+        order[1].push_back(make_tuple(newcd, 1, timer, timer)); //생성시간 = timer
         Brain(newcd, wstr2);
     }
     else
@@ -1640,7 +1693,7 @@ void AddStringToNode(const string &str, uint node, ushort ch)
         CoRe.push_back(newCh2);
         addCh(newcd);
         link(node, ch, newcd, 1);
-        order[1].push_back(make_tuple(newcd, 1, timer));
+        order[1].push_back(make_tuple(newcd, 1, timer, timer));
         Brain(newcd, wstr2);
     }
     delete[] wstr2;
@@ -1663,7 +1716,7 @@ void save(string directory)
         out.write(reinterpret_cast<const char *>(CoRe[i]), size + 4);
     }
     out.close();
-    ofstream file2(directory + "order2-test.bin", ios::binary);
+    ofstream file2(directory + "order3-test.bin", ios::binary);
     for (const auto &inner_v : order)
     {
         unsigned int size = inner_v.size();
@@ -1673,6 +1726,7 @@ void save(string directory)
             file2.write(reinterpret_cast<const char *>(&get<0>(t)), sizeof(get<0>(t)));
             file2.write(reinterpret_cast<const char *>(&get<1>(t)), sizeof(get<1>(t)));
             file2.write(reinterpret_cast<const char *>(&get<2>(t)), sizeof(get<2>(t)));
+            file2.write(reinterpret_cast<const char *>(&get<3>(t)), sizeof(get<3>(t)));
         }
     }
     file2.close();
@@ -1766,12 +1820,14 @@ std::map<std::string, std::string> parsePostData(const std::string &postData)
 
     return dataMap;
 }
-std::map<std::string, std::string> parseQuery(const std::string& query) {
+std::map<std::string, std::string> parseQuery(const std::string &query)
+{
     std::map<std::string, std::string> data;
     std::istringstream queryStream(query);
     std::string pair;
 
-    while (std::getline(queryStream, pair, '&')) {
+    while (std::getline(queryStream, pair, '&'))
+    {
         auto delimiterPos = pair.find('=');
         auto key = pair.substr(0, delimiterPos);
         auto value = pair.substr(delimiterPos + 1);
@@ -1910,10 +1966,11 @@ bool checkLogin(const std::string &username, const std::string &password)
 
     return loginSuccess;
 }
-wstring makeContent(uint user, uint node, ushort ch, wstring contentList, wstring inputText, wstring Log2 = L"")
+wstring makeContent(uint user, wstring inputText, wstring Log2 = L"")
 {
     Log(Log2);
-    wstring content = intToWString(user) + L"\t" + intToWString(node) + L"\t" + intToWString(ch) + L"\t" + contentList + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(node, ch, user) + L"\t" + LogToClient;
+    info();
+    wstring content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(cNode[user], cCh[user], user) + L"\t" + LogToClient + L"\t" + infoStr;
     return content;
 }
 void handleLogin(const std::string &requestBody, int client_socket)
@@ -1927,7 +1984,8 @@ void handleLogin(const std::string &requestBody, int client_socket)
     wstring content = L"";
     for (int i = 0; i < sizeIDList / 6 - 1; i++)
     {
-        if (utf8ToWstring(data["username"]) == charToWstring(Sheet(*reinterpret_cast<uint *>(&IDList[6 * i])))) // ID가 존재하는 경우
+        uchar *sheetID = Sheet(*reinterpret_cast<uint *>(&IDList[6 * i]));
+        if (utf8ToWstring(data["username"]) == charToWstring(sheetID)) // ID가 존재하는 경우
         {
             uint startCoo = startCh(34196, 1);
             pair<uint, ushort> userID = charToPair(CoRe[34196] + startCoo + 4 + 6 * i);
@@ -1937,8 +1995,11 @@ void handleLogin(const std::string &requestBody, int client_socket)
             {
                 uint startPass = startCh(Pass.first, Pass.second);
                 pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
+                user = i + 1;
+                cNode[user] = start.first;
+                cCh[user] = start.second;
                 // content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
-                sendMsg(client_socket, makeContent(i + 1, start.first, start.second, contentList(start.first, start.second), L""));
+                sendMsg(client_socket, makeContent(user, L""));
             }
             else
             {
@@ -1948,6 +2009,7 @@ void handleLogin(const std::string &requestBody, int client_socket)
             check = true;
             break;
         }
+        delete[] sheetID;
     }
     if (!check)
     {
@@ -2002,6 +2064,7 @@ std::string handle_check_duplicate(const std::string &request)
     }
     return "HTTP/1.1 200 OK\nContent-Length: 18\n\nUsername available";
 }
+int client_socket = 0;
 int Network()
 {
     struct sockaddr_in server_addr;
@@ -2039,7 +2102,7 @@ int Network()
     {
         struct sockaddr_in client_addr;
         socklen_t client_addr_size = sizeof(client_addr);
-        int client_socket = accept(serverSocket, (struct sockaddr *)&client_addr, &client_addr_size);
+        client_socket = accept(serverSocket, (struct sockaddr *)&client_addr, &client_addr_size);
 
         if (client_socket == -1)
         {
@@ -2059,16 +2122,15 @@ int Network()
 
             // Convert the multibyte string to a wide string
             std::wstring ws = converter.from_bytes(buffer);
-            std::cerr << "Received message: " << wstringToUtf8(ws) << std::endl;
-            // wchar_t type3[1024];
-            // int charsConverted = MultiByteToWideChar(CP_UTF8, 0, buffer, bytesReceived, type3, sizeof(type3) / sizeof(wchar_t));
+            // std::cerr << "Received message: " << wstringToUtf8(ws) << std::endl;
+            //  wchar_t type3[1024];
+            //  int charsConverted = MultiByteToWideChar(CP_UTF8, 0, buffer, bytesReceived, type3, sizeof(type3) / sizeof(wchar_t));
             wstring firstLine = ws.substr(0, ws.find(L"\r\n"));
             wstring method = firstLine.substr(0, firstLine.find(L" HTTP"));
             wstring content = L"";
-            uint user = 1;
             if (method == L"GET /")
             {
-                std::cerr << "get GET request" << std::endl;
+                // std::cerr << "get GET request" << std::endl;
                 std::ifstream file("index2.html");
                 if (!file.is_open())
                 {
@@ -2170,8 +2232,9 @@ int Network()
                             {
                                 uint startPass = startCh(Pass.first, Pass.second);
                                 pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
-                                // content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
-                                sendMsg(client_socket, makeContent(user, start.first, start.second, contentList(start.first, start.second), L""));
+                                cNode[user] = start.first;
+                                cCh[user] = start.second;
+                                sendMsg(client_socket, makeContent(user, L""));
                             }
                             else
                             {
@@ -2188,7 +2251,7 @@ int Network()
                                 if (num == 98)
                                 {
                                     study(user);
-                                    sendMsg(client_socket, makeContent(user, cNode[user], cCh[user], contentList(cNode[user], cCh[user]), L"98"));
+                                    sendMsg(client_socket, makeContent(user, L"98"));
                                 }
                                 else if (num == 982) // if not working 98 function
                                 {
@@ -2202,36 +2265,29 @@ int Network()
                                 else if ((num > 0 && num <= sizeCoo(cNode[user], cCh[user]) / 6) || (num < 0 && -num <= sizeRev(cNode[user], cCh[user]) / 6))
                                 {
                                     move(num, user);
-                                    sendMsg(client_socket, makeContent(user, cNode[user], cCh[user], contentList(cNode[user], cCh[user]), L""));
+                                    sendMsg(client_socket, makeContent(user, L""));
                                 }
                             }
-                            // catch (std::invalid_argument &e)
                             else
                             {
                                 std::cout << "Invalid argument: the wstring cannot be converted to an integer." << std::endl;
                                 if (clientMvec[3][0] == L'/')
                                 {
-                                    cerr << "'/'로 시작" << endl;
                                     string str = wstringToUtf8(clientMvec[3].substr(1));
                                     AddStringToNode(str, cNode[user], cCh[user]);
-                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
-                                    sendMsg(client_socket, content);
-                                    info();
+                                    sendMsg(client_socket, makeContent(user, L"", L""));
                                 }
                                 else if (clientMvec[3] == L"시작" || clientMvec[3] == L"start")
                                 {
                                     cNode[user] = 0;
                                     cCh[user] = 1;
-                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
-                                    sendMsg(client_socket, content);
+                                    sendMsg(client_socket, makeContent(user, L"", L""));
                                 }
                                 else if (clientMvec[3] == L"수정")
                                 {
                                     uchar *sheetNode = Sheet(cNode[user]);
-                                    string inputText = wstringToUtf8(L"@" + charToWstring(sheetNode));
-                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + L"@" + charToWstring(sheetNode);
+                                    sendMsg(client_socket, makeContent(user, L"@" + charToWstring(sheetNode), L""));
                                     delete[] sheetNode;
-                                    sendMsg(client_socket, content);
                                 }
                                 else if (clientMvec[3][0] == L'@')
                                 {
@@ -2240,21 +2296,18 @@ int Network()
                                     uchar *wstr2 = wstringToUChar(wstr);
                                     change_data(cNode[1], wstr2);
                                     delete[] wstr2;
-                                    sendMsg(client_socket, makeContent(user, cNode[user], cCh[user], contentList(cNode[user], cCh[user]), L""));
+                                    sendMsg(client_socket, makeContent(user, L""));
                                 }
                                 else if (clientMvec[3] == L"save" || clientMvec[3] == L"저장")
                                 {
                                     save("");
-                                    // content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
-                                    sendMsg(client_socket, makeContent(user, cNode[user], cCh[user], contentList(cNode[user], cCh[user]), L"", L"save complete!"));
+                                    sendMsg(client_socket, makeContent(user, L"", L"save complete!"));
                                 }
                                 else if (inputText == "del98")
                                 { // 삭제하고 + 98
                                     deleteNode(cNode[1]);
                                     study(1);
-                                    // display(cNode[1], cCh[1]);
-                                    inputText = "98";
-                                    info();
+                                    sendMsg(client_socket, makeContent(user, L"", L"del98 complete!"));
                                 }
                                 else if (inputText == "html")
                                 { // edit index2.html file
@@ -2309,9 +2362,6 @@ int Network()
                                     {
                                         std::cout << "Error opening file.\n";
                                     }
-                                }
-                                else if (inputText == "checkDuplicate")
-                                {
                                 }
                                 else if (inputText.size() >= 4 && inputText.substr(0, 4) == "103,")
                                 { // 연결 해제
@@ -2403,6 +2453,70 @@ int Network()
 
     close(serverSocket);
 }
+int Network2()
+{
+    int server_fd, new_socket;
+    struct sockaddr_in address;
+    int opt = 1;
+    int addrlen = sizeof(address);
+    char buffer[1024] = {0};
+    const char *hello = "Hello from server";
+
+    // Creating socket file descriptor
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+    {
+        perror("socket failed");
+        std::cerr << "socket failed" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Forcefully attaching socket to the port 443
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+    {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(8081);
+
+    // Bind the socket to the address
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
+    {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Listen for incoming connections
+    if (listen(server_fd, 3) < 0)
+    {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+
+    // Accept an incoming connection
+    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
+    {
+        perror("accept");
+        exit(EXIT_FAILURE);
+    }
+
+    // Read data sent by the client
+    read(new_socket, buffer, 1024);
+    std::cout << "Message from client: " << buffer << std::endl;
+
+    // Send a response back to client
+    send(new_socket, hello, strlen(hello), 0);
+    std::cout << "Hello message sent\n";
+
+    // Close the connection
+    close(new_socket);
+    close(server_fd);
+
+    return 0;
+}
+
 int main(int argc, char const *argv[])
 {
     auto start = std::chrono::high_resolution_clock::now();
@@ -2432,7 +2546,7 @@ int main(int argc, char const *argv[])
     }
     in.close();
 
-    string file_path2 = "order2-test.bin";
+    string file_path2 = "order3-test.bin";
     read_order(file_path2);
     cNode[1] = 0;
     cCh[1] = 1;
@@ -2440,8 +2554,11 @@ int main(int argc, char const *argv[])
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     Log(L"loading time: " + intToWString(duration.count()) + L"ms");
+    getMemoryUsage(vmSize, vmRSS);
 
     thread t1(Network);
+    thread t2(Network2);
     t1.join();
+    t2.join();
     return 0;
 }
