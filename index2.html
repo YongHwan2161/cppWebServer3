@@ -367,8 +367,8 @@
         // Set up the scene, camera, and renderer
         const scene = new THREE.Scene();
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50);
-        camera.position.y = 1;
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.y = 30;
         camera.position.z = 10;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -383,22 +383,37 @@
         let rotationSpeed = 0.005;
 
         // Add ambient light
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Soft white light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.1); // Soft white light
         scene.add(ambientLight);
 
-        // Add directional light
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(0, 10, 1);
-        directionalLight.castShadow = true; // 그림자 발생 설정
-        directionalLight.shadow.mapSize.width = 1024; // 그림자 해상도
-        directionalLight.shadow.mapSize.height = 1024;
-        directionalLight.shadow.camera.near = 0.5;
-        directionalLight.shadow.camera.far = 50;
-        scene.add(directionalLight);
+        // const sunLight = new THREE.Vector3(0, 20, -100);
+        // // Add directional light
+        // const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        // directionalLight.position.set(0, 20, -100);
+        // directionalLight.castShadow = true; // 그림자 발생 설정
+        // directionalLight.shadow.mapSize.width = 1024; // 그림자 해상도
+        // directionalLight.shadow.mapSize.height = 1024;
+        // directionalLight.shadow.camera.near = 0.5;
+        // directionalLight.shadow.camera.far = 130;
+        // scene.add(directionalLight);
+
+        // PointLight로 태양 구현
+        const sunLight = new THREE.PointLight(0xffffff, 1000, 100, 2);
+        const sunPosition = new THREE.Vector3(0, 20, -20); // 태양을 원점에서 x축으로 10 단위 이동
+        sunLight.position.copy(sunPosition); // 태양의 위치
+        sunLight.castShadow = true;  // 그림자 생성 활성화
+        scene.add(sunLight);
+
+        // 태양 구현: 빛을 내는 구
+        const sunGeometry = new THREE.SphereGeometry(1, 32, 32);
+        const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 }); // 빛을 내므로 그림자 필요 없음
+        const sunSphere = new THREE.Mesh(sunGeometry, sunMaterial);
+        sunSphere.position.set(0, 20, -20);
+        scene.add(sunSphere);
 
         // 중력 및 운동 변수
-        const gravity = -0.02; // 중력 상수
-        let velocityY = 0; // y축 초기 속도
+        //const gravity = -0.02; // 중력 상수
+        let velocity = new THREE.Vector3(); // 이동 속도 벡터
         let onGround = true; // 접지 확인
 
         window.addEventListener('resize', onWindowResize);
@@ -432,9 +447,11 @@
         }
 
         function performJump() {
-            camera.position.y = 2;
-            velocityY = 0.4;
-            onGround = false;
+            // 중력의 반대 방향으로 점프 초기화
+            const jumpDirection = gravity.clone().negate().normalize(); // 중력의 반대 방향 벡터
+            const jumpSpeed = 1; // 점프 속도, 이 값을 조절하여 점프 높이 변경 가능
+            velocity.copy(jumpDirection.multiplyScalar(jumpSpeed));
+            onGround = false; // 접지 상태 해제
         }
 
         document.addEventListener('keydown', (event) => setKeyState(event.key, true));
@@ -445,6 +462,47 @@
             button.addEventListener('touchstart', (event) => setKeyState(keyName, true));
             button.addEventListener('touchend', (event) => setKeyState(keyName, false));
         });
+
+        const earthRadius = 10;
+        const earthCenter = new THREE.Vector3(0, 0, 0); // 구면 중심 위치 설정
+        const earthGeometry = new THREE.SphereGeometry(earthRadius, 32, 32); // 반지름이 1, 세그먼트 32
+        const earthMaterial = new THREE.MeshPhongMaterial({ side: THREE.DoubleSide });
+        const earthSphere = new THREE.Mesh(earthGeometry, earthMaterial);
+        earthSphere.position = earthCenter;
+        earthSphere.castShadow = true;
+        earthSphere.receiveShadow = true;
+        scene.add(earthSphere);
+
+        const planets = [
+            { name: "Mercury", color: 0xaaaaaa, size: 0.4, distance: 10, speed: 0.04 },
+            { name: "Venus", color: 0xffdd99, size: 0.9, distance: 15, speed: 0.03 },
+            { name: "Earth", color: 0x2233ff, size: 1, distance: 20, speed: 0.02 },
+            { name: "Mars", color: 0xff4422, size: 0.6, distance: 30, speed: 0.018 },
+            { name: "Jupiter", color: 0x884411, size: 2.4, distance: 40, speed: 0.01 },
+            { name: "Saturn", color: 0xffee33, size: 2, distance: 50, speed: 0.009 }
+        ];
+
+        function createPlanet(planet) {
+            const geometry = new THREE.SphereGeometry(planet.size, 32, 32);
+            const material = new THREE.MeshPhongMaterial({ color: planet.color });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.x = sunPosition.x + planet.distance; // 태양 위치를 기준으로 행성의 초기 위치 설정
+            mesh.position.y = sunPosition.y;
+            scene.add(mesh);
+
+            // 궤도 생성
+            const orbitGeometry = new THREE.RingGeometry(planet.distance - 0.1, planet.distance + 0.1, 64, 1);
+            const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide });
+            const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
+            orbit.position.copy(sunPosition);
+            orbit.rotation.x = Math.PI / 2;
+            scene.add(orbit);
+
+            return { mesh, speed: planet.speed, distance: planet.distance };
+        }
+
+        const planetObjects = planets.map(createPlanet);
+
 
         // 마우스 이벤트 리스너
         let lastX, lastY, isDragging = false;
@@ -459,11 +517,25 @@
             if (!isDragging) return;
             const deltaX = x - lastX;
             const deltaY = y - lastY;
-            camera.rotation.y -= deltaX * 0.005;
-            camera.rotation.x -= deltaY * 0.005;
+
+            // 카메라의 현재 전방향과 오른쪽 방향을 구합니다.
+            const cameraDirection = new THREE.Vector3();
+            camera.getWorldDirection(cameraDirection);
+            const cameraRight = new THREE.Vector3().crossVectors(camera.up, cameraDirection).normalize();
+
+            // 마우스 움직임에 따라 회전 축을 설정합니다.
+            const angleX = deltaX * 0.005;  // 좌우 이동
+            const angleY = deltaY * 0.005;  // 상하 이동
+
+            const quaternionX = new THREE.Quaternion().setFromAxisAngle(camera.up, -angleX);  // 카메라 오른쪽 축
+            const quaternionY = new THREE.Quaternion().setFromAxisAngle(cameraRight, angleY);  // 카메라 전방향 축
+
+            camera.quaternion.multiplyQuaternions(quaternionX, camera.quaternion);
+            camera.quaternion.multiplyQuaternions(quaternionY, camera.quaternion);
+
             lastX = x;
             lastY = y;
-            camera.updateProjectionMatrix();
+            //camera.updateProjectionMatrix();
         }
 
         function handleEnd() {
@@ -541,10 +613,10 @@
                 // 충돌이 발생하지 않으면 카메라 위치 업데이트
                 camera.position.copy(newPosition);
             }
-            if (keys['Space'] && onGround) {
-                velocityY = 0.4; // 점프 초기 속도 설정
-                onGround = false; // 공중에 떠있음
-            }
+            // if (keys['Space'] && onGround) {
+            //     velocityY = 0.4; // 점프 초기 속도 설정
+            //     onGround = false; // 공중에 떠있음
+            // }
 
             camera.updateProjectionMatrix();
         }
@@ -560,10 +632,7 @@
 
 
         const textureLoader = new THREE.TextureLoader();
-        // Create a floor
-        // const floorTextureURL = 'https://img.freepik.com/free-photo/marble-texture-background_1048-9588.jpg?w=1060&t=st=1713152819~exp=1713153419~hmac=87fc42cfcc097765b166e1181a3474b0bd0afa27203ef1c9124160081d7b97b2'; // 여기에 실제 텍스처 링크를 입력하세요
-        // // 텍스처 로드
-        // const floorTexture = textureLoader.load(floorTextureURL);
+
         function createFloor(width, height, color, position) {
             const geometry = new THREE.PlaneGeometry(width, height);
             const material = new THREE.MeshPhongMaterial({ color: color, side: THREE.DoubleSide });
@@ -573,14 +642,7 @@
             floor.receiveShadow = true;
             scene.add(floor);
         }
-        // const floorGeometry = new THREE.PlaneGeometry(200, 200);
-        // const floorMaterial = new THREE.MeshPhongMaterial({ color: 0x887799, side: THREE.DoubleSide });
-        // const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        // floor.rotation.x = -Math.PI / 2; // Rotate the plane to be horizontal
-        // floor.position.y = 0; // Position the floor slightly below the cube
-        // floor.receiveShadow = true;
-        // scene.add(floor);
-        createFloor(200, 200, 0x778899, new THREE.Vector3(0, 0, 0));
+        //createFloor(200, 200, 0x778899, new THREE.Vector3(0, 0, 0));
         createFloor(2, 20, 0x556677, new THREE.Vector3(1, 0.02, 0));
 
         // 격자 무늬를 추가할 GridHelper 생성
@@ -594,12 +656,13 @@
 
         function createBox(width, height, depth, color, position) {
             const geometry = new THREE.BoxGeometry(width, height, depth);
-            const material = new THREE.MeshBasicMaterial({ color: color });
+            const material = new THREE.MeshPhongMaterial({ color: color });
             const box = new THREE.Mesh(geometry, material);
             box.position.copy(position);
+            box.castShadow = true;
+            box.receiveShadow = true;
             scene.add(box);
         }
-        // 첫 번째 직육면체 생성
         createBox(10, 4, 0.1, 0xeeeeee, new THREE.Vector3(-5, 2, -10));
         createBox(8, 4, 0.1, 0xeeeeee, new THREE.Vector3(6, 2, -10));
         createBox(20, 1, 0.1, 0xeeeeee, new THREE.Vector3(0, 4.5, -10));
@@ -610,7 +673,7 @@
         const woodTexture = textureLoader.load(woodTextureURL);
         // 문
         const doorGeometry = new THREE.BoxGeometry(2, 4, 0.1);
-        const doorMaterial = new THREE.MeshBasicMaterial({ map: woodTexture });
+        const doorMaterial = new THREE.MeshPhongMaterial({ map: woodTexture });
         const door = new THREE.Mesh(doorGeometry, doorMaterial);
         door.geometry.translate(1, 0, 0);
         door.position.set(0, 2, -10);
@@ -818,30 +881,39 @@
         plane.position.z = -9.899;
         scene.add(plane);
 
+        const gravity = new THREE.Vector3(); // 중력 벡터
+        function updateGravity() {
+            // 중력 벡터를 계산: 카메라 위치에서 구면 중심을 빼고, 그 벡터를 정규화
+            gravity.copy(camera.position).sub(earthCenter).normalize().multiplyScalar(-0.4);
+        }
         // Animation loop
         function animate() {
-            requestAnimationFrame(animate);
+            updateGravity();
             //drawClock();
             texture2.needsUpdate = true;
             // Rotate the cube
             cube.rotation.x += 0.01;
             cube.rotation.y += 0.01;
-            // 중력 효과 적용
-            if (camera.position.y > 1) {
-                velocityY += gravity;
-                camera.position.y += velocityY;
-                // if (camera.position.y <= 1) {
-                //     camera.position.y = 1;
-                //     velocityY = 0;
-                //     onGround = true; // 다시 바닥에 도착
-                // }
-            } else if (camera.position.y <= 1) {
-                camera.position.y = 1;
-                velocityY = 0;
-                onGround = true; // 다시 바닥에 도착
+            // 중력을 속도에 적용
+            const delta = 0.03; // 프레임 당 시간 (대략 60 FPS에서 1/60)
+            velocity.addScaledVector(gravity, delta); // 속도에 중력 적용
+            camera.position.addScaledVector(velocity, delta); // 카메라 위치 업데이트
+            const distanceFromCenter = camera.position.distanceTo(earthCenter);
+            if (distanceFromCenter < earthRadius + 1) {
+                const correctionVector = new THREE.Vector3().subVectors(camera.position, earthCenter).normalize().multiplyScalar(earthRadius + 1);
+                camera.position.copy(earthCenter).add(correctionVector);
+                velocity.set(0, 0, 0);
+                onGround = true;
             }
             updateCamera();
+            const time = Date.now() * 0.001;
+            planetObjects.forEach(planet => {
+                planet.mesh.position.x = sunPosition.x + Math.cos(time * planet.speed) * planet.distance;
+                planet.mesh.position.z = sunPosition.z + Math.sin(time * planet.speed) * planet.distance;
+                planet.mesh.rotation.y += 0.05; // 행성 자체 회전
+            });
             renderer.render(scene, camera);
+            requestAnimationFrame(animate);
         }
 
         animate();
