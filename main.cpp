@@ -286,6 +286,34 @@ void insertArr(uint node, uint index, uchar *add, uint addSize)
     delete[] CoRe[node]; // 메모리 해제 먼저 해야 함!
     CoRe[node] = result;
 }
+// void insertArr(uint32_t node, uint32_t index, uint8_t* add, uint32_t addSize) {
+//     // CoRe[node]의 현재 크기를 구합니다. 이 예에서는 별도의 메커니즘으로 크기를 추적하고 있다고 가정합니다.
+//     uint32_t originalSize = charTouint(CoRe[node]);  // 여기서 charTouint 함수는 첫 4바이트에서 크기 정보를 읽는 함수라고 가정합니다.
+
+//     // 새로운 배열의 총 크기를 계산합니다.
+//     uint32_t newSize = originalSize + addSize;
+
+//     // 새로운 배열 할당
+//     uint8_t* result = new uint8_t[newSize];
+
+//     // 새로운 크기 정보를 결과 배열에 저장
+//     changeInt(result, 0, newSize - 4);
+
+//     // 기존 데이터의 처음부터 삽입 위치까지를 복사
+//     std::copy(CoRe[node] + 4, CoRe[node] + index + 4, result + 4);
+
+//     // 추가할 데이터를 삽입 위치에 복사
+//     std::copy(add, add + addSize, result + index + 4);
+
+//     // 원래 데이터에서 삽입 위치 이후의 데이터를 새 위치에 복사
+//     std::copy(CoRe[node] + index + 4, CoRe[node] + originalSize, result + index + addSize + 4);
+
+//     // 기존 데이터 메모리 해제
+//     delete[] CoRe[node];
+
+//     // CoRe[node]를 새 배열로 업데이트
+//     CoRe[node] = result;
+// }
 void pushCoo(uint node, ushort ch, uchar *add)
 {
     ushort numCh = charToushort(CoRe[node] + 4);
@@ -1536,20 +1564,29 @@ void info()
 }
 void pushGarbage(uint node)
 {
-    uint next = charTouint(CoRe[gar] + 10);
-    uchar newCh[18] = {14, 0, 0, 0, 1, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    //delete[] CoRe[gar]; //pushCoo에서 CoRe[gar]를 사용하므로 메모리 해제하면 안됨
-    CoRe[gar] = newCh;
-
-    uchar newCh2[18] = {14, 0, 0, 0, 1, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    delete[] CoRe[node];
-    CoRe[node] = newCh2;
+    uint next = charTouint(CoRe[gar] + 14); // 14가 다음 노드 가리키는 위치임
+    // uchar newCh[18] = {14, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //startCoo = 6이 아니라 10이 되어야 함.
+    //  delete[] CoRe[gar]; //pushCoo에서 CoRe[gar]를 사용하므로 메모리 해제하면 안됨
+    // CoRe[gar] = newCh;
     uchar *ptb = pairToBytes(node, 0);
     uchar *ptb2 = pairToBytes(next, 0);
-    pushCoo(gar, 0, ptb);
-    pushCoo(node, 0, ptb2);
+    uchar newCh2[24] = {20, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    for (int i = 0; i < 24; i++)
+    {
+        CoRe[node][i] = newCh2[i];
+    }
+    // delete[] CoRe[node];
+    // CoRe[node] = newCh2;
+    for (int i = 0; i < 6; i++)
+    {
+        CoRe[gar][i + 14] = ptb[i];
+        CoRe[node][i + 14] = ptb2[i];
+    }
+    // pushCoo(gar, 0, ptb);
+    // pushCoo(node, 0, ptb2);
     delete[] ptb;
     delete[] ptb2;
+    // delete[] newCh2;
 }
 void clearToken(uint node)
 {
@@ -1577,7 +1614,7 @@ void deleteNode(uint node)
         uint startI = startCh(node, i);
         for (int j = 0; j < sizeCRn[0] / 6; j++)
         {
-            uint startI = startCh(node, i);
+            // uint startI = startCh(node, i);
             pair<uint, ushort> temp = charToPair(CoRe[node] + startI + 4 + 6 * j);
             // int size = CoRe[temp.first].size();
             int size = numCh(temp.first);
@@ -1680,7 +1717,7 @@ void AddStringToNode(const string &str, uint node, ushort ch)
         wcout << L"popGarbage(l = " << intToWString(newcd) << endl;
         addCh(newcd); // make count of ch as 2
         link(node, ch, newcd, 1);
-        order[1].push_back(make_tuple(newcd, 1, timer, timer)); //생성시간 = timer
+        order[1].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
         Brain(newcd, wstr2);
     }
     else
@@ -1970,7 +2007,8 @@ wstring makeContent(uint user, wstring inputText, wstring Log2 = L"")
 {
     Log(Log2);
     info();
-    wstring content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(cNode[user], cCh[user], user) + L"\t" + LogToClient + L"\t" + infoStr;
+    uint cch = numCh(cNode[user]);
+    wstring content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(cNode[user], cCh[user], user) + L"\t" + LogToClient + L"\t" + infoStr + L"\t" + intToWString(cch);
     return content;
 }
 void handleLogin(const std::string &requestBody, int client_socket)
@@ -2277,13 +2315,13 @@ int Network()
                                     AddStringToNode(str, cNode[user], cCh[user]);
                                     sendMsg(client_socket, makeContent(user, L"", L""));
                                 }
-                                else if (clientMvec[3] == L"시작" || clientMvec[3] == L"start")
+                                else if (inputText == "시작" || inputText == "start")
                                 {
                                     cNode[user] = 0;
                                     cCh[user] = 1;
                                     sendMsg(client_socket, makeContent(user, L"", L""));
                                 }
-                                else if (clientMvec[3] == L"수정")
+                                else if (inputText == "수정")
                                 {
                                     uchar *sheetNode = Sheet(cNode[user]);
                                     sendMsg(client_socket, makeContent(user, L"@" + charToWstring(sheetNode), L""));
@@ -2298,14 +2336,25 @@ int Network()
                                     delete[] wstr2;
                                     sendMsg(client_socket, makeContent(user, L""));
                                 }
-                                else if (clientMvec[3] == L"save" || clientMvec[3] == L"저장")
+                                else if (clientMvec[3][0] == L'#') // Search
+                                {
+                                    string str = inputText.substr(1);
+                                    wstring wstr = utf8ToWstring(str);
+                                    uchar *wstr2 = wstringToUChar(wstr);
+                                    uint dataSz = charTouint(wstr2);
+                                    uint Node = firstToken(wstr2, dataSz);
+                                    cNode[user] = Node;
+                                    cCh[user] = 1;
+                                    sendMsg(client_socket, makeContent(user, L""));
+                                }
+                                else if (inputText == "save" || inputText == "저장")
                                 {
                                     save("");
                                     sendMsg(client_socket, makeContent(user, L"", L"save complete!"));
                                 }
                                 else if (inputText == "del98")
                                 { // 삭제하고 + 98
-                                    deleteNode(cNode[1]);
+                                    deleteNode(cNode[user]);
                                     study(1);
                                     sendMsg(client_socket, makeContent(user, L"", L"del98 complete!"));
                                 }
@@ -2415,7 +2464,8 @@ int Network()
                                     {
                                         Log(L"올바른 입력 형식이 아닙니다. ");
                                     }
-                                    info();
+                                    //info();
+                                    sendMsg(client_socket, makeContent(user, L"", L""));
                                     // clearInputText();
                                 }
                                 else if (inputText.size() >= 5 && inputText.substr(0, 5) == "move,")
