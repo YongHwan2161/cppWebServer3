@@ -31,7 +31,7 @@ jobs:
         gcloud compute scp ./workspaces/cppWebServer3/main ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
         gcloud compute scp ./workspaces/cppWebServer3/deploy_script.sh ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
         
-    - name: Execute deployment script on VM
-      run: |
-        echo "Running deployment script on VM..."
-        gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command 'bash ~/deploy_script.sh'
+    # - name: Execute deployment script on VM
+    #   run: |
+    #     echo "Running deployment script on VM..."
+    #     gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command 'bash ~/deploy_script.sh'
