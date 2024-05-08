@@ -1372,6 +1372,7 @@
             };
             xhr.onerror = function () {
                 console.error('Request failed.');
+                document.getElementById('contents').textContent += '\r\nRequest failed.';
             };
             xhr.send(text);
         }
