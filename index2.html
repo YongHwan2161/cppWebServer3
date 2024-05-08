@@ -1358,8 +1358,8 @@
             const text = `${user}\t${node}\t${ch}\t${textinput}${additionalContent}`;
             //document.getElementById('contents').textContent = textinput;
             const xhr = new XMLHttpRequest();
-            //xhr.open('POST', '35.225.102.250:8080', true);
-            xhr.open('POST', 'https://obscure-space-train-v9xrjvg795p2rx5-8080.app.github.dev/8080', true);
+            xhr.open('POST', '35.225.102.250:8080', true);
+            //xhr.open('POST', 'https://obscure-space-train-v9xrjvg795p2rx5-8080.app.github.dev/8080', true);
             xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
             xhr.onload = function () {
                 if (xhr.status === 200) {
