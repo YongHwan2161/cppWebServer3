@@ -43,5 +43,5 @@ jobs:
     - name: Execute deployment script on VM
       run: |
         echo "Running deployment script on VM..."
-        gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command 'cd /home/runner'
+        gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command 'chmod +x main'
         gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command './main'
