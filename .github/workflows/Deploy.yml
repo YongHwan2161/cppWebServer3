@@ -29,13 +29,19 @@ jobs:
         echo "Building the project..."
         # 여기에 빌드 명령을 추가하세요
 
+    - name: 실행 중인 main 중지
+      run: |
+        echo "Running deployment script on VM..."
+        gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command 'sudo kill -HUP $(pidof main)'
+
     - name: Copy files to GCP VM
       run: |
         echo "Deploying to Google Cloud VM..."
         gcloud compute scp ./main ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
         gcloud compute scp ./index2.html ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
         
-    # - name: Execute deployment script on VM
-    #   run: |
-    #     echo "Running deployment script on VM..."
-    #     gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command 'bash ~/deploy_script.sh'
+    - name: Execute deployment script on VM
+      run: |
+        echo "Running deployment script on VM..."
+        gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command 'cd /home/runner'
+        gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command './main'
