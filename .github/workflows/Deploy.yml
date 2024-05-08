@@ -32,7 +32,7 @@ jobs:
     - name: 실행 중인 main 중지
       run: |
         echo "Running deployment script on VM..."
-        gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command 'sudo kill -HUP $(pidof main)'
+        gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command 'pkill -f main'
 
     - name: Copy files to GCP VM
       run: |
