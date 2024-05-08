@@ -840,7 +840,7 @@ wstring LogToClient = L"";
 void Log(wstring text)
 {
     LogToClient = L"";
-    wcout << text << endl;
+    //wcout << text << endl;
     if (text != L"")
     {
         LogStr.push_back(text);
@@ -2632,7 +2632,7 @@ int main(int argc, char const *argv[])
 {
     auto start = std::chrono::high_resolution_clock::now();
     std::locale::global(std::locale("en_US.UTF-8"));
-    std::wcout.imbue(std::locale());
+    //std::wcout.imbue(std::locale());
     // RAM에 Brain UpRoad
     std::ifstream in("Brain3-test.bin", std::ios::binary);
     // int ii = 0;
@@ -2640,7 +2640,8 @@ int main(int argc, char const *argv[])
     in.read(reinterpret_cast<char *>(size2), sizeof(uint));
     uint size3 = charTouint(size2);
     wstring ww = intToWString(size3);
-    std::cerr << "Node: " << wstringToUtf8(ww) << std::endl;
+    //std::cerr << "Node: " << wstringToUtf8(ww) << std::endl;
+    //Log(L"Node" + ww);
     for (int i = 0; i < size3; i++)
     {
         uchar *size1 = new uchar[4];
