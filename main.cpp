@@ -28,7 +28,7 @@ uint user = 1;
 uint cNode[10];
 ushort cCh[10];
 uint pageNum[10];
-pair<uint, ushort> copy;
+pair<uint, ushort> copyNode;
 int line_spacing = 5;
 int text_size = 15;
 vector<wstring> LogStr{};
@@ -158,12 +158,12 @@ uchar *axis1(uint node, ushort ch)
     uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
     return CoRe[node] + startCoo + 4; // 포인터를 그대로 전달함.
 }
-uchar *axis2(uint node, ushort ch)
+uint axis2(uint node, ushort ch)
 {
     uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
     uint sizeCoo = charTouint(CoRe[node] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    return CoRe[node] + startRev + 4;
+    return startRev + 4;
 }
 uchar *axis3(uint node, ushort ch)
 {
@@ -533,13 +533,13 @@ void link(uint prevNode, ushort prevCh, uint nextNode, ushort nextCh)
     pushCoo(prevNode, prevCh, pairToBytes(nextNode, nextCh));
     pushRev(nextNode, nextCh, pairToBytes(prevNode, prevCh));
 }
-std::wstring ushortToWstring(ushort num)
+std::wstring ushortToWstring(ushort num) // ushort 번호에 해당하는 wstring 글자를 반환하는 함수임. ushort 자체를 글자로 변환하는 거 아님(이거는 intToWString() 사용할 것)
 {
     wchar_t wc = static_cast<wchar_t>(num);
     wstring ws(1, wc);
     return ws;
 }
-std::wstring intToWString(int num)
+std::wstring intToWString(int num) // 숫자를 wstring으로 바꿔주는 함수
 {
     std::wstringstream wss;
     wss << num;
@@ -1422,28 +1422,34 @@ wstring contentList(uint node, ushort ch)
     uint sizeRev = charTouint(CoRe[node] + startRev);
     if (sizeRev > 0)
     {
-        uchar *prevNode = axis2(node, ch);
+        uint prevNode = axis2(node, ch);
         wstring prev = L"";
         wstring pprev = L"";
         for (int i = 0; i < sizeRev / 6; i++)
         {
             wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonRev" + intToWString(i + 1) + L"\", \"\")' onclick='sendTextToServer(" + intToWString(-(i + 1)) + L"); return false;'>" + intToWString(-(i + 1)) + L"</a>";
-            uchar *sheetPrev = Sheet(charTouint(prevNode + 6 * i));
+            uchar *sheetPrev = Sheet(charTouint(CoRe[node] + prevNode + 6 * i));
             prev += hpL + L". " + charToWstring(sheetPrev) + L"<br/>";
             delete[] sheetPrev;
             // prev += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&prevNode[6 * i]))) + L"<br/>";
-            uint node2 = charTouint(prevNode + 6 * i);
-            ushort ch2 = charToushort(prevNode + 4 + 6 * i);
+            uint node2 = charTouint(CoRe[node] + prevNode + 6 * i);
+            ushort ch2 = charToushort(CoRe[node] + prevNode + 4 + 6 * i);
             uint startCoo2 = charTouint(CoRe[node2] + 6 + 4 * ch2);
             uint sizeCoo2 = charTouint(CoRe[node2] + startCoo2);
             uint startRev2 = startCoo2 + 4 + sizeCoo2;
             uint sizeRev2 = charTouint(CoRe[node2] + startRev2);
-            uchar *splPrev2 = CoRe[node2] + startRev2 + 4 + 6 * i;
+            // uchar *splPrev2 = CoRe[node2] + startRev2 + 4 + 6 * i;
+            uint splPrev2 = startRev2 + 4 + 6 * i;
             // vector<uchar> splPrev2 = axon2(charTouint(prevNode, 6 * i), charToushort(prevNode, 4 + 6 * i));
             for (int j = 0; j < sizeRev2 / 6; j++)
             {
                 // pprev += intToWString(-(i + 1)) + L"." + intToWString(j + 1) + L" " + charToWstring(Sheet(*reinterpret_cast<uint *>(&splPrev2[6 * j]))) + L"<br/>";
-                uchar *sheetPP = Sheet(charTouint(splPrev2 + 6 * j));
+                uint sheetNode2 = charTouint(CoRe[node2] + splPrev2 + 6 * j);
+                if (sheetNode2 > CoRe.size()){
+                    Log(L"error: prev i = " + intToWString(i) + L", pprev j = " + intToWString(j) + L".");
+                    continue;
+                }
+                uchar *sheetPP = Sheet(sheetNode2);
                 pprev += intToWString(-(i + 1)) + L"." + intToWString(j + 1) + L" " + charToWstring(sheetPP) + L"<br/>";
                 delete[] sheetPP;
             }
@@ -1702,7 +1708,7 @@ uint popGarbage()
     delete[] ptb;
     return re;
 }
-void AddStringToNode(const string &str, uint node, ushort ch)
+void AddStringToNode(const string &str, uint node, ushort ch, uint user)
 {
     cerr << "call AddStringToNode()" << endl;
     wstring wstr = utf8ToWstring(str);
@@ -1717,7 +1723,7 @@ void AddStringToNode(const string &str, uint node, ushort ch)
         wcout << L"popGarbage(l = " << intToWString(newcd) << endl;
         addCh(newcd); // make count of ch as 2
         link(node, ch, newcd, 1);
-        order[1].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
+        order[user].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
         Brain(newcd, wstr2);
     }
     else
@@ -1730,7 +1736,7 @@ void AddStringToNode(const string &str, uint node, ushort ch)
         CoRe.push_back(newCh2);
         addCh(newcd);
         link(node, ch, newcd, 1);
-        order[1].push_back(make_tuple(newcd, 1, timer, timer));
+        order[user].push_back(make_tuple(newcd, 1, timer, timer));
         Brain(newcd, wstr2);
     }
     delete[] wstr2;
@@ -1960,11 +1966,11 @@ void handleSignUp(const std::string &requestBody, int clientSocket)
     //     write(clientSocket, response.c_str(), response.length());
     // }
     std::string response = "Signup Successful!";
-    AddStringToNode(data["username"], 34196, 1);
+    AddStringToNode(data["username"], 34196, 1, 1);
     uint startCoo = charTouint(CoRe[34196] + 6 + 4 * 1);
     uint sizeCoo = charTouint(CoRe[34196] + startCoo);
-    AddStringToNode(data["password"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1);
-    AddStringToNode(data["email"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1);
+    AddStringToNode(data["password"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1, 1);
+    AddStringToNode(data["email"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1, 1);
     send(clientSocket, response.c_str(), response.size(), 0);
 }
 bool checkLogin(const std::string &username, const std::string &password)
@@ -2008,7 +2014,7 @@ wstring makeContent(uint user, wstring inputText, wstring Log2 = L"")
     Log(Log2);
     info();
     uint cch = numCh(cNode[user]);
-    wstring content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(cNode[user], cCh[user], user) + L"\t" + LogToClient + L"\t" + infoStr + L"\t" + intToWString(cch);
+    wstring content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(cNode[user], cCh[user], user) + L"\t" + LogToClient + L"\t" + infoStr + L"\t" + intToWString(cch) + L"\t" + intToWString(copyNode.first) + L"\t" + intToWString((int)copyNode.second);
     return content;
 }
 void handleLogin(const std::string &requestBody, int client_socket)
@@ -2299,6 +2305,16 @@ int Network()
                                 }
                                 else if (num == 99)
                                 {
+                                    copyNode = make_pair(cNode[user], cCh[user]);
+                                    sendMsg(client_socket, makeContent(user, L""));
+                                }
+                                else if (num == 100)
+                                {
+                                    if (copyNode.first != 0 && copyNode.second != 0)
+                                    {
+                                        link(cNode[user], cCh[user], copyNode.first, copyNode.second);
+                                    }
+                                    sendMsg(client_socket, makeContent(user, L""));
                                 }
                                 else if ((num > 0 && num <= sizeCoo(cNode[user], cCh[user]) / 6) || (num < 0 && -num <= sizeRev(cNode[user], cCh[user]) / 6))
                                 {
@@ -2308,11 +2324,32 @@ int Network()
                             }
                             else
                             {
-                                std::cout << "Invalid argument: the wstring cannot be converted to an integer." << std::endl;
+                                // std::cout << "Invalid argument: the wstring cannot be converted to an integer." << std::endl;
+                                uint startCoo = charTouint(CoRe[6478] + 10);
+                                uint sizeCoo = charTouint(CoRe[6478] + startCoo) / 6;
+                                for (int i = 0; i < sizeCoo; i++)
+                                { // 바로가기 기능 구현
+                                    uint nextNode = charTouint(CoRe[6478] + startCoo + 4 + 6 * i);
+                                    uchar *sheetNode = Sheet(nextNode);
+                                    wstring ws = charToWstring(sheetNode);
+                                    if (clientMvec[3] == ws)
+                                    {
+                                        ushort nextCh = charToushort(CoRe[6478] + startCoo + 8 + 6 * i);
+                                        cNode[user] = nextNode;
+                                        cCh[user] = nextCh;
+                                        delete[] sheetNode;
+                                        sendMsg(client_socket, makeContent(user, L"", L""));
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        delete[] sheetNode;
+                                    }
+                                }
                                 if (clientMvec[3][0] == L'/')
                                 {
                                     string str = wstringToUtf8(clientMvec[3].substr(1));
-                                    AddStringToNode(str, cNode[user], cCh[user]);
+                                    AddStringToNode(str, cNode[user], cCh[user], user);
                                     sendMsg(client_socket, makeContent(user, L"", L""));
                                 }
                                 else if (inputText == "시작" || inputText == "start")
@@ -2352,11 +2389,42 @@ int Network()
                                     save("");
                                     sendMsg(client_socket, makeContent(user, L"", L"save complete!"));
                                 }
+                                else if (inputText == "backUp")
+                                {
+                                    save("backup/");
+                                    sendMsg(client_socket, makeContent(user, L"", L"backup complete!"));
+                                }
                                 else if (inputText == "del98")
                                 { // 삭제하고 + 98
                                     deleteNode(cNode[user]);
                                     study(1);
                                     sendMsg(client_socket, makeContent(user, L"", L"del98 complete!"));
+                                }
+                                else if (inputText == "ch+")
+                                { // channel plus
+                                    ushort nc = numCh(cNode[user]);
+                                    if (cCh[user] + 1 < nc)
+                                    {
+                                        cCh[user] += 1;
+                                    }
+                                    else
+                                    {
+                                        cCh[user] = 0;
+                                    }
+                                    sendMsg(client_socket, makeContent(user, L"", L""));
+                                }
+                                else if (inputText == "ch-")
+                                { // 삭제하고 + 98
+                                    ushort nc = numCh(cNode[user]);
+                                    if (cCh[user] > 0)
+                                    {
+                                        cCh[user] -= 1;
+                                    }
+                                    else
+                                    {
+                                        cCh[user] = nc - 1;
+                                    }
+                                    sendMsg(client_socket, makeContent(user, L"", L""));
                                 }
                                 else if (inputText == "html")
                                 { // edit index2.html file
@@ -2464,7 +2532,7 @@ int Network()
                                     {
                                         Log(L"올바른 입력 형식이 아닙니다. ");
                                     }
-                                    //info();
+                                    // info();
                                     sendMsg(client_socket, makeContent(user, L"", L""));
                                     // clearInputText();
                                 }
