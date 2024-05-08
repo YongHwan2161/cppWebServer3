@@ -1,0 +1,37 @@
+name: Build and Deploy to GCP VM
+
+on:
+  push:
+    branches:
+      - main  # 또는 배포하려는 브랜치 명시
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        project_id: ${{ secrets.GCP_PROJECT }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+
+    - name: Build the project
+      run: |
+        # 빌드 명령 실행, 예: make, gcc, g++, javac 등
+        echo "Building the project..."
+        # 여기에 빌드 명령을 추가하세요
+
+    - name: Copy files to GCP VM
+      run: |
+        echo "Deploying to Google Cloud VM..."
+        gcloud compute scp ./workspaces/cppWebServer3/main ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
+        gcloud compute scp ./workspaces/cppWebServer3/deploy_script.sh ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
+        
+    - name: Execute deployment script on VM
+      run: |
+        echo "Running deployment script on VM..."
+        gcloud compute ssh ${{ secrets.VM_NAME }} --zone ${{ secrets.VM_ZONE }} --command 'bash ~/deploy_script.sh'
