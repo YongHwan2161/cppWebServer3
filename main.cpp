@@ -11,7 +11,6 @@
 #include <sys/socket.h>
 #include <thread>
 #include <map>
-#include <sqlite3.h>
 #include <regex>
 // #include <nlohmann/json.hpp>
 
@@ -908,7 +907,7 @@ std::wstring charToWstring(uchar *val) // size 정보 담아서 전달되어야 
 }
 uchar *Sheet(uint node)
 {
-    cerr << "call Sheet()" << endl;
+    //cerr << "call Sheet()" << endl;
     constexpr uint reSize = 4000;
     uchar *re = new uchar[reSize]();
     ushort nowPosi = 4;
@@ -967,9 +966,9 @@ uchar *Sheet(uint node)
         std::cerr << "re is not a null pointer." << endl;
     }
     wstring ww = charToWstring(re);
-    wcout << L"ww = " << ww << endl;
+    //wcout << L"ww = " << ww << endl;
     string ss = wstringToUtf8(ww);
-    std::cerr << "re = " << ss << std::endl;
+    //std::cerr << "re = " << ss << std::endl;
     return re;
 }
 bool startsWith(const std::wstring &str, const std::wstring &prefix)
@@ -1890,66 +1889,59 @@ static int callback(void *NotUsed, int argc, char **argv, char **azColName)
     }
     return 0;
 }
-bool insertUser(const std::string &username, const std::string &email, const std::string &password)
-{
-    sqlite3 *db;
-    char *zErrMsg = 0;
-    int rc;
-
-    // 데이터베이스 파일 열기 (없으면 생성)
-    rc = sqlite3_open("example.db", &db);
-    if (rc)
-    {
-        std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
-        return false;
-    }
-
-    // 테이블 존재 여부 확인
-    // bool tableExists = false;
-    std::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='USERS';";
-    // rc = sqlite3_exec(db, sql.c_str(), [](void *data, int argc, char **argv, char **azColName) -> int {
-    //     //tableExists = true;
-    //     return 0;
-    // }, nullptr, &zErrMsg);
-    // if (rc != SQLITE_OK)
-    // {
-    //     std::cerr << "SQL error: " << zErrMsg << std::endl;
-    //     sqlite3_free(zErrMsg);
-    // }
-
-    // 테이블이 없으면 생성
-    //    if (!tableExists)
-    //    {
-    // sql = "CREATE TABLE USERS (USERNAME TEXT NOT NULL UNIQUE, EMAIL TEXT NOT NULL, PASSWORD TEXT NOT NULL);";
-    // rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
-    // if (rc != SQLITE_OK)
-    //{
-    //   std::cerr << "SQL error: " << zErrMsg << std::endl;
-    //  sqlite3_free(zErrMsg);
-    //  return false;
-    //}
-    //    }
-
-    // 사용자 데이터를 저장하기 위한 SQL 쿼리 생성
-    sql = "INSERT INTO USERS (USERNAME, EMAIL, PASSWORD) VALUES ('" + username + "', '" + email + "', '" + password + "');";
-
-    // SQL 쿼리 실행
-    rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
-    if (rc != SQLITE_OK)
-    {
-        std::cerr << "SQL error: " << zErrMsg << std::endl;
-        sqlite3_free(zErrMsg);
-    }
-    else
-    {
-        std::cout << "Record inserted successfully" << std::endl;
-    }
-
-    // 데이터베이스 연결 닫기
-    sqlite3_close(db);
-
-    return rc == SQLITE_OK;
-}
+// bool insertUser(const std::string &username, const std::string &email, const std::string &password)
+// {
+//     sqlite3 *db;
+//     char *zErrMsg = 0;
+//     int rc;
+//     // 데이터베이스 파일 열기 (없으면 생성)
+//     rc = sqlite3_open("example.db", &db);
+//     if (rc)
+//     {
+//         std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
+//         return false;
+//     }
+//     // 테이블 존재 여부 확인
+//     // bool tableExists = false;
+//     std::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='USERS';";
+//     // rc = sqlite3_exec(db, sql.c_str(), [](void *data, int argc, char **argv, char **azColName) -> int {
+//     //     //tableExists = true;
+//     //     return 0;
+//     // }, nullptr, &zErrMsg);
+//     // if (rc != SQLITE_OK)
+//     // {
+//     //     std::cerr << "SQL error: " << zErrMsg << std::endl;
+//     //     sqlite3_free(zErrMsg);
+//     // }
+//     // 테이블이 없으면 생성
+//     //    if (!tableExists)
+//     //    {
+//     // sql = "CREATE TABLE USERS (USERNAME TEXT NOT NULL UNIQUE, EMAIL TEXT NOT NULL, PASSWORD TEXT NOT NULL);";
+//     // rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
+//     // if (rc != SQLITE_OK)
+//     //{
+//     //   std::cerr << "SQL error: " << zErrMsg << std::endl;
+//     //  sqlite3_free(zErrMsg);
+//     //  return false;
+//     //}
+//     //    }
+//     // 사용자 데이터를 저장하기 위한 SQL 쿼리 생성
+//     sql = "INSERT INTO USERS (USERNAME, EMAIL, PASSWORD) VALUES ('" + username + "', '" + email + "', '" + password + "');";
+//     // SQL 쿼리 실행
+//     rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
+//     if (rc != SQLITE_OK)
+//     {
+//         std::cerr << "SQL error: " << zErrMsg << std::endl;
+//         sqlite3_free(zErrMsg);
+//     }
+//     else
+//     {
+//         std::cout << "Record inserted successfully" << std::endl;
+//     }
+//     // 데이터베이스 연결 닫기
+//     sqlite3_close(db);
+//     return rc == SQLITE_OK;
+// }
 void handleSignUp(const std::string &requestBody, int clientSocket)
 {
     auto data = parseQuery(requestBody);
@@ -1973,42 +1965,42 @@ void handleSignUp(const std::string &requestBody, int clientSocket)
     AddStringToNode(data["email"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1, 1);
     send(clientSocket, response.c_str(), response.size(), 0);
 }
-bool checkLogin(const std::string &username, const std::string &password)
-{
-    sqlite3 *db;
-    char *zErrMsg = 0;
-    int rc;
-    bool loginSuccess = false;
+// bool checkLogin(const std::string &username, const std::string &password)
+// {
+//     sqlite3 *db;
+//     char *zErrMsg = 0;
+//     int rc;
+//     bool loginSuccess = false;
 
-    // 데이터베이스 열기
-    rc = sqlite3_open("example.db", &db);
-    if (rc)
-    {
-        std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
-        return false;
-    }
+//     // 데이터베이스 열기
+//     rc = sqlite3_open("example.db", &db);
+//     if (rc)
+//     {
+//         std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
+//         return false;
+//     }
 
-    std::string sql = "SELECT * FROM USERS WHERE USERNAME='" + username + "' AND PASSWORD='" + password + "';";
+//     std::string sql = "SELECT * FROM USERS WHERE USERNAME='" + username + "' AND PASSWORD='" + password + "';";
 
-    // 쿼리 실행을 위한 콜백 함수
-    auto callback = [](void *data, int argc, char **argv, char **azColName) -> int
-    {
-        *(bool *)data = true; // 결과가 있는 경우 loginSuccess를 true로 설정
-        return 0;
-    };
-    // SQL 쿼리 실행
-    rc = sqlite3_exec(db, sql.c_str(), callback, &loginSuccess, &zErrMsg);
-    if (rc != SQLITE_OK)
-    {
-        std::cerr << "SQL error: " << zErrMsg << std::endl;
-        sqlite3_free(zErrMsg);
-    }
+//     // 쿼리 실행을 위한 콜백 함수
+//     auto callback = [](void *data, int argc, char **argv, char **azColName) -> int
+//     {
+//         *(bool *)data = true; // 결과가 있는 경우 loginSuccess를 true로 설정
+//         return 0;
+//     };
+//     // SQL 쿼리 실행
+//     rc = sqlite3_exec(db, sql.c_str(), callback, &loginSuccess, &zErrMsg);
+//     if (rc != SQLITE_OK)
+//     {
+//         std::cerr << "SQL error: " << zErrMsg << std::endl;
+//         sqlite3_free(zErrMsg);
+//     }
 
-    // 데이터베이스 닫기
-    sqlite3_close(db);
+//     // 데이터베이스 닫기
+//     sqlite3_close(db);
 
-    return loginSuccess;
-}
+//     return loginSuccess;
+// }
 wstring makeContent(uint user, wstring inputText, wstring Log2 = L"")
 {
     Log(Log2);
@@ -2121,7 +2113,7 @@ int Network()
     // 서버 주소 설정
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(8080); // 포트 번호는 8000으로 설정
+    server_addr.sin_port = htons(8080); // 포트 번호는 8080으로 설정
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     int opt = 1;
@@ -2209,7 +2201,7 @@ int Network()
                     handleSignUp(requestBody, client_socket);
                 }
             }
-            else if (method == L"POST /")
+            else if (method == L"POST /" || method == L"POST /8080")
             {
                 std::cerr << "get POST request!!!" << std::endl;
                 std::wstring prefix = L"\r\n\r\n";
@@ -2296,6 +2288,7 @@ int Network()
                                 {
                                     study(user);
                                     sendMsg(client_socket, makeContent(user, L"98"));
+                                    cerr << "989898" << endl;
                                 }
                                 else if (num == 982) // if not working 98 function
                                 {
