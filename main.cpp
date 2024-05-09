@@ -840,7 +840,7 @@ wstring LogToClient = L"";
 void Log(wstring text)
 {
     LogToClient = L"";
-    //wcout << text << endl;
+    // wcout << text << endl;
     if (text != L"")
     {
         LogStr.push_back(text);
@@ -907,7 +907,7 @@ std::wstring charToWstring(uchar *val) // size 정보 담아서 전달되어야 
 }
 uchar *Sheet(uint node)
 {
-    //cerr << "call Sheet()" << endl;
+    // cerr << "call Sheet()" << endl;
     constexpr uint reSize = 4000;
     uchar *re = new uchar[reSize]();
     ushort nowPosi = 4;
@@ -966,9 +966,9 @@ uchar *Sheet(uint node)
         std::cerr << "re is not a null pointer." << endl;
     }
     wstring ww = charToWstring(re);
-    //wcout << L"ww = " << ww << endl;
+    // wcout << L"ww = " << ww << endl;
     string ss = wstringToUtf8(ww);
-    //std::cerr << "re = " << ss << std::endl;
+    // std::cerr << "re = " << ss << std::endl;
     return re;
 }
 bool startsWith(const std::wstring &str, const std::wstring &prefix)
@@ -1412,7 +1412,7 @@ void sendMsg(int ClientSocket, std::wstring content)
         total_sent += sent;
     }
 }
-wstring contentList(uint node, ushort ch)
+wstring contentList(uint node, ushort ch, uint page = 1)
 {
     wstring ws = L"";
     uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
@@ -1444,7 +1444,8 @@ wstring contentList(uint node, ushort ch)
             {
                 // pprev += intToWString(-(i + 1)) + L"." + intToWString(j + 1) + L" " + charToWstring(Sheet(*reinterpret_cast<uint *>(&splPrev2[6 * j]))) + L"<br/>";
                 uint sheetNode2 = charTouint(CoRe[node2] + splPrev2 + 6 * j);
-                if (sheetNode2 > CoRe.size()){
+                if (sheetNode2 > CoRe.size())
+                {
                     Log(L"error: prev i = " + intToWString(i) + L", pprev j = " + intToWString(j) + L".");
                     continue;
                 }
@@ -1460,7 +1461,6 @@ wstring contentList(uint node, ushort ch)
     delete[] sheetNode;
 
     uchar *nextNode = CoRe[node] + startCoo + 4;
-    uint page = 1;
     for (int i = (page - 1) * 50; i < page * 50 - 1 && sizeCoo != 0; i++)
     {
         if (i == sizeCoo / 6)
@@ -1717,9 +1717,7 @@ void AddStringToNode(const string &str, uint node, ushort ch, uint user)
     uint newcd = CoRe.size();
     if (sizeGarbage() > 10)
     { // 쓰레기통에서 재활용
-        wcout << L"sizeGabage() > 10" << endl;
         newcd = popGarbage();
-        wcout << L"popGarbage(l = " << intToWString(newcd) << endl;
         addCh(newcd); // make count of ch as 2
         link(node, ch, newcd, 1);
         order[user].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
@@ -1739,6 +1737,56 @@ void AddStringToNode(const string &str, uint node, ushort ch, uint user)
         Brain(newcd, wstr2);
     }
     delete[] wstr2;
+}
+void AddStringToNode2(const string &str1, const string &str2, uint node, ushort ch, uint user)
+{
+    wstring wstr1 = utf8ToWstring(str1);
+    wstring wstr2 = utf8ToWstring(str2);
+    uchar *char1 = wstringToUChar(wstr1);
+    uchar *char2 = wstringToUChar(wstr2);
+    time_t timer;
+    time(&timer);
+    uint newcd = CoRe.size();
+    if (sizeGarbage() > 11)
+    { // 쓰레기통에서 재활용
+        wcout << L"sizeGabage() > 10" << endl;
+        newcd = popGarbage();
+        wcout << L"popGarbage = " << intToWString(newcd) << endl;
+        addCh(newcd); // make count of ch as 2
+        link(node, ch, newcd, 1);
+        order[user].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
+        Brain(newcd, char1);
+        uint newcd2 = popGarbage();
+        addCh(newcd2);
+        link(newcd, 1, newcd2, 1);
+        order[user].push_back(make_tuple(newcd2, 1, timer, timer)); // 생성시간 = timer
+        Brain(newcd2, char2);
+    }
+    else
+    {
+        uchar *newCh2 = new uchar[18];
+        for (int i = 0; i < 18; ++i)
+        {
+            newCh2[i] = initValues[i];
+        }
+        CoRe.push_back(newCh2);
+        addCh(newcd);
+        link(node, ch, newcd, 1);
+        order[user].push_back(make_tuple(newcd, 1, timer, timer));
+        Brain(newcd, char1);
+        uchar *newCh3 = new uchar[18];
+        for (int i = 0; i < 18; ++i)
+        {
+            newCh2[i] = initValues[i];
+        }
+        CoRe.push_back(newCh3);
+        addCh(newcd + 1);
+        link(newcd, 1, newcd + 1, 1);
+        order[user].push_back(make_tuple(newcd + 1, 1, timer, timer));
+        Brain(newcd + 1, char2);
+    }
+    delete[] char1;
+    delete[] char2;
 }
 void save(string directory)
 {
@@ -2548,6 +2596,33 @@ int Network()
                                     }
                                     // clearInputText();
                                 }
+                                else if (inputText.size() >= 4 && inputText.substr(0, 4) == "page")
+                                {
+                                    vector<string> spl = splitStringASCII(inputText, 'e');
+                                    if (spl.size() == 2)
+                                    {
+                                        uint page = stringToUint(spl[1]);
+                                        content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user], page) + L"\t" + intToWString(CoRe.size()) + L"\t";
+                                        sendMsg(client_socket, content);
+                                    }
+                                    else
+                                    {
+                                        Log(L"올바른 입력 형식이 아닙니다. ");
+                                    }
+                                }
+                                else if (inputText.size() >= 4 && inputText.substr(0, 4) == "map,")
+                                {
+                                    vector<string> spl = splitStringASCII(inputText, ',');
+                                    if (spl.size() == 3)
+                                    {
+                                        AddStringToNode2(spl[1], spl[2], cNode[user], cCh[user], user);
+                                        sendMsg(client_socket, makeContent(user, L"", L""));
+                                    }
+                                    else
+                                    {
+                                        Log(L"올바른 입력 형식이 아닙니다. ");
+                                    }
+                                }
                             }
                         }
                     }
@@ -2609,11 +2684,7 @@ int Network2()
     // Accept an incoming connection
     if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
     {
-<<<<<<< HEAD
-        perror("accept"); 
-=======
         perror("accept");
->>>>>>> 8610551a2690a1ccb9e4f3904728b15b046f5844
         exit(EXIT_FAILURE);
     }
 
@@ -2636,16 +2707,16 @@ int main(int argc, char const *argv[])
 {
     auto start = std::chrono::high_resolution_clock::now();
     std::locale::global(std::locale("en_US.UTF-8"));
-    //std::wcout.imbue(std::locale());
-    // RAM에 Brain UpRoad
+    // std::wcout.imbue(std::locale());
+    //  RAM에 Brain UpRoad
     std::ifstream in("Brain3-test.bin", std::ios::binary);
     // int ii = 0;
     uchar *size2 = new uchar[4];
     in.read(reinterpret_cast<char *>(size2), sizeof(uint));
     uint size3 = charTouint(size2);
     wstring ww = intToWString(size3);
-    //std::cerr << "Node: " << wstringToUtf8(ww) << std::endl;
-    //Log(L"Node" + ww);
+    // std::cerr << "Node: " << wstringToUtf8(ww) << std::endl;
+    // Log(L"Node" + ww);
     for (int i = 0; i < size3; i++)
     {
         uchar *size1 = new uchar[4];
