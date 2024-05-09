@@ -2609,7 +2609,11 @@ int Network2()
     // Accept an incoming connection
     if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
     {
+<<<<<<< HEAD
         perror("accept"); 
+=======
+        perror("accept");
+>>>>>>> 8610551a2690a1ccb9e4f3904728b15b046f5844
         exit(EXIT_FAILURE);
     }
 
