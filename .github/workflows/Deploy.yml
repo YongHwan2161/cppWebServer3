@@ -39,7 +39,7 @@ jobs:
         echo "Deploying to Google Cloud VM..."
         gcloud compute scp ./main ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
         gcloud compute scp ./index2.html ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
-        gcloud compute scp ./Brain3-test.bin ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
+        # gcloud compute scp ./Brain3-test.bin ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
         gcloud compute scp ./order3-test.bin ${{ secrets.VM_NAME }}:~/ --zone ${{ secrets.VM_ZONE }}
 
     - name: Execute deployment script on VM
