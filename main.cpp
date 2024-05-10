@@ -2610,9 +2610,9 @@ int Network()
                                         Log(L"올바른 입력 형식이 아닙니다. ");
                                     }
                                 }
-                                else if (inputText.size() >= 4 && inputText.substr(0, 4) == "map,")
+                                else if (inputText.size() >= 4 && inputText.substr(0, 4) == "map/")
                                 {
-                                    vector<string> spl = splitStringASCII(inputText, ',');
+                                    vector<string> spl = splitStringASCII(inputText, '/');
                                     if (spl.size() == 3)
                                     {
                                         AddStringToNode2(spl[1], spl[2], cNode[user], cCh[user], user);
