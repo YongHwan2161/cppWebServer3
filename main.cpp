@@ -2607,7 +2607,7 @@ int Network()
                                     }
                                     else
                                     {
-                                        Log(L"올바른 입력 형식이 아닙니다. ");
+                                        sendMsg(client_socket, makeContent(user, L"", L"올바른 입력 형식이 아닙니다."));
                                     }
                                 }
                                 else if (inputText.size() >= 4 && inputText.substr(0, 4) == "map/")
@@ -2620,7 +2620,7 @@ int Network()
                                     }
                                     else
                                     {
-                                        Log(L"올바른 입력 형식이 아닙니다. ");
+                                        sendMsg(client_socket, makeContent(user, L"", L"올바른 입력 형식이 아닙니다."));
                                     }
                                 }
                             }
