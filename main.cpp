@@ -12,6 +12,7 @@
 #include <thread>
 #include <map>
 #include <regex>
+#include <unordered_set>
 // #include <nlohmann/json.hpp>
 
 #define PORT 8080
@@ -22,7 +23,8 @@ using uchar = unsigned char;
 // using json = nlohmann::json;
 
 std::vector<uchar *> CoRe;
-std::vector<vector<tuple<int, ushort, long long, long long>>> order;
+std::vector<uchar *> Core;
+// std::vector<vector<tuple<int, ushort, long long, long long>>> order;
 uint user = 1;
 uint cNode[10];
 ushort cCh[10];
@@ -32,6 +34,7 @@ int line_spacing = 5;
 int text_size = 15;
 vector<wstring> LogStr{};
 unsigned int gar = 39701;
+uint orderStart = 36673;
 uint ttt = 166972;
 vector<uchar> zero8 = {0, 0, 0, 0, 0, 0, 0, 0};
 uchar initValues[18] = {14, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // node 추가시 초기값 설정 charToushort(uchar *arr)
@@ -47,7 +50,6 @@ ushort numCh(uint node) // node의 채널 수를 반환(채널 수는 2바이트
 }
 uint charTouint(uchar *arr)
 {
-    // std::cerr << "call charTouint" << std::endl;
     return (static_cast<unsigned int>(arr[0])) |
            (static_cast<unsigned int>(arr[1]) << 8) |
            (static_cast<unsigned int>(arr[2]) << 16) |
@@ -66,6 +68,17 @@ pair<uint, ushort> charToPair(uchar *arr)
         (static_cast<ushort>(arr[5]) << 8);
 
     return {uint_val, ushort_val};
+}
+long charToLong(uchar *arr)
+{
+    return (static_cast<long>(arr[0])) |
+           (static_cast<long>(arr[1]) << 8) |
+           (static_cast<long>(arr[2]) << 16) |
+           (static_cast<long>(arr[3]) << 24) |
+           (static_cast<long>(arr[4]) << 32) |
+           (static_cast<long>(arr[5]) << 40) |
+           (static_cast<long>(arr[6]) << 48) |
+           (static_cast<long>(arr[7]) << 56);
 }
 uchar *ushortToBytes(ushort val1)
 {
@@ -131,6 +144,20 @@ uchar *pairToBytes2(uint node1, ushort ch1, uint node2, ushort ch2)
     bytes[11] = static_cast<unsigned char>((ch2 >> 8) & 0xFF);
 
     return bytes; // 배열의 포인터 반환
+}
+uchar *longlongToBytes(long long val)
+{
+    unsigned char *bytes = new unsigned char[8]; // 6 바이트 배열 동적 할당
+
+    bytes[0] = static_cast<unsigned char>(val & 0xFF);
+    bytes[1] = static_cast<unsigned char>((val >> 8) & 0xFF);
+    bytes[2] = static_cast<unsigned char>((val >> 16) & 0xFF);
+    bytes[3] = static_cast<unsigned char>((val >> 24) & 0xFF);
+    bytes[4] = static_cast<unsigned char>((val >> 32) & 0xFF);
+    bytes[5] = static_cast<unsigned char>((val >> 40) & 0xFF);
+    bytes[6] = static_cast<unsigned char>((val >> 48) & 0xFF);
+    bytes[7] = static_cast<unsigned char>((val >> 56) & 0xFF);
+    return bytes;
 }
 uchar *chVec(uint node, ushort ch)
 {
@@ -207,6 +234,17 @@ void changePair(uchar *arr, uint index, uint node, ushort ch)
     arr[index + 4] = static_cast<uchar>(ch & 0xFF);
     arr[index + 5] = static_cast<uchar>((ch >> 8) & 0xFF);
 }
+void changeLong(uchar *arr, uint index, long long update)
+{
+    arr[index] = static_cast<uchar>(update & 0xFF);
+    arr[index + 1] = static_cast<uchar>((update >> 8) & 0xFF);
+    arr[index + 2] = static_cast<uchar>((update >> 16) & 0xFF);
+    arr[index + 3] = static_cast<uchar>((update >> 24) & 0xFF);
+    arr[index + 4] = static_cast<uchar>((update >> 32) & 0xFF);
+    arr[index + 5] = static_cast<uchar>((update >> 40) & 0xFF);
+    arr[index + 6] = static_cast<uchar>((update >> 48) & 0xFF);
+    arr[index + 7] = static_cast<uchar>((update >> 52) & 0xFF);
+}
 void eraseCoo(uint node, ushort ch, uint index)
 {
     // 6바이트 제거
@@ -265,14 +303,14 @@ void clearRev(uint node, uint ch)
     //     vec[4 + szC + i] = 0;
     // }
 }
-void insertArr(uint node, uint index, uchar *add, uint addSize)
+void insertArr(uchar *Arr, uint index, uchar *add, uint addSize)
 {
-    uint sizeArr = 4 + charTouint(CoRe[node]);
+    uint sizeArr = 4 + charTouint(Arr);
     uchar *result = new uchar[sizeArr + addSize];
     changeInt(result, 0, sizeArr + addSize - 4);
     for (uint i = 4; i < index; ++i)
     {
-        result[i] = CoRe[node][i];
+        result[i] = Arr[i];
     }
     for (uint i = 0; i < addSize; ++i)
     {
@@ -280,39 +318,105 @@ void insertArr(uint node, uint index, uchar *add, uint addSize)
     }
     for (uint i = index; i < sizeArr; ++i)
     {
-        result[i + addSize] = CoRe[node][i];
+        result[i + addSize] = Arr[i];
     }
-    delete[] CoRe[node]; // 메모리 해제 먼저 해야 함!
+    Arr = result;
+    delete[] Arr; // 메모리 해제 먼저 해야 함!
+}
+void insertArr2(uchar *Arr, uint index, uchar *add, uint addSize)
+{
+    uint sizeArr = 4 + charTouint(Arr);
+    uchar *result = new uchar[sizeArr + addSize];
+    changeInt(result, 0, sizeArr + addSize - 4);
+    for (uint i = 4; i < index; ++i)
+    {
+        result[i] = Arr[i];
+    }
+    for (uint i = 0; i < addSize; ++i)
+    {
+        result[index + i] = add[i];
+    }
+    for (uint i = index; i < sizeArr; ++i)
+    {
+        result[i + addSize] = Arr[i];
+    }
+    Arr = result;
+    delete[] Arr; // 메모리 해제 먼저 해야 함!
+}
+void insertArr(uint32_t node, uint32_t index, uint8_t *add, uint32_t addSize)
+{
+    // CoRe[node]의 현재 크기를 구합니다. 이 예에서는 별도의 메커니즘으로 크기를 추적하고 있다고 가정합니다.
+    uint32_t originalSize = charTouint(CoRe[node]); // 여기서 charTouint 함수는 첫 4바이트에서 크기 정보를 읽는 함수라고 가정합니다.
+
+    // 새로운 배열의 총 크기를 계산합니다.
+    uint32_t newSize = originalSize + addSize;
+
+    // 새로운 배열 할당
+    uint8_t *result = new uint8_t[newSize];
+
+    // 새로운 크기 정보를 결과 배열에 저장
+    changeInt(result, 0, newSize - 4);
+
+    // 기존 데이터의 처음부터 삽입 위치까지를 복사
+    std::copy(CoRe[node] + 4, CoRe[node] + index + 4, result + 4);
+
+    // 추가할 데이터를 삽입 위치에 복사
+    std::copy(add, add + addSize, result + index + 4);
+
+    // 원래 데이터에서 삽입 위치 이후의 데이터를 새 위치에 복사
+    std::copy(CoRe[node] + index + 4, CoRe[node] + originalSize, result + index + addSize + 4);
+
+    // 기존 데이터 메모리 해제
+    delete[] CoRe[node];
+
+    // CoRe[node]를 새 배열로 업데이트
     CoRe[node] = result;
 }
-// void insertArr(uint32_t node, uint32_t index, uint8_t* add, uint32_t addSize) {
-//     // CoRe[node]의 현재 크기를 구합니다. 이 예에서는 별도의 메커니즘으로 크기를 추적하고 있다고 가정합니다.
-//     uint32_t originalSize = charTouint(CoRe[node]);  // 여기서 charTouint 함수는 첫 4바이트에서 크기 정보를 읽는 함수라고 가정합니다.
-
-//     // 새로운 배열의 총 크기를 계산합니다.
-//     uint32_t newSize = originalSize + addSize;
-
-//     // 새로운 배열 할당
-//     uint8_t* result = new uint8_t[newSize];
-
-//     // 새로운 크기 정보를 결과 배열에 저장
-//     changeInt(result, 0, newSize - 4);
-
-//     // 기존 데이터의 처음부터 삽입 위치까지를 복사
-//     std::copy(CoRe[node] + 4, CoRe[node] + index + 4, result + 4);
-
-//     // 추가할 데이터를 삽입 위치에 복사
-//     std::copy(add, add + addSize, result + index + 4);
-
-//     // 원래 데이터에서 삽입 위치 이후의 데이터를 새 위치에 복사
-//     std::copy(CoRe[node] + index + 4, CoRe[node] + originalSize, result + index + addSize + 4);
-
-//     // 기존 데이터 메모리 해제
-//     delete[] CoRe[node];
-
-//     // CoRe[node]를 새 배열로 업데이트
-//     CoRe[node] = result;
-// }
+uint endOfCh(uint node, ushort ch)
+{
+    uint re = 0;
+    ushort numCh = charToushort(CoRe[node] + 4);
+    if (ch < numCh - 1) // is not last channel
+    {
+        re = charTouint(CoRe[node] + 6 + 4 * (ch + 1));
+    }
+    else // is last channel
+    {
+        re = 4 + charTouint(CoRe[node]);
+    }
+    return re;
+}
+uint numAxis(uint node, ushort ch)
+{
+    ushort numch = charToushort(CoRe[node] + 4);
+    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startRev = startCoo + 4 + sizeCoo;
+    uint sizeRev = charTouint(CoRe[node] + startRev);
+    if (ch < numch - 1)
+    {
+        uint startCoo2 = charTouint(CoRe[node] + 6 + 4 * (ch + 1));
+        if (startRev + 4 + sizeRev < startCoo2)
+        {
+            return 3;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+    else
+    {
+        if (startRev + 4 + sizeRev < charTouint(CoRe[node]))
+        {
+            return 3;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}
 void pushCoo(uint node, ushort ch, uchar *add)
 {
     ushort numCh = charToushort(CoRe[node] + 4);
@@ -320,41 +424,46 @@ void pushCoo(uint node, ushort ch, uchar *add)
     uint sizeCoo = charTouint(CoRe[node] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
     uint sizeRev = charTouint(CoRe[node] + startRev);
-    uint startCoo2 = 0;
-    if (ch < numCh - 1)
+    uint startCoo2 = endOfCh(node, ch);
+    ushort nAxis = numAxis(node, ch);
+    if (nAxis == 2)
     {
-        startCoo2 = charTouint(CoRe[node] + 6 + 4 * (ch + 1));
+        if (sizeCoo + sizeRev + 14 > startCoo2 - startCoo)
+        {
+            for (ushort i = ch + 1; i < numCh; i++)
+            {
+                uint temp = charTouint(CoRe[node] + 6 + 4 * i);
+                changeInt(CoRe[node], 6 + 4 * i, temp + 6);
+            }
+            insertArr(node, startRev, add, 6);
+            // CoRe[node].insert(CoRe[node].begin() + startCoo + 4 + sizeCoo, add.begin(), add.end());
+            changeInt(CoRe[node], startCoo, sizeCoo + 6);
+        }
+        else
+        {
+            changeInt(CoRe[node], startCoo, sizeCoo + 6);
+            vector<uchar> RevVec = vector<uchar>(CoRe[node] + startRev, CoRe[node] + startRev + 4 + sizeRev);
+            for (int i = startRev + 6; i < startRev + 10 + sizeRev; i++)
+            {
+                CoRe[node][i] = RevVec[i - startRev - 6];
+            }
+            for (int i = startRev; i < startRev + 6; i++)
+            {
+                CoRe[node][i] = add[i - startRev];
+            }
+        }
     }
-    else
+    else if (nAxis == 3)
     {
-        // startCoo2 = CoRe[node].size();
-        startCoo2 = 4 + charTouint(CoRe[node]);
-    }
-    if (sizeCoo + sizeRev + 14 > startCoo2 - startCoo)
-    {
+        insertArr(node, startRev, add, 6); // inserArr에서 전체 byte 수 변경함
+        changeInt(CoRe[node], startCoo, sizeCoo + 6);
         for (ushort i = ch + 1; i < numCh; i++)
         {
             uint temp = charTouint(CoRe[node] + 6 + 4 * i);
             changeInt(CoRe[node], 6 + 4 * i, temp + 6);
         }
-        insertArr(node, startRev, add, 6);
-        // CoRe[node].insert(CoRe[node].begin() + startCoo + 4 + sizeCoo, add.begin(), add.end());
-        changeInt(CoRe[node], startCoo, sizeCoo + 6);
     }
-    else
-    {
-        changeInt(CoRe[node], startCoo, sizeCoo + 6);
-        vector<uchar> RevVec = vector<uchar>(CoRe[node] + startRev, CoRe[node] + startRev + 4 + sizeRev);
-        for (int i = startRev + 6; i < startRev + 10 + sizeRev; i++)
-        {
-            CoRe[node][i] = RevVec[i - startRev - 6];
-        }
-        for (int i = startRev; i < startRev + 6; i++)
-        {
-            CoRe[node][i] = add[i - startRev];
-        }
-    }
-    // delete[] add;
+    delete[] add;
 }
 void pushRev(uint node, ushort ch, uchar *add)
 {
@@ -362,35 +471,42 @@ void pushRev(uint node, ushort ch, uchar *add)
     uint sizeCoo = charTouint(CoRe[node] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
     uint sizeRev = charTouint(CoRe[node] + startRev);
+
     uint endPosi = startRev + 4 + sizeRev;
     ushort numCh = charToushort(CoRe[node] + 4);
-    uint startCoo2 = 0;
-    if (ch < numCh - 1)
+    uint startCoo2 = endOfCh(node, ch);
+    ushort nAxis = numAxis(node, ch);
+    if (nAxis == 2)
     {
-        startCoo2 = charTouint(CoRe[node] + 6 + 4 * (ch + 1));
+        if (sizeCoo + sizeRev + 14 > startCoo2 - startCoo)
+        {
+            insertArr(node, endPosi, add, 6);
+            for (ushort i = ch + 1; i < numCh; i++)
+            {
+                uint temp = charTouint(CoRe[node] + 6 + 4 * i);
+                changeInt(CoRe[node], 6 + 4 * i, temp + 6);
+            }
+            changeInt(CoRe[node], startRev, sizeRev + 6);
+        }
+        else
+        {
+            for (int i = endPosi; i < endPosi + 6; i++)
+            {
+                CoRe[node][i] = add[i - endPosi];
+            }
+        }
     }
-    else
+    else if (nAxis == 3)
     {
-        // startCoo2 = CoRe[node].size();
-        startCoo2 = 4 + charTouint(CoRe[node]);
-    }
-    if (sizeCoo + sizeRev + 14 > startCoo2 - startCoo)
-    {
-        // CoRe[node].insert(CoRe[node].begin() + endPosi, add.begin(), add.end());
         insertArr(node, endPosi, add, 6);
         for (ushort i = ch + 1; i < numCh; i++)
         {
             uint temp = charTouint(CoRe[node] + 6 + 4 * i);
             changeInt(CoRe[node], 6 + 4 * i, temp + 6);
         }
+        changeInt(CoRe[node], startRev, sizeRev + 6);
     }
-    else
-    {
-        for (int i = endPosi; i < endPosi + 6; i++)
-        {
-            CoRe[node][i] = add[i - endPosi];
-        }
-    }
+
     delete[] add;
     changeInt(CoRe[node], startRev, sizeRev + 6);
 }
@@ -499,6 +615,21 @@ vector<uint> sizeCoRe(uint node, ushort ch)
     re[0] = charTouint(CoRe[node] + startCoo);
     re[1] = charTouint(CoRe[node] + startCoo + 4 + re[0]);
     return re;
+}
+uint startAxis3(uint node, ushort ch)
+{
+    if (numAxis(node, ch) >= 3)
+    {
+        uint startCoo2 = charTouint(CoRe[node] + 6 + 4 * ch);
+        uint sizeCoo2 = charTouint(CoRe[node] + startCoo2);
+        uint startRev2 = startCoo2 + 4 + sizeCoo2;
+        uint sizeRev2 = charTouint(CoRe[node] + startRev2);
+        return startRev2 + 4 + sizeRev2;
+    }
+    else
+    {
+        return 0;
+    }
 }
 void CoMove(uint ori, ushort oriCh, uint From, uint To, ushort ToCh)
 {
@@ -636,8 +767,10 @@ uchar *word(uint node)
         {
             ii++;
             uint topNode = st.top();
-            vector<uint> szCR = sizeCoRe(topNode, 0);
-            if (szCR[1] == 6 * index.back())
+            uint szCoo = sizeCoo(topNode, 0);
+            uint szRev = sizeRev(topNode, 0);
+            // vector<uint> szCR = sizeCoRe(topNode, 0);
+            if (szRev == 6 * index.back())
             {
                 if (st.size() == 1)
                     break;
@@ -647,7 +780,7 @@ uchar *word(uint node)
                 continue;
             }
             uint startCoo = startCh(topNode, 0);
-            uint rev = charTouint(CoRe[topNode] + startCoo + 8 + szCR[0] + 6 * index.back());
+            uint rev = charTouint(CoRe[topNode] + startCoo + 8 + szCoo + 6 * index.back());
             if (rev != 41155)
             {
                 st.push(rev);
@@ -1086,6 +1219,8 @@ uint firstToken(uchar *data, uint size) // size 정보 포함해서 받아야 �
 void clearCh(uint node, ushort ch)
 {
     uint startCoo = startCh(node, ch);
+    // uint endCh = endOfCh(node, ch);
+    changeInt(CoRe[node], 0, 10);
     std::fill(CoRe[node] + startCoo, CoRe[node] + startCoo + 8, 0);
 }
 void addCh(uint node)
@@ -1206,7 +1341,9 @@ void Brain(uint node, uchar *data) // 사이즈 정보 포함해서 받아야 �
                     }
                     CoRe.push_back(newCh);
                     addCh2(coord3);
-                    pushRev2(coord3, 0, pairToBytes2(coord, 0, dh.first, 0));
+                    // pushRev2(coord3, 0, pairToBytes2(coord, 0, dh.first, 0));
+                    pushRev(coord3, 0, pairToBytes(coord, 0));
+                    pushRev(coord3, 0, pairToBytes(dh.first, 0));
                     pushCoo(coord, 0, pairToBytes(coord3, 0));
                     int szC = sizeCoo(coord, 0) / 6 - 1;
 
@@ -1330,61 +1467,244 @@ wstring timeW(time_t timer)
     std::wcsftime(buffer, 80, L"%Y-%m-%d %H:%M:%S", timeinfo);
     return buffer;
 }
-wstring findAndUpdateOrder(uint node, ushort ch, ushort num)
+// wstring findAndUpdateOrder(uint node, ushort ch, ushort num)
+// {
+//     wstring re = L"";
+//     long long tmp = 0;
+//     for (int i = 0; i < order[num].size(); i++)
+//     {
+//         if (node == get<0>(order[num][i]) && ch == get<1>(order[num][i]))
+//         {
+//             re = timeW(get<2>(order[num][i]));
+//             tmp = get<3>(order[num][i]);
+//             re = re + L"\t" + timeW(tmp);
+//             order[num].erase(order[num].begin() + i);
+//         }
+//     }
+//     time_t timer;
+//     time(&timer);
+//     order[num].push_back(make_tuple(node, ch, timer, tmp));
+//     return re;
+// }
+uint numOrder(uint user)
+{
+    uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
+    uint node = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
+    ushort ch = charToushort(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1) + 4);
+    uint nodeT = node;
+    ushort chT = ch;
+    uint startX3 = startAxis3(node, ch);
+    uint node2 = charTouint(CoRe[node] + startX3 + 4);
+    ushort ch2 = charToushort(CoRe[node] + startX3 + 8);
+    uint ii = 1;
+    while (node2 != nodeT || ch2 != chT)
+    {
+        ii++;
+        if (ii == 34640)
+        {
+            int aa = 0;
+        }
+        if (node2 == 36673)
+        {
+            int bb = 0;
+        }
+        node = node2;
+        ch = ch2;
+        startX3 = startAxis3(node, ch);
+        node2 = charTouint(CoRe[node] + startX3 + 4);
+        ch2 = charToushort(CoRe[node] + startX3 + 8);
+    }
+    return ii;
+}
+wstring findAndUpdateOrder(uint node0, ushort ch0, ushort user)
 {
     wstring re = L"";
-    long long tmp = 0;
-    for (int i = 0; i < order[num].size(); i++)
-    {
-        if (node == get<0>(order[num][i]) && ch == get<1>(order[num][i]))
-        {
-            re = timeW(get<2>(order[num][i]));
-            tmp = get<3>(order[num][i]);
-            re = re + L"\t" + timeW(tmp);
-            order[num].erase(order[num].begin() + i);
-        }
-    }
+    long tmp = 0;
+    uint orderSize = numOrder(user);
     time_t timer;
     time(&timer);
-    order[num].push_back(make_tuple(node, ch, timer, tmp));
+    uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
+    uint node = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
+    ushort ch = charToushort(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1) + 4);
+    uint nodeT = node;
+    ushort chT = ch;
+    uint startX3 = startAxis3(node, ch);
+    uint node2 = charTouint(CoRe[node] + startX3 + 4);
+    ushort ch2 = charToushort(CoRe[node] + startX3 + 8);
+    bool check = false;
+    if (nodeT == node0 && chT == ch0)
+    {
+        startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
+        changePair(CoRe[orderStart], startCoo + 4 + 6 * (user - 1), node2, ch2);
+        re = timeW(charToLong(CoRe[nodeT] + startX3 + 10));
+        tmp = charToLong(CoRe[nodeT] + startX3 + 18);
+        re = re + L"\t" + timeW(tmp);
+    }
+    while (node != nodeT || ch != chT)
+    {
+        node = node2;
+        ch = ch2;
+        startX3 = startAxis3(node, ch);
+        node2 = charTouint(CoRe[node] + startX3 + 4);
+        ch2 = charToushort(CoRe[node] + startX3 + 8);
+        if (check == true && node2 == nodeT && ch2 == chT)
+        {
+            uint startAxis32 = startAxis3(node2, ch2);
+            changePair(CoRe[node2], startAxis32 + 4, node0, ch0);
+        }
+        if (node2 == node0 && ch2 == ch0)
+        {
+            uint startAxis32 = startAxis3(node2, ch2);
+            uint node3 = charTouint(CoRe[node2] + startX3 + 4);
+            ushort ch3 = charToushort(CoRe[node2] + startX3 + 8);
+            re = timeW(charToLong(CoRe[node] + startX3 + 10));
+            tmp = charToLong(CoRe[node] + startX3 + 18);
+            re = re + L"\t" + timeW(tmp);
+            changePair(CoRe[node], startX3 + 4, node3, ch3);
+            changePair(CoRe[node2], startAxis32 + 4, nodeT, chT);
+            changeLong(CoRe[node2], startAxis32 + 10, timer);
+            check = true;
+        }
+    }
     return re;
 }
-void eraseOrder(uint node, ushort ch, ushort num)
+void eraseOrder(uint node0, ushort ch0, ushort user)
 {
-    for (int i = 0; i < order[num].size(); i++)
+    uint orderSize = numOrder(user);
+    uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
+    uint node = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
+    ushort ch = charToushort(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1) + 4);
+    uint nodeT = node;
+    ushort chT = ch;
+    uint startX3 = startAxis3(node, ch);
+    uint node2 = charTouint(CoRe[node] + startX3 + 4);
+    ushort ch2 = charToushort(CoRe[node] + startX3 + 8);
+    while (node != nodeT || ch != chT)
     {
-        if (node == get<0>(order[num][i]) && ch == get<1>(order[num][i]))
+        node = node2;
+        ch = ch2;
+        startX3 = startAxis3(node, ch);
+        node2 = charTouint(CoRe[node] + startX3 + 4);
+        ch2 = charToushort(CoRe[node] + startX3 + 8);
+        if (node2 == node0 && ch2 == ch0)
         {
-            order[num].erase(order[num].begin() + i);
+            uint startAxis32 = startAxis3(node2, ch2);
+            uint node3 = charTouint(CoRe[node2] + startX3 + 4);
+            ushort ch3 = charToushort(CoRe[node2] + startX3 + 8);
+            changePair(CoRe[node], startX3 + 4, node3, ch3);
         }
     }
 }
-void read_order(const std::string &file_path)
+void pushOrder(uint node0, ushort ch0, uint user, long timer1, long timer2)
 {
-    ifstream file(file_path, ios::binary);
-    while (file)
+    // uint orderSize = numOrder(user);
+    uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
+    uint node = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
+    ushort ch = charToushort(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1) + 4);
+    uint nodeT = node;
+    ushort chT = ch;
+    uint startX3 = startAxis3(node, ch);
+    uint node2 = charTouint(CoRe[node] + startX3 + 4);
+    ushort ch2 = charToushort(CoRe[node] + startX3 + 8);
+    uint ii = 0;
+    while (node2 != nodeT || ch2 != chT)
     {
-        unsigned int size;
-        file.read(reinterpret_cast<char *>(&size), sizeof(size));
-        if (!file)
-            break;
-        vector<tuple<int, ushort, long long, long long>> inner_v(size);
-        for (auto &t : inner_v)
+        ii++;
+        node = node2;
+        ch = ch2;
+        startX3 = startAxis3(node, ch);
+        node2 = charTouint(CoRe[node] + startX3 + 4);
+        ch2 = charToushort(CoRe[node] + startX3 + 8);
+        if (node2 == node0 && ch2 == ch0)
         {
-            int i;
-            ushort us;
-            long long tt;
-            long long tt2;
-            file.read(reinterpret_cast<char *>(&i), sizeof(i));
-            file.read(reinterpret_cast<char *>(&us), sizeof(us));
-            file.read(reinterpret_cast<char *>(&tt), sizeof(tt));
-            file.read(reinterpret_cast<char *>(&tt2), sizeof(tt2));
-            t = make_tuple(i, us, tt, tt2);
+            uint startAxis32 = startAxis3(node2, ch2);
+            uint node3 = charTouint(CoRe[node2] + startX3 + 4);
+            ushort ch3 = charToushort(CoRe[node2] + startX3 + 8);
+            changePair(CoRe[node], startX3 + 4, node3, ch3);
         }
-        order.push_back(inner_v);
     }
-    file.close();
+    changePair(CoRe[node], startX3 + 4, node0, ch0);
+    if (numAxis(node0, ch0) == 2)
+    {
+        uchar *arr = new uchar[26];
+        uchar *aa = uintToBytes(22);
+        ushort numch2 = numCh(node0);
+        uint startCoo = charTouint(CoRe[node0] + (6 + 4 * ch0));
+        uint sizeCoo = charTouint(CoRe[node0] + startCoo);
+        uint startRev = startCoo + 4 + sizeCoo;
+        uint sizeRev = charTouint(CoRe[node0] + startRev);
+        uchar *pair = pairToBytes(nodeT, chT);
+        uchar *ll = longlongToBytes(timer1);
+        uchar *ll2 = longlongToBytes(timer2);
+        for (int k = 0; k < 4; k++)
+        {
+            arr[k] = aa[k];
+        }
+        for (int k = 0; k < 6; k++)
+        {
+            arr[4 + k] = pair[k];
+        }
+        for (int k = 0; k < 8; k++)
+        {
+            arr[10 + k] = ll[k];
+        }
+        for (int k = 0; k < 8; k++)
+        {
+            arr[18 + k] = ll2[k];
+        }
+        delete[] aa;
+        delete[] pair;
+        delete[] ll;
+        delete[] ll2;
+        for (int k = ch; k < numch2 - 1; k++)
+        {
+            uint uu = charTouint(CoRe[node0] + 6 + 4 * (k + 1));
+            changeInt(CoRe[node0], 6 + 4 * (k + 1), uu + 26);
+        }
+        insertArr(node0, startRev + 4 + sizeRev, arr, 26);
+    }
+    else if (numAxis(node0, ch0) == 3)
+    {
+        startX3 = startAxis3(node0, ch0);
+        changePair(CoRe[node0], startX3 + 4, nodeT, chT);
+    }
 }
+// void eraseOrderNode(uint node, ushort user)
+// {
+//     for (int i = 0; i < order[user].size(); i++)
+//     {
+//         if (node == get<0>(order[user][i]))
+//         {
+//             order[user].erase(order[user].begin() + i);
+//         }
+//     }
+// }
+// void read_order(const std::string &file_path)
+// {
+//     ifstream file(file_path, ios::binary);
+//     while (file)
+//     {
+//         unsigned int size;
+//         file.read(reinterpret_cast<char *>(&size), sizeof(size));
+//         if (!file)
+//             break;
+//         vector<tuple<int, ushort, long long, long long>> inner_v(size);
+//         for (auto &t : inner_v)
+//         {
+//             int i;
+//             ushort us;
+//             long long tt;
+//             long long tt2;
+//             file.read(reinterpret_cast<char *>(&i), sizeof(i));
+//             file.read(reinterpret_cast<char *>(&us), sizeof(us));
+//             file.read(reinterpret_cast<char *>(&tt), sizeof(tt));
+//             file.read(reinterpret_cast<char *>(&tt2), sizeof(tt2));
+//             t = make_tuple(i, us, tt, tt2);
+//         }
+//         order.push_back(inner_v);
+//     }
+//     file.close();
+// }
 void sendMsg(int ClientSocket, std::wstring content)
 {
     // wcout << "content = " << content << endl;
@@ -1485,31 +1805,49 @@ wstring contentList(uint node, ushort ch, uint page = 1)
     return ws;
 }
 
+// void study(uint user)
+// {
+//     uint t1 = get<0>(order[user][0]);
+//     ushort t2 = get<1>(order[user][0]);
+//     while (numCh(t1) > t2 + 1)
+//     {
+//         order[user].erase(order[user].begin());
+//         t1 = get<0>(order[user][0]);
+//         t2 = get<1>(order[user][0]);
+//     }
+//     cNode[user] = t1;
+//     cCh[user] = t2;
+//     wcout << "98Node = " << intToWString(t1) << endl;
+//     wcout << "98Ch = " << to_wstring(t2) << endl;
+//     tuple<int, ushort, time_t, time_t> temp = order[user][0];
+//     eraseOrder(t1, t2, user);
+//     order[user].push_back(temp);
+// }
 void study(uint user)
 {
-    uint t1 = get<0>(order[user][0]);
-    ushort t2 = get<1>(order[user][0]);
-    while (numCh(t1) > t2 + 1)
-    {
-        order[user].erase(order[user].begin());
-        t1 = get<0>(order[user][0]);
-        t2 = get<1>(order[user][0]);
-    }
-    cNode[user] = t1;
-    cCh[user] = t2;
-    wcout << "98Node = " << intToWString(t1) << endl;
-    wcout << "98Ch = " << to_wstring(t2) << endl;
-    tuple<int, ushort, time_t, time_t> temp = order[user][0];
-    eraseOrder(t1, t2, user);
-    order[user].push_back(temp);
+    uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
+    uint node = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
+    ushort ch = charToushort(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1) + 4);
+    uint nodeT = node;
+    ushort chT = ch;
+    cNode[user] = nodeT;
+    cCh[user] = chT;
+    // uint startCoo2 = charTouint(CoRe[node] + 6 + 4 * ch);
+    // uint sizeCoo2 = charTouint(CoRe[node] + startCoo2);
+    // uint startRev2 = startCoo2 + 4 + sizeCoo2;
+    // uint sizeRev2 = charTouint(CoRe[node] + startRev2);
+    // uint startAxis3 = startRev2 + 4 + sizeRev2;
+    // uint node2 = charTouint(CoRe[node] + startAxis3 + 4);
+    // ushort ch2 = charToushort(CoRe[node] + startAxis3 + 8);
+    // findAndUpdateOrder(nodeT, chT, user);
 }
-void study2(uint user)
-{
-    uint t1 = get<0>(order[user][0]);
-    ushort t2 = get<1>(order[user][0]);
-    eraseOrder(t1, t2, user);
-    // study(user);
-}
+// void study2(uint user)
+// {
+//     uint t1 = get<0>(order[user][0]);
+//     ushort t2 = get<1>(order[user][0]);
+//     eraseOrder(t1, t2, user);
+//     // study(user);
+// }
 uint sizeGarbage()
 {
     int i = 0;
@@ -1554,7 +1892,7 @@ void info()
     uchar *sh1 = Sheet(34875);
     uchar *sh2 = Sheet(34878);
     uchar *sh3 = Sheet(34880);
-    infoStr = L"\norder.size: " + intToWString(order[1].size() - 1) + L"\nGarbage.size: " + intToWString(sizeGarbage()) + L"\nCsave: " + charToWstring(sh1) + L"," + charToWstring(sh2) + L"," + charToWstring(sh3) + L"\nvmSize: " + intToWString(vmSize) + L" kB\nvmRSS: " + intToWString(vmRSS) + L" kB\nFPS: " + intToWString(fps);
+    infoStr = L"\norder.size: " + intToWString(numOrder(1)) + L"\nGarbage.size: " + intToWString(sizeGarbage()) + L"\nCsave: " + charToWstring(sh1) + L"," + charToWstring(sh2) + L"," + charToWstring(sh3) + L"\nvmSize: " + intToWString(vmSize) + L" kB\nvmRSS: " + intToWString(vmRSS) + L" kB\nFPS: " + intToWString(fps);
     wcout << infoStr << endl;
     delete[] sh1;
     delete[] sh2;
@@ -1567,7 +1905,7 @@ void info()
         // RenderText(line, 1000, 1000 - (20 + 15 * i));
     }
 }
-void pushGarbage(uint node)
+void pushGarbage(uint node) // 오류 있음 수정해야 함.
 {
     uint next = charTouint(CoRe[gar] + 14); // 14가 다음 노드 가리키는 위치임
     // uchar newCh[18] = {14, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //startCoo = 6이 아니라 10이 되어야 함.
@@ -1703,8 +2041,8 @@ uint popGarbage()
     clearCh(re, 0);
     clearCh(gar, 0);
     uchar *ptb = pairToBytes(next, 0);
-    pushCoo(gar, 0, ptb);
-    delete[] ptb;
+    pushCoo(gar, 0, ptb); // pushCoo에서 delete[]
+    // delete[] ptb;
     return re;
 }
 void AddStringToNode(const string &str, uint node, ushort ch, uint user)
@@ -1720,7 +2058,8 @@ void AddStringToNode(const string &str, uint node, ushort ch, uint user)
         newcd = popGarbage();
         addCh(newcd); // make count of ch as 2
         link(node, ch, newcd, 1);
-        order[user].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
+        // order[user].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
+        pushOrder(newcd, 1, user, timer, timer);
         Brain(newcd, wstr2);
     }
     else
@@ -1733,7 +2072,8 @@ void AddStringToNode(const string &str, uint node, ushort ch, uint user)
         CoRe.push_back(newCh2);
         addCh(newcd);
         link(node, ch, newcd, 1);
-        order[user].push_back(make_tuple(newcd, 1, timer, timer));
+        // order[user].push_back(make_tuple(newcd, 1, timer, timer));
+        pushOrder(newcd, 1, user, timer, timer);
         Brain(newcd, wstr2);
     }
     delete[] wstr2;
@@ -1754,12 +2094,14 @@ void AddStringToNode2(const string &str1, const string &str2, uint node, ushort 
         wcout << L"popGarbage = " << intToWString(newcd) << endl;
         addCh(newcd); // make count of ch as 2
         link(node, ch, newcd, 1);
-        order[user].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
+        // order[user].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
+        pushOrder(newcd, 1, user, timer, timer);
         Brain(newcd, char1);
         uint newcd2 = popGarbage();
         addCh(newcd2);
         link(newcd, 1, newcd2, 1);
-        order[user].push_back(make_tuple(newcd2, 1, timer, timer)); // 생성시간 = timer
+        // order[user].push_back(make_tuple(newcd2, 1, timer, timer)); // 생성시간 = timer
+        pushOrder(newcd2, 1, user, timer, timer);
         Brain(newcd2, char2);
     }
     else
@@ -1772,7 +2114,8 @@ void AddStringToNode2(const string &str1, const string &str2, uint node, ushort 
         CoRe.push_back(newCh2);
         addCh(newcd);
         link(node, ch, newcd, 1);
-        order[user].push_back(make_tuple(newcd, 1, timer, timer));
+        // order[user].push_back(make_tuple(newcd, 1, timer, timer));
+        pushOrder(newcd, 1, user, timer, timer);
         Brain(newcd, char1);
         uchar *newCh3 = new uchar[18];
         for (int i = 0; i < 18; ++i)
@@ -1782,7 +2125,8 @@ void AddStringToNode2(const string &str1, const string &str2, uint node, ushort 
         CoRe.push_back(newCh3);
         addCh(newcd + 1);
         link(newcd, 1, newcd + 1, 1);
-        order[user].push_back(make_tuple(newcd + 1, 1, timer, timer));
+        // order[user].push_back(make_tuple(newcd + 1, 1, timer, timer));
+        pushOrder(newcd + 1, 1, user, timer, timer);
         Brain(newcd + 1, char2);
     }
     delete[] char1;
@@ -1792,7 +2136,7 @@ void save(string directory)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
-    ofstream out(directory + "Brain3-test.bin", ios::binary);
+    ofstream out(directory + "Brain5.bin", ios::binary);
     int ii = 0;
     uint size = CoRe.size();
     out.write(reinterpret_cast<const char *>(&size), 4);
@@ -1806,20 +2150,20 @@ void save(string directory)
         out.write(reinterpret_cast<const char *>(CoRe[i]), size + 4);
     }
     out.close();
-    ofstream file2(directory + "order3-test.bin", ios::binary);
-    for (const auto &inner_v : order)
-    {
-        unsigned int size = inner_v.size();
-        file2.write(reinterpret_cast<const char *>(&size), sizeof(size));
-        for (const auto &t : inner_v)
-        {
-            file2.write(reinterpret_cast<const char *>(&get<0>(t)), sizeof(get<0>(t)));
-            file2.write(reinterpret_cast<const char *>(&get<1>(t)), sizeof(get<1>(t)));
-            file2.write(reinterpret_cast<const char *>(&get<2>(t)), sizeof(get<2>(t)));
-            file2.write(reinterpret_cast<const char *>(&get<3>(t)), sizeof(get<3>(t)));
-        }
-    }
-    file2.close();
+    // ofstream file2(directory + "order3-test.bin", ios::binary);
+    // for (const auto &inner_v : order)
+    // {
+    //     unsigned int size = inner_v.size();
+    //     file2.write(reinterpret_cast<const char *>(&size), sizeof(size));
+    //     for (const auto &t : inner_v)
+    //     {
+    //         file2.write(reinterpret_cast<const char *>(&get<0>(t)), sizeof(get<0>(t)));
+    //         file2.write(reinterpret_cast<const char *>(&get<1>(t)), sizeof(get<1>(t)));
+    //         file2.write(reinterpret_cast<const char *>(&get<2>(t)), sizeof(get<2>(t)));
+    //         file2.write(reinterpret_cast<const char *>(&get<3>(t)), sizeof(get<3>(t)));
+    //     }
+    // }
+    // file2.close();
     // saveMapToFile(directory + "bitmapGlyphMap.bin", bitmapGlyphMap);
     auto end = std::chrono::high_resolution_clock::now();
 
@@ -2053,7 +2397,7 @@ wstring makeContent(uint user, wstring inputText, wstring Log2 = L"")
 {
     Log(Log2);
     info();
-    uint cch = numCh(cNode[user]);
+    uint cch = numCh(cNode[user]) - 1;
     wstring content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(cNode[user], cCh[user], user) + L"\t" + LogToClient + L"\t" + infoStr + L"\t" + intToWString(cch) + L"\t" + intToWString(copyNode.first) + L"\t" + intToWString((int)copyNode.second);
     return content;
 }
@@ -2068,7 +2412,9 @@ void handleLogin(const std::string &requestBody, int client_socket)
     wstring content = L"";
     for (int i = 0; i < sizeIDList / 6 - 1; i++)
     {
+        
         uchar *sheetID = Sheet(*reinterpret_cast<uint *>(&IDList[6 * i]));
+        
         if (utf8ToWstring(data["username"]) == charToWstring(sheetID)) // ID가 존재하는 경우
         {
             uint startCoo = startCh(34196, 1);
@@ -2091,6 +2437,7 @@ void handleLogin(const std::string &requestBody, int client_socket)
                 sendMsg(client_socket, content);
             }
             check = true;
+            delete[] sheetID;
             break;
         }
         delete[] sheetID;
@@ -2340,7 +2687,7 @@ int Network()
                                 }
                                 else if (num == 982) // if not working 98 function
                                 {
-                                    study2(user);
+                                    // study2(user);
                                     content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t98";
                                     sendMsg(client_socket, content);
                                 }
@@ -2596,7 +2943,7 @@ int Network()
                                     }
                                     // clearInputText();
                                 }
-                                else if (inputText.size() >= 4 && inputText.substr(0, 4) == "page")
+                                else if (inputText.size() >= 4 && inputText.substr(0, 4) == "Page")
                                 {
                                     vector<string> spl = splitStringASCII(inputText, 'e');
                                     if (spl.size() == 2)
@@ -2617,9 +2964,6 @@ int Network()
                                     {
                                         AddStringToNode2(spl[1], spl[2], cNode[user], cCh[user], user);
                                         sendMsg(client_socket, makeContent(user, L"", L""));
-                                    }
-                                    else
-                                    {
                                         sendMsg(client_socket, makeContent(user, L"", L"올바른 입력 형식이 아닙니다."));
                                     }
                                 }
@@ -2702,18 +3046,61 @@ int Network2()
 
     return 0;
 }
+// 해시 함수 정의
+struct TupleHash
+{
+    size_t operator()(const tuple<int, ushort> &key) const
+    {
+        return hash<int>()(get<0>(key)) ^ hash<ushort>()(get<1>(key));
+    }
+};
 
+// 비교 연산자 정의
+struct TupleEqual
+{
+    bool operator()(const tuple<int, ushort> &lhs, const tuple<int, ushort> &rhs) const
+    {
+        return get<0>(lhs) == get<0>(rhs) && get<1>(lhs) == get<1>(rhs);
+    }
+};
+void removeDuplicates(vector<tuple<int, ushort, long long, long long>> &vec)
+{
+    unordered_set<tuple<int, ushort>, TupleHash, TupleEqual> seen;
+    auto it = vec.begin();
+
+    while (it != vec.end())
+    {
+        auto key = make_tuple(get<0>(*it), get<1>(*it));
+        if (seen.find(key) != seen.end())
+        {
+            it = vec.erase(it);
+        }
+        else
+        {
+            seen.insert(key);
+            ++it;
+        }
+    }
+}
+void copyArr(uchar *fromArr, uchar *toArr, uint fromIndex, uint toIndex, uint size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        toArr[toIndex + i] = fromArr[fromIndex + i];
+    }
+}
 int main(int argc, char const *argv[])
 {
     auto start = std::chrono::high_resolution_clock::now();
     std::locale::global(std::locale("en_US.UTF-8"));
     // std::wcout.imbue(std::locale());
     //  RAM에 Brain UpRoad
-    std::ifstream in("Brain3-test.bin", std::ios::binary);
+    std::ifstream in("Brain5.bin", std::ios::binary);
     // int ii = 0;
     uchar *size2 = new uchar[4];
     in.read(reinterpret_cast<char *>(size2), sizeof(uint));
     uint size3 = charTouint(size2);
+    delete[] size2;
     wstring ww = intToWString(size3);
     // std::cerr << "Node: " << wstringToUtf8(ww) << std::endl;
     // Log(L"Node" + ww);
@@ -2733,8 +3120,123 @@ int main(int argc, char const *argv[])
     }
     in.close();
 
-    string file_path2 = "order3-test.bin";
-    read_order(file_path2);
+  // string file_path2 = "order3-test.bin";
+    // read_order(file_path2);
+
+    // // 중복 제거
+    // removeDuplicates(order[1]);
+    // eraseOrderNode(8114, 1);
+    // // pushGarbage(8114);
+    // //  deleteNode(8114);
+    // uint ss = order[1].size();
+    // for (int i = 0; i < ss; i++)
+    // {
+    //     if (41194 == get<0>(order[1][i]) || 41195 == get<0>(order[1][i]) || 41197 == get<0>(order[1][i]))
+    //     {
+    //         order[1].erase(order[1].begin() + i);
+    //         ss--;
+    //     }
+    // }
+    // uint ss2 = order[1].size();
+    // for (int i = 0; i < order[1].size(); i++)
+    // {
+    //     if (41194 == get<0>(order[1][i]))
+    //     {
+    //         order[1].erase(order[1].begin() + i);
+    //     }
+    // }
+    // uint tt = 0;
+    // uint ttt = 0;
+    // uint tttt = 0;
+    // for (int i = 1; i < 2; i++)
+    // {
+    //     int ordersize = order[i].size();
+    //     pushCoo(orderStart, 1, pairToBytes(get<0>(order[i][0]), get<1>(order[i][0])));
+    //     for (int j = 0; j < ordersize && ordersize > 0; j++)
+    //     {
+    //         int node = get<0>(order[i][j]);
+    //         ushort ch = get<1>(order[i][j]);
+    //         ushort numch = numCh(node);
+    //         // if (ch + 1 > numch || numch == 1)
+    //         //     continue;
+    //         uint startCoo = charTouint(CoRe[node] + (6 + 4 * ch));
+    //         uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    //         uint startRev = startCoo + 4 + sizeCoo;
+    //         uint sizeRev = charTouint(CoRe[node] + startRev);
+    //         uint nAxis = numAxis(node, ch);
+    //         if (nAxis == 2)
+    //         {
+    //             ttt++;
+    //             uchar *arr = new uchar[26];
+    //             uchar *aa = uintToBytes(22);
+    //             uint node2 = get<0>(order[i][j + 1]);
+    //             ushort ch2 = get<1>(order[i][j + 1]);
+    //             ushort numch2 = numCh(node2);
+    //             // uint startCoo2 = charTouint(CoRe[node2] + (6 + 4 * ch2));
+    //             // uint sizeCoo2 = charTouint(CoRe[node2] + startCoo);
+    //             // uint startRev2 = startCoo + 4 + sizeCoo;
+    //             // uint sizeRev2 = charTouint(CoRe[node2] + startRev);
+    //             while (ch2 + 1 > numch2 || ch2 == 0 || numAxis(node2, ch2) == 3)
+    //             {
+    //                 tttt++;
+    //                 order[i].erase(order[i].begin() + j + 1);
+    //                 ordersize--;
+    //                 node2 = get<0>(order[i][j + 1]);
+    //                 ch2 = get<1>(order[i][j + 1]);
+    //                 numch2 = numCh(node2);
+    //             }
+    //             if (j == ordersize - 1)
+    //             {
+    //                 node2 = get<0>(order[i][0]);
+    //                 ch2 = get<1>(order[i][0]);
+    //                 // node2 = orderStart;
+    //                 // ch2 = 1;
+    //                 ordersize--;
+    //                 numch2 = numCh(node2);
+    //             }
+    //             uchar *pair = pairToBytes(node2, ch2);
+    //             uchar *ll = longlongToBytes(get<2>(order[i][j]));
+    //             uchar *ll2 = longlongToBytes(get<3>(order[i][j]));
+    //             for (int k = 0; k < 4; k++)
+    //             {
+    //                 arr[k] = aa[k];
+    //             }
+    //             for (int k = 0; k < 6; k++)
+    //             {
+    //                 arr[4 + k] = pair[k];
+    //             }
+    //             for (int k = 0; k < 8; k++)
+    //             {
+    //                 arr[10 + k] = ll[k];
+    //             }
+    //             for (int k = 0; k < 8; k++)
+    //             {
+    //                 arr[18 + k] = ll2[k];
+    //             }
+    //             delete[] aa;
+    //             delete[] pair;
+    //             delete[] ll;
+    //             delete[] ll2;
+    //             for (int k = ch; k < numch - 1; k++)
+    //             {
+    //                 uint uu = charTouint(CoRe[node] + 6 + 4 * (k + 1));
+    //                 changeInt(CoRe[node], 6 + 4 * (k + 1), uu + 26);
+    //             }
+    //             insertArr(node, startRev + 4 + sizeRev, arr, 26);
+    //         }
+    //         else
+    //         {
+    //             tt++;
+    //             continue;
+    //         }
+    //     }
+    // }
+
+    // std::cout << "tt: " << tt << "" << std::endl;
+    // std::cout << "ttt: " << ttt << "" << std::endl;
+    // std::cout << "tttt: " << tttt << "" << std::endl;
+
+    std::cout << "numOrder: " << numOrder(1) << "" << std::endl;
     cNode[1] = 0;
     cCh[1] = 1;
 
