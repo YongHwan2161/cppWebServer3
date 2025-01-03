@@ -553,12 +553,13 @@ uint sizeAxis(uint node, ushort ch, ushort axis)
 {
     uint startCh = charTouint(Core[node].get() + 6 + 4 * ch);
     ushort nAxis = charToushort(Core[node].get() + startCh);
-    if (axis > nAxis - 1){
+    if (axis > nAxis - 1)
+    {
         return 0;
     }
     uint startAxis = charTouint(Core[node].get() + startCh + 2 + 4 * axis);
     uint endAxis = charTouint(Core[node].get() + startCh + 2 + 4 * (axis + 1));
-    std::cerr << "startCh ==" << startCh << ", startAxis = " << startAxis << ", endAxis = " << endAxis << std::endl;
+    // std::cerr << "startCh ==" << startCh << ", startAxis = " << startAxis << ", endAxis = " << endAxis << std::endl;
 
     return endAxis - startAxis;
 }
@@ -631,8 +632,10 @@ std::wstring ushortToWstring(ushort num) // ushort 번호에 해당하는 wstrin
 }
 std::wstring intToWString(int num) // 숫자를 wstring으로 바꿔주는 함수
 {
+    // std::cerr << "call intToWstring" << std::endl;
     std::wstringstream wss;
     wss << num;
+    // std::cerr << "end intToWstring" << std::endl;
     return wss.str();
 }
 std::wstring utf8ToWstring(const std::string &utf8Str)
@@ -704,26 +707,79 @@ std::string wstringToUtf8(const std::wstring &wstr)
     wcstombs(buffer.data(), wstr.c_str(), buffer.size());
     return std::string(buffer.data());
 }
+ushort numAxis(uint node, ushort ch)
+{
+    uint startCh = charTouint(Core[node].get() + 6 + 4 * ch);
+    return charToushort(Core[node].get() + startCh);
+}
+void chInfo(uint node, ushort ch)
+{
+    uint size1 = charTouint(CoRe[node]);
+    uint size2 = charTouint(Core[node].get());
+    std::cerr << "size --> " << size1 << ", " << size2 << std::endl;
+    ushort nCh1 = charToushort(CoRe[node] + 4);
+    ushort nCh2 = charToushort(Core[node].get() + 4);
+    std::cerr << "nCh --> " << nCh1 << ", " << nCh2 << std::endl;
+    uint startCh1 = charTouint(CoRe[node] + 6 + 4 * ch);
+    uint startCh2 = charTouint(Core[node].get() + 6 + 4 * ch);
+    std::cerr << "startCh --> " << startCh1 << ", " << startCh2 << std::endl;
+    uint sizeAxis0_1 = charTouint(CoRe[node] + startCh1);
+    uint sizeAxis0_2 = sizeAxis(node, ch, 0);
+    ushort nAxis = numAxis(node, ch);
+    std::cerr << "numAxis = " << nAxis << std::endl;
+    std::cerr << "sizeAxis0 --> " << sizeAxis0_1 << ", " << sizeAxis0_2 << std::endl;
+    uint sizeAxis1_1 = charTouint(CoRe[node] + startCh1 + 4 + sizeAxis0_1);
+    uint sizeAxis1_2 = sizeAxis(node, ch, 1);
+    std::cerr << "sizeAxis1 --> " << sizeAxis1_1 << ", " << sizeAxis1_2 << std::endl;
+}
+void chInfo3(uint node, ushort ch)
+{
+    std::cerr << "node = " << node << ", ch = " << ch << std::endl;
+    uint size1 = charTouint(CoRe[node]);
+    uint size2 = charTouint(Core[node].get());
+    std::cerr << "size --> " << size1 << ", " << size2 << std::endl;
+    ushort nCh1 = charToushort(CoRe[node] + 4);
+    ushort nCh2 = charToushort(Core[node].get() + 4);
+    std::cerr << "nCh --> " << nCh1 << ", " << nCh2 << std::endl;
+    uint startCh1 = charTouint(CoRe[node] + 6 + 4 * ch);
+    uint startCh2 = charTouint(Core[node].get() + 6 + 4 * ch);
+    std::cerr << "startAxis0 --> " << startCh1 << ", " << startCh2 << std::endl;
+    uint sizeAxis0_1 = charTouint(CoRe[node] + startCh1);
+    uint sizeAxis0_2 = sizeAxis(node, ch, 0);
+    ushort nAxis = numAxis(node, ch);
+    std::cerr << "numAxis = " << nAxis << std::endl;
+    std::cerr << "sizeAxis0 --> " << sizeAxis0_1 << ", " << sizeAxis0_2 << std::endl;
+    uint startAxis1 = startCh1 + 4 + sizeAxis0_1;
+    std::cerr << "startAxis1 --> " << startAxis1 << ", " << charTouint(Core[node].get() + startCh2 + 6) << std::endl;
+    uint sizeAxis1_1 = charTouint(CoRe[node] + startAxis1);
+    uint sizeAxis1_2 = sizeAxis(node, ch, 1);
+    std::cerr << "sizeAxis1 --> " << sizeAxis1_1 << ", " << sizeAxis1_2 << std::endl;
+    uint startAxis2 = startAxis1 + 4 + sizeAxis1_1;
+    std::cerr << "startAxis2 --> " << startAxis2 << ", " << charTouint(Core[node].get() + startCh2 + 10) << std::endl;
+    uint sizeAxis2_1 = charTouint(CoRe[node] + startAxis2);
+    uint sizeAxis2_2 = sizeAxis(node, ch, 2);
+    std::cerr << "sizeAxis2 --> " << sizeAxis2_1 << ", " << sizeAxis2_2 << std::endl;
+}
 uchar *word(uint node)
 {
     // uchar *re1 = new uchar[1024];
-    std::cerr << "call word()" << std::endl;
-    uchar re1[4000]; // 스택에 고정 크기 할당
 
+    uchar re1[4000]; // 스택에 고정 크기 할당
     ushort nowPosi = 4;
+    uint nAxis = numAxis(node, 0);
+    // std::cerr << "call word(), node = " << node << ", nAxis = " << nAxis << std::endl;
     if (node >= ttt && node < ttt + 256)
     {
         re1[nowPosi] = (uchar)(node - ttt);
         nowPosi++;
     }
     // else if (sizeRev(node, 0) > 0)
-    else if (sizeAxis(node, 0, 1) > 0)
+    else if (nAxis > 1)
     {
         stack<uint> st;
         vector<uint> index;
         st.push(node);
         index.push_back(0);
-
         int ii = 0;
         while (!st.empty() && ii < 4000)
         {
@@ -731,14 +787,17 @@ uchar *word(uint node)
             uint topNode = st.top();
             uint szCoo = sizeAxis(topNode, 0, 0);
             uint startCh0 = charTouint(Core[topNode].get() + 6);
-            ushort nAxis = charToushort(Core[topNode].get() + startCh0);
-            std::cerr << "nAxis = " << nAxis << std::endl;
+            nAxis = charToushort(Core[topNode].get() + startCh0);
+            // std::cerr << "nAxis = " << nAxis << std::endl;
             uint szRev = 0;
             if (nAxis == 1)
             {
                 szRev = 0;
             }
-            szRev = sizeAxis(topNode, 0, 1);
+            else
+            {
+                szRev = sizeAxis(topNode, 0, 1);
+            }
             // vector<uint> szCR = sizeCoRe(topNode, 0);
             if (szRev == 6 * index.back())
             {
@@ -753,7 +812,7 @@ uchar *word(uint node)
             // uint startCoo = startCh(topNode, 0);
             uint startAxis1 = startAxis(topNode, 0, 1);
             uint rev = charTouint(Core[topNode].get() + startAxis1 + 6 * index.back());
-            std::cerr << "rev = " << rev << std::endl;
+            // std::cerr << "rev = " << rev << std::endl;
             if (rev != 41155)
             {
                 st.push(rev);
@@ -770,11 +829,8 @@ uchar *word(uint node)
                     index.back()++;
             }
         }
-        if (ii > 4000) // 오류 처리 logic은 while 문 밖으로 꺼내는 게 좋음
-        {
-            // Log(L"word Error! node: " + intToWString(node));
-        }
     }
+    // std::cerr << "nowPosi = " << nowPosi << std::endl;
     uchar *sizeRe = uintToBytes(nowPosi - 4);
     re1[0] = sizeRe[0];
     re1[1] = sizeRe[1];
@@ -793,33 +849,33 @@ uint ushortToNode(ushort charCode)
     uint node1 = ttt + byte[0];
     uint startCh1 = charTouint(Core[node1].get() + 6);
     uint startCh1b = charTouint(CoRe[node1] + 6);
-    std::cerr << "startCh1 = " << startCh1 << ", startCh1b = " << startCh1b << std::endl;
-    std::cerr << "node1 = " << node1 << ", nAxis = " << charToushort(Core[node1].get() + startCh1) << std::endl;
+    // std::cerr << "startCh1 = " << startCh1 << ", startCh1b = " << startCh1b << std::endl;
+    // std::cerr << "node1 = " << node1 << ", nAxis = " << charToushort(Core[node1].get() + startCh1) << std::endl;
     uint sizeCoo = charTouint(CoRe[node1] + startCh1b);
     uint sizeAxis0 = sizeAxis(node1, 0, 0);
-    std::cerr << "sizeCoo = " << sizeCoo << ", sizeAxis0 = " << sizeAxis0 << std::endl;
+    // std::cerr << "sizeCoo = " << sizeCoo << ", sizeAxis0 = " << sizeAxis0 << std::endl;
     uint node2 = 0;
     for (int i = 0; i < sizeAxis0 / 6; i++)
     {
         // uint startAxis0 = charTouint(Core[node1].get() + startCh1 + 2);
         uint startAxis0 = startAxis(node1, 0, 0);
         node2 = charTouint(Core[node1].get() + startAxis0 + 6 * i);
-        std::cerr << "node2 = " << node2 << std::endl;
+        // std::cerr << "node2 = " << node2 << std::endl;
         uint startCh12 = charTouint(Core[node2].get() + 6);
-        std::cerr << "startCh12 = " << startCh12 << std::endl;
-        // uint sizeAxis12 = charTouint(Core[node2].get() + startCh12);
+        // std::cerr << "startCh12 = " << startCh12 << std::endl;
+        //  uint sizeAxis12 = charTouint(Core[node2].get() + startCh12);
         uint sizeAxis12 = sizeAxis(node2, 0, 0);
-        std::cerr << "sizeAxis12 = " << sizeAxis12 << std::endl;
+        // std::cerr << "sizeAxis12 = " << sizeAxis12 << std::endl;
         uint startAxis1 = startAxis(node2, 0, 1);
         uint node3 = charTouint(Core[node2].get() + startAxis1 + 6);
-        std::cerr << "node3 = " << node3 << std::endl;
+        // std::cerr << "node3 = " << node3 << std::endl;
 
         if (node3 == ttt + byte[1])
         {
             break;
         }
     }
-    std::cerr << "end for loop" << std::endl;
+    // std::cerr << "end for loop" << std::endl;
     delete[] byte;
     return node2;
 }
@@ -923,7 +979,7 @@ std::vector<std::string> splitLines(string &input)
 }
 std::vector<std::wstring> splitLinesW(const std::wstring &input)
 {
-    std::cerr << "call splitLinesW()" << std::endl;
+    // std::cerr << "call splitLinesW()" << std::endl;
     const int maxWidth = 400;
     std::vector<std::wstring> lines;
 
@@ -932,9 +988,9 @@ std::vector<std::wstring> splitLinesW(const std::wstring &input)
 
     for (size_t end = 0; end <= input.size(); ++end)
     {
-        std::cerr << "enter for loop" << std::endl;
+        // std::cerr << "enter for loop" << std::endl;
         ushort dd = static_cast<ushort>(input[end]);
-        std::cerr << "dd = " << dd << std::endl;
+        // std::cerr << "dd = " << dd << std::endl;
         uint node = ushortToNode(dd);
         // uint widthData = startAxis(node, 0, 3);
         // uint adv = charTouint(Core[node].get() + widthData + 8);
@@ -975,21 +1031,21 @@ void Log(wstring text)
         line = size - 15;
     }
     uchar ii = 0;
-    for (int i = line; i < LogStr.size(); i++)
-    {
-        LogToClient += LogStr[i] + L"\n";
-        std::vector<std::wstring> lines = splitWstring(LogStr[i], L"\n");
-        for (int j = 0; j < lines.size(); j++)
-        {
-            std::vector<wstring> lines2 = splitLinesW(lines[j]);
-            for (const auto &line2 : lines2)
-            {
-                ii++;
-                string str = wstringToUtf8(line2);
-                // RenderText(str, 1000, 1000 - (500 + 15 * ii));
-            }
-        }
-    }
+    // for (int i = line; i < LogStr.size(); i++)
+    // {
+    //     LogToClient += LogStr[i] + L"\n";
+    //     std::vector<std::wstring> lines = splitWstring(LogStr[i], L"\n");
+    //     for (int j = 0; j < lines.size(); j++)
+    //     {
+    //         std::vector<wstring> lines2 = splitLinesW(lines[j]);
+    //         for (const auto &line2 : lines2)
+    //         {
+    //             ii++;
+    //             string str = wstringToUtf8(line2);
+    //             // RenderText(str, 1000, 1000 - (500 + 15 * ii));
+    //         }
+    //     }
+    // }
 }
 uchar *wstringToUChar(const std::wstring &str)
 {
@@ -1016,7 +1072,7 @@ std::wstring charToWstring(uchar *val) // size 정보 담아서 전달되어야 
     wstring re = L"";
     vector<unsigned short> ss;
     uint size = charTouint(val);
-    std::cerr << "size = " << size << std::endl;
+    // std::cerr << "size = " << size << std::endl;
     for (int i = 0; i < size / 2; i++)
     {
         ss.push_back(charToushort(val + 4 + 2 * i));
@@ -1025,6 +1081,7 @@ std::wstring charToWstring(uchar *val) // size 정보 담아서 전달되어야 
     for (int i = 0; i < ss.size(); i++)
     {
         wstring temp = ushortToWstring(ss[i]);
+        // std::wcout << L"temp = " << temp << std::endl;
         re.append(temp);
     }
     return re;
@@ -1037,7 +1094,7 @@ uchar *Sheet(uint node)
     ushort nowPosi = 4;
     uint startCh0 = charTouint(Core[node].get() + 6);
     ushort nAxis = charToushort(Core[node].get() + startCh0);
-    std::cerr << "nAxis = " << nAxis << std::endl;
+    // std::cerr << "nAxis = " << nAxis << std::endl;
     if (node == 41155)
     {
         delete[] re;
@@ -1052,47 +1109,46 @@ uchar *Sheet(uint node)
     else if (nAxis == 1)
     {
         std::pair<uint, ushort> dd(node, 0);
-        uint start1 = startCh(dd.first, dd.second);
+        // uint start1 = startCh(dd.first, dd.second);
         uint startAxis0 = startAxis(dd.first, dd.second, 0);
         dd = charToPair(Core[dd.first].get() + startAxis0);
-
+        // std::cerr << "dd.first = " << dd.first << std::endl;
+        // chInfo(dd.first, dd.second);
         while (dd.first != node || dd.second != 0)
         {
             uchar *wordDD = word(dd.first); // Assuming word() allocates memory
             uint sizeWord = charTouint(wordDD);
-            std::cerr << "sizeWord = " << sizeWord << std::endl;
-            // wcout << L"sizeWord = " << intToWString(sizeWord) << endl;
+            // std::cerr << "sizeWord = " << sizeWord << std::endl;
+            //  wcout << L"sizeWord = " << intToWString(sizeWord) << endl;
             if (nowPosi + sizeWord <= reSize)
             {
                 memcpy(re + nowPosi, wordDD + 4, sizeWord);
                 nowPosi += sizeWord;
             }
 
-            uint startCoo = startCh(dd.first, dd.second);
+            startAxis0 = startAxis(dd.first, dd.second, 0);
             // uint startAxis = charTouint(Core[dd.first].get() + startCoo + 2)
-            if (charTouint(Core[dd.first].get() + startCoo + 2) == 0)
+            if (charTouint(Core[dd.first].get() + startAxis0) == 0)
             {
                 delete[] wordDD;
                 break;
             }
-            dd = charToPair(Core[dd.first].get() + startAxis(dd.first, dd.second, 0));
+            dd = charToPair(Core[dd.first].get() + startAxis0);
+            // std::cerr << "dd.first = " << dd.first << std::endl;
             delete[] wordDD;
         }
     }
-    std::cerr << "before sizeRe" << std::endl;
     uchar *sizeRe = uintToBytes(nowPosi - 4);
-    std::cerr << "before memcpy()" << std::endl;
     memcpy(re, sizeRe, 4); // Copy 4 bytes of size
-    std::cerr << "after sizeRe" << std::endl;
     delete[] sizeRe;
-    if (!re)
-    {
-        std::cerr << "re is a null pointer." << endl;
-    }
-    else
-    {
-        std::cerr << "re is not a null pointer." << endl;
-    }
+    // if (!re)
+    // {
+    //     std::cerr << "re is a null pointer." << endl;
+    // }
+    // else
+    // {
+    //     std::cerr << "re is not a null pointer." << endl;
+    // }
     wstring ww = charToWstring(re);
     // wcout << L"ww = " << ww << endl;
     string ss = wstringToUtf8(ww);
@@ -1220,6 +1276,7 @@ void clearCh(uint node, ushort ch)
 }
 void addCh(uint node)
 {
+    std::cerr << "add addCh()" << std::endl;
     ushort numch = numCh(node);
     changeShort(Core[node].get(), 4, numch + 1);
     uint sizeNode = 4 + charTouint(Core[node].get());
@@ -1261,19 +1318,21 @@ void move(int numTo, uint user)
 {
     uint temp{};
     uint tN = cNode[user];
-    uint startCoo = startCh(cNode[user], cCh[user]);
+    uint tartCh = startCh(cNode[user], cCh[user]);
     if (numTo > 0)
     {
         temp = numTo - 1;
-        cNode[user] = charTouint(Core[cNode[user]].get() + startCoo + 4 + 6 * temp);
-        cCh[user] = charToushort(Core[tN].get() + startCoo + 8 + 6 * temp); // cNode[user]를 변경했으므로 tN을 써야 함!!
+        uint startAxis0 = startAxis(cNode[user], cCh[user], 0);
+        cNode[user] = charTouint(Core[cNode[user]].get() + startAxis0 + 6 * temp);
+        cCh[user] = charToushort(Core[tN].get() + startAxis0 + 4 + 6 * temp); // cNode[user]를 변경했으므로 tN을 써야 함!!
     }
     else
     {
         temp = (-1 * numTo) - 1;
-        uint szC = charTouint(Core[cNode[user]].get() + startCoo);
-        cNode[user] = charTouint(Core[cNode[user]].get() + startCoo + 8 + szC + 6 * temp);
-        cCh[user] = charToushort(Core[tN].get() + startCoo + 12 + szC + 6 * temp);
+        uint startAxis1 = startAxis(cNode[user], cCh[user], 1);
+        // uint szC = charTouint(Core[cNode[user]].get() + startCoo);
+        cNode[user] = charTouint(Core[cNode[user]].get() + startAxis1 + 6 * temp);
+        cCh[user] = charToushort(Core[tN].get() + startAxis1 + 4 + 6 * temp);
     }
 }
 void Brain(uint node, uchar *data) // 사이즈 정보 포함해서 받아야 함
@@ -1493,34 +1552,41 @@ wstring timeW(time_t timer)
 uint numOrder(uint user)
 {
     // uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
-    uint startCh = charTouint(Core[orderStart].get() + 10);
-    ushort numAxis = charToushort(Core[orderStart].get() + startCh);
-    uint startAxis0 = charTouint(Core[orderStart].get() + startCh + 2);
+    // std::cerr << "call numOrder" << std::endl;
+    uint startCh1 = charTouint(Core[orderStart].get() + 10);
+    ushort numAxis = charToushort(Core[orderStart].get() + startCh1);
+    uint startAxis0 = charTouint(Core[orderStart].get() + startCh1 + 2);
     uint node = charTouint(Core[orderStart].get() + startAxis0 + 6 * (user - 1));
     ushort ch = charToushort(Core[orderStart].get() + startAxis0 + 6 * (user - 1) + 4);
     uint nodeT = node;
     ushort chT = ch;
-    uint startAxis2 = charTouint(Core[node].get() + startCh + 10);
-    uint node2 = charTouint(Core[node].get() + startAxis2 + 4);
-    ushort ch2 = charToushort(Core[node].get() + startAxis2 + 8);
+    uint startAxis2 = charTouint(Core[node].get() + startCh1 + 10);
+    uint node2 = charTouint(Core[node].get() + startAxis2);
+    ushort ch2 = charToushort(Core[node].get() + startAxis2 + 4);
     uint ii = 1;
+    // std::cerr << "node2 = " << node2 << ", ch2 = " << ch2 << std::endl;
     while (node2 != nodeT || ch2 != chT)
     {
         ii++;
-        if (ii == 34640)
-        {
-            int aa = 0;
-        }
-        if (node2 == 36673)
-        {
-            int bb = 0;
-        }
         node = node2;
         ch = ch2;
+        if (ii == 30018 || ii == 30019)
+        {
+            uint size = charTouint(Core[node].get());
+            chInfo3(node, ch);
+            std::cerr << "ii = " << ii << ", numAxis = " << numAxis << ", startAxis2 = " << startAxis2 << ", node2 = " << node2 << ", ch2 = " << ch2 << ", size = " << size << std::endl;
+        }
+        startCh1 = charTouint(Core[node].get() + 6 + 4 * ch);
+        // std::cerr << "startCh1 = " << startCh1 << std::endl;
+        numAxis = charToushort(Core[node].get() + startCh1);
+        // std::cerr << "numAxis = " << numAxis << std::endl;
         startAxis2 = startAxis(node, ch, 2);
-        node2 = charTouint(Core[node].get() + startAxis2 + 4);
-        ch2 = charToushort(Core[node].get() + startAxis2 + 8);
+        // std::cerr << "startAxis2 = " << startAxis2 << std::endl;
+        node2 = charTouint(Core[node].get() + startAxis2);
+        ch2 = charToushort(Core[node].get() + startAxis2 + 4);
+        // std::cerr << "node2 = " << node2 << ", ch2 = " << ch2 << std::endl;
     }
+    std::cerr << "ii = " << ii << std::endl;
     return ii;
 }
 wstring findAndUpdateOrder(uint node0, ushort ch0, ushort user)
@@ -1530,46 +1596,52 @@ wstring findAndUpdateOrder(uint node0, ushort ch0, ushort user)
     // uint orderSize = numOrder(user);
     time_t timer;
     time(&timer);
-    uint startCoo = charTouint(Core[orderStart].get() + 10); // ch = 1
-    uint node = charTouint(Core[orderStart].get() + startCoo + 4 + 6 * (user - 1));
-    ushort ch = charToushort(Core[orderStart].get() + startCoo + 4 + 6 * (user - 1) + 4);
+    uint startCh = charTouint(Core[orderStart].get() + 10); // ch = 1
+    uint startAxis0 = startAxis(orderStart, 1, 0);
+    uint node = charTouint(Core[orderStart].get() + startAxis0 + 6 * (user - 1));
+    ushort ch = charToushort(Core[orderStart].get() + startAxis0 + 6 * (user - 1) + 4);
     uint nodeT = node;
     ushort chT = ch;
     uint startX3 = startAxis(node, ch, 2);
-    uint node2 = charTouint(Core[node].get() + startX3 + 4);
-    ushort ch2 = charToushort(Core[node].get() + startX3 + 8);
+    uint node2 = charTouint(Core[node].get() + startX3);
+    ushort ch2 = charToushort(Core[node].get() + startX3 + 4);
     bool check = false;
+    std::cerr << "node0 = " << node0 << ", node2 = " << node2 << ", nodeT = " << nodeT << "ch0 = " << ch0 << ", ch2 = " << ch2 << ", chT = " << chT << std::endl;
     if (nodeT == node0 && chT == ch0)
     {
-        startCoo = charTouint(Core[orderStart].get() + 10); // ch = 1
-        changePair(Core[orderStart].get(), startCoo + 4 + 6 * (user - 1), node2, ch2);
-        re = timeW(charToLong(Core[nodeT].get() + startX3 + 10));
-        tmp = charToLong(Core[nodeT].get() + startX3 + 18);
+        startCh = charTouint(Core[orderStart].get() + 10); // ch = 1
+        changePair(Core[orderStart].get(), startAxis0 + 6 * (user - 1), node2, ch2);
+        re = timeW(charToLong(Core[nodeT].get() + startX3 + 6));
+        tmp = charToLong(Core[nodeT].get() + startX3 + 14);
         re = re + L"\t" + timeW(tmp);
+        std::wcout << L"re = " << re << std::endl;
     }
+    std::cerr << "node0 = " << node0 << ", node2 = " << node2 << ", nodeT = " << nodeT << "ch0 = " << ch0 << ", ch2 = " << ch2 << ", chT = " << chT << std::endl;
     while (node != nodeT || ch != chT)
     {
         node = node2;
         ch = ch2;
         startX3 = startAxis(node, ch, 2);
-        node2 = charTouint(Core[node].get() + startX3 + 4);
-        ch2 = charToushort(Core[node].get() + startX3 + 8);
+        node2 = charTouint(Core[node].get() + startX3);
+        ch2 = charToushort(Core[node].get() + startX3 + 4);
+        // std::cerr << "node2 = " << node2 <<  ", ch2 = " << ch2 << std::endl;
         if (check == true && node2 == nodeT && ch2 == chT)
         {
             uint startAxis32 = startAxis(node2, ch2, 2);
-            changePair(Core[node2].get(), startAxis32 + 4, node0, ch0);
+            changePair(Core[node2].get(), startAxis32, node0, ch0);
         }
         if (node2 == node0 && ch2 == ch0)
         {
             uint startAxis32 = startAxis(node2, ch2, 2);
-            uint node3 = charTouint(Core[node2].get() + startX3 + 4);
-            ushort ch3 = charToushort(Core[node2].get() + startX3 + 8);
-            re = timeW(charToLong(Core[node].get() + startX3 + 10));
-            tmp = charToLong(Core[node].get() + startX3 + 18);
+            uint node3 = charTouint(Core[node2].get() + startAxis32);
+            ushort ch3 = charToushort(Core[node2].get() + startAxis32 + 4);
+            re = timeW(charToLong(Core[node].get() + startX3 + 6));
+            tmp = charToLong(Core[node].get() + startX3 + 14);
             re = re + L"\t" + timeW(tmp);
-            changePair(Core[node].get(), startX3 + 4, node3, ch3);
-            changePair(Core[node2].get(), startAxis32 + 4, nodeT, chT);
-            changeLong(Core[node2].get(), startAxis32 + 10, timer);
+            std::wcout << L"re = " << re << std::endl;
+            changePair(Core[node].get(), startX3, node3, ch3);
+            changePair(Core[node2].get(), startAxis32, nodeT, chT);
+            changeLong(Core[node2].get(), startAxis32 + 6, timer);
             check = true;
         }
     }
@@ -1742,37 +1814,42 @@ void sendMsg(int ClientSocket, std::wstring content)
 }
 wstring contentList(uint node, ushort ch, uint page = 1)
 {
+    std::cerr << "call contentList" << std::endl;
     wstring ws = L"";
-    uint startCoo = charTouint(Core[node].get() + 6 + 4 * ch);
-    uint sizeCoo = charTouint(Core[node].get() + startCoo);
-    uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(Core[node].get() + startRev);
-    if (sizeRev > 0)
+    // uint startCoo = charTouint(Core[node].get() + 6 + 4 * ch);
+    //  uint sizeCoo = charTouint(Core[node].get() + startCoo);
+    uint sizeAxis0 = sizeAxis(node, ch, 0);
+    // uint startRev = startCoo + 4 + sizeCoo;
+    // uint sizeRev = charTouint(Core[node].get() + startRev);
+    uint sizeAxis1 = sizeAxis(node, ch, 1);
+    // std::cerr << "sizeAxis0 = " << sizeAxis0 << ", sizeAcis1 = " << sizeAxis1 << std::endl;
+    if (sizeAxis1 > 0)
     {
-        uint prevNode = startAxis(node, ch, 2);
+        uint prevNode = startAxis(node, ch, 1);
         wstring prev = L"";
         wstring pprev = L"";
-        for (int i = 0; i < sizeRev / 6; i++)
+        for (int i = 0; i < sizeAxis1 / 6; i++)
         {
             wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonRev" + intToWString(i + 1) + L"\", \"\")' onclick='sendTextToServer(" + intToWString(-(i + 1)) + L"); return false;'>" + intToWString(-(i + 1)) + L"</a>";
             uchar *sheetPrev = Sheet(charTouint(Core[node].get() + prevNode + 6 * i));
             prev += hpL + L". " + charToWstring(sheetPrev) + L"<br/>";
+            std::wcout << "prev = " << prev << std::endl;
             delete[] sheetPrev;
             // prev += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&prevNode[6 * i]))) + L"<br/>";
             uint node2 = charTouint(Core[node].get() + prevNode + 6 * i);
             ushort ch2 = charToushort(Core[node].get() + prevNode + 4 + 6 * i);
-            uint startCoo2 = charTouint(Core[node2].get() + 6 + 4 * ch2);
-            uint sizeCoo2 = charTouint(Core[node2].get() + startCoo2);
-            uint startRev2 = startCoo2 + 4 + sizeCoo2;
-            uint sizeRev2 = charTouint(Core[node2].get() + startRev2);
+            uint startCh2 = charTouint(Core[node2].get() + 6 + 4 * ch2);
+            uint sizeCoo2 = sizeAxis(node2, ch2, 0);
+            uint startRev2 = charTouint(Core[node2].get() + startCh2 + 6);
+            uint sizeRev2 = sizeAxis(node2, ch2, 1);
             // uchar *splPrev2 = CoRe[node2] + startRev2 + 4 + 6 * i;
-            uint splPrev2 = startRev2 + 4 + 6 * i;
+            uint splPrev2 = startRev2 + 6 * i;
             // vector<uchar> splPrev2 = axon2(charTouint(prevNode, 6 * i), charToushort(prevNode, 4 + 6 * i));
             for (int j = 0; j < sizeRev2 / 6; j++)
             {
                 // pprev += intToWString(-(i + 1)) + L"." + intToWString(j + 1) + L" " + charToWstring(Sheet(*reinterpret_cast<uint *>(&splPrev2[6 * j]))) + L"<br/>";
                 uint sheetNode2 = charTouint(Core[node2].get() + splPrev2 + 6 * j);
-                if (sheetNode2 > CoRe.size())
+                if (sheetNode2 > Core.size())
                 {
                     Log(L"error: prev i = " + intToWString(i) + L", pprev j = " + intToWString(j) + L".");
                     continue;
@@ -1786,25 +1863,34 @@ wstring contentList(uint node, ushort ch, uint page = 1)
     }
     uchar *sheetNode = Sheet(node);
     ws += L"<p class='this'>" + charToWstring(sheetNode) + L"<br/>" + L"<p class='next'>"; // 현재 단계
+    std::wcout << L"this content = " << ws << std::endl;
     delete[] sheetNode;
-
-    uchar *nextNode = Core[node].get() + startCoo + 4;
-    for (int i = (page - 1) * 50; i < page * 50 - 1 && sizeCoo != 0; i++)
+    uint startCh = charTouint(Core[node].get() + 6 + 4 * ch);
+    uint startAxis0 = charTouint(Core[node].get() + startCh + 2);
+    // uchar *nextNode = Core[node].get() + startAxis0;
+    for (int i = (page - 1) * 50; i < page * 50 - 1 && sizeAxis0 != 0; i++)
     {
-        if (i == sizeCoo / 6)
+        if (i == sizeAxis0 / 6)
         {
             break;
         }
         wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonNext" + intToWString(i + 1) + L"\", \"\")' onclick='sendTextToServer(" + intToWString(i + 1) + L"); return false;'>" + intToWString(i + 1) + L"</a>";
         // ws += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&nextNode[6 * i]))) + L"<br/>";
-        uchar *sheetNext = Sheet(charTouint(nextNode + 6 * i));
+        uint nextNode = charTouint(Core[node].get() + startAxis0 + 6 * i);
+        ushort nextCh = charToushort(Core[node].get() + startAxis0 + 6 * i + 4);
+        if (i == 10)
+        {
+            chInfo3(nextNode, nextCh);
+        }
+        uchar *sheetNext = Sheet(nextNode);
         ws += hpL + L". " + charToWstring(sheetNext) + L"<br/>";
+        std::wcout << "next content = " << ws << std::endl;
         delete[] sheetNext;
     }
-    if (sizeCoo / 6 > 50)
+    if (sizeAxis0 / 6 > 50)
     {
         ws += L"<br />Page ";
-        for (int i = 1; i <= (sizeCoo / 6 / 50) + 1; i++)
+        for (int i = 1; i <= (sizeAxis0 / 6 / 50) + 1; i++)
         {
             ws += L" <a href='javascript:__doPostBack(\"PageButton" + intToWString(i) + L"\", \"\")' onclick='sendTextToServer(" + L"\"Page\" + " + intToWString(i) + L"); return false;'>" + intToWString(i) + L"</a>";
         }
@@ -1813,33 +1899,14 @@ wstring contentList(uint node, ushort ch, uint page = 1)
     return ws;
 }
 
-// void study(uint user)
-// {
-//     uint t1 = get<0>(order[user][0]);
-//     ushort t2 = get<1>(order[user][0]);
-//     while (numCh(t1) > t2 + 1)
-//     {
-//         order[user].erase(order[user].begin());
-//         t1 = get<0>(order[user][0]);
-//         t2 = get<1>(order[user][0]);
-//     }
-//     cNode[user] = t1;
-//     cCh[user] = t2;
-//     wcout << "98Node = " << intToWString(t1) << endl;
-//     wcout << "98Ch = " << to_wstring(t2) << endl;
-//     tuple<int, ushort, time_t, time_t> temp = order[user][0];
-//     eraseOrder(t1, t2, user);
-//     order[user].push_back(temp);
-// }
 void study(uint user)
 {
-    uint startCoo = charTouint(Core[orderStart].get() + 10); // ch = 1
-    uint node = charTouint(Core[orderStart].get() + startCoo + 4 + 6 * (user - 1));
-    ushort ch = charToushort(Core[orderStart].get() + startCoo + 4 + 6 * (user - 1) + 4);
-    uint nodeT = node;
-    ushort chT = ch;
-    cNode[user] = nodeT;
-    cCh[user] = chT;
+    uint startCh = charTouint(Core[orderStart].get() + 10); // ch = 1
+    uint startAxis0 = startAxis(orderStart, 1, 0);
+    uint node = charTouint(Core[orderStart].get() + startAxis0 + 6 * (user - 1));
+    ushort ch = charToushort(Core[orderStart].get() + startAxis0 + 6 * (user - 1) + 4);
+    cNode[user] = node;
+    cCh[user] = ch;
     // uint startCoo2 = charTouint(CoRe[node] + 6 + 4 * ch);
     // uint sizeCoo2 = charTouint(CoRe[node] + startCoo2);
     // uint startRev2 = startCoo2 + 4 + sizeCoo2;
@@ -1847,7 +1914,7 @@ void study(uint user)
     // uint startAxis3 = startRev2 + 4 + sizeRev2;
     // uint node2 = charTouint(CoRe[node] + startAxis3 + 4);
     // ushort ch2 = charToushort(CoRe[node] + startAxis3 + 8);
-    // findAndUpdateOrder(nodeT, chT, user);
+    // findAndUpdateOrder(node, ch, user);
 }
 // void study2(uint user)
 // {
@@ -1858,13 +1925,15 @@ void study(uint user)
 // }
 uint sizeGarbage()
 {
+    std::cerr << "call sizeGarbage" << std::endl;
     int i = 0;
-    uint temp = charTouint(Core[gar].get() + 14);
+    uint temp = charTouint(Core[gar].get() + startAxis(gar, 0, 0));
     while (temp != gar)
     {
-        temp = charTouint(Core[temp].get() + 14);
+        temp = charTouint(Core[temp].get() + startAxis(temp, 0, 0));
         i++;
     }
+    std::cerr << "end sizeGarbage" << std::endl;
     return i;
 }
 size_t vmSize = 0, vmRSS = 0;
@@ -1912,6 +1981,7 @@ void info()
         string line = wstringToUtf8(lines[i]);
         // RenderText(line, 1000, 1000 - (20 + 15 * i));
     }
+    std::cerr << "end info" << std::endl;
 }
 void pushGarbage(uint node) // 오류 있음 수정해야 함.
 {
@@ -2161,20 +2231,22 @@ void AddStringToNode2(const string &str1, const string &str2, uint node, ushort 
 }
 void save(string directory)
 {
+    std::cerr << "call save()" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
 
-    ofstream out(directory + "Brain5.bin", ios::binary);
+    ofstream out(directory + "Brain6.bin", ios::binary);
     int ii = 0;
-    uint size = CoRe.size();
-    out.write(reinterpret_cast<const char *>(&size), 4);
-    for (int i = 0; i < CoRe.size(); i++)
+    uint sizeCore = Core.size();
+    out.write(reinterpret_cast<const char *>(&sizeCore), 4);
+    for (int i = 0; i < sizeCore; i++)
     {
-        uint size = charTouint(CoRe[i]);
-        if (size > 100000)
+        uint size = charTouint(Core[i].get());
+        if (size > 1000000)
         {
+            std::cerr << "out of size!" << std::endl;
             break;
         }
-        out.write(reinterpret_cast<const char *>(CoRe[i]), size + 4);
+        out.write(reinterpret_cast<const char *>(Core[i].get()), size + 4);
     }
     out.close();
     auto end = std::chrono::high_resolution_clock::now();
@@ -2409,8 +2481,11 @@ wstring makeContent(uint user, wstring inputText, wstring Log2 = L"")
 {
     Log(Log2);
     info();
-    uint cch = numCh(cNode[user]) - 1;
-    wstring content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(cNode[user], cCh[user], user) + L"\t" + LogToClient + L"\t" + infoStr + L"\t" + intToWString(cch) + L"\t" + intToWString(copyNode.first) + L"\t" + intToWString((int)copyNode.second);
+    ushort cch = charToushort(Core[cNode[user]].get() + 4) - 1;
+    wstring contentBody = contentList(cNode[user], cCh[user]);
+    wstring timeContent = findAndUpdateOrder(cNode[user], cCh[user], user);
+    wstring content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentBody + L"\t" + intToWString(Core.size()) + L"\t" + inputText + L"\t" + timeContent + L"\t" + LogToClient + L"\t" + infoStr + L"\t" + intToWString(cch) + L"\t" + intToWString(copyNode.first) + L"\t" + intToWString((int)copyNode.second);
+    // std::wcout << L"content = " << content << std::endl;
     return content;
 }
 void handleLogin(const std::string &requestBody, int client_socket)
@@ -2418,31 +2493,37 @@ void handleLogin(const std::string &requestBody, int client_socket)
     auto data = parsePostData(requestBody);
     // bool isAuthenticated = checkLogin(data["username"], data["password"]);
     uint IDList = startAxis(34196, 1, 0);
-    std::cerr << "IDList = " << IDList << std::endl;
+    // std::cerr << "IDList = " << IDList << std::endl;
     bool check = false;
     uint startCh1 = charTouint(Core[34196].get() + 6 + 4 * 1);
     // uint sizeIDList = charTouint(Core[34196].get() + startCh1);
     uint sizeIDList = sizeAxis(34196, 1, 0);
-    std::cerr << "sizeIDList = " << sizeIDList << std::endl;
+    // std::cerr << "sizeIDList = " << sizeIDList << std::endl;
 
     wstring content = L"";
     for (int i = 0; i < sizeIDList / 6 - 1; i++)
     {
         uint IDnode = charTouint(Core[34196].get() + IDList + 6 * (i));
-        std::cerr << "i = " << i << ", IDnode = " << IDnode << std::endl;
+        // std::cerr << "i = " << i << ", IDnode = " << IDnode << std::endl;
         uchar *sheetID = Sheet(IDnode);
         wstring ww = charToWstring(sheetID);
-        std::wcout << L"sheetID = " << ww << std::endl;
+        // std::wcout << L"sheetID = " << ww << std::endl;
         if (utf8ToWstring(data["username"]) == ww) // ID가 존재하는 경우
         {
-            //startCh1 = startCh(34196, 1);
-            pair<uint, ushort> userID = charToPair(Core[34196].get() + startCh1 + 4 + 6 * i);
+            // startCh1 = startCh(34196, 1);
+            uint startAxis0 = charTouint(Core[34196].get() + startCh1 + 2);
+            pair<uint, ushort> userID = charToPair(Core[34196].get() + startAxis0 + 6 * i);
             uint startUserID = startCh(userID.first, userID.second);
-            pair<uint, ushort> Pass = charToPair(Core[userID.first].get() + startUserID + 4);
-            if (utf8ToWstring(data["password"]) == charToWstring(Sheet(Pass.first))) // 비밀번호가 동일한 경우
+            uint startAxis0_2 = charTouint(Core[userID.first].get() + startUserID + 2);
+            pair<uint, ushort> Pass = charToPair(Core[userID.first].get() + startAxis0_2);
+            wstring www = charToWstring(Sheet(Pass.first));
+            // std::wcout << L"www = " << www << std::endl;
+            if (utf8ToWstring(data["password"]) == www) // 비밀번호가 동일한 경우
             {
+                std::cerr << "password 동일" << std::endl;
                 uint startPass = startCh(Pass.first, Pass.second);
-                pair<uint, ushort> start = charToPair(Core[Pass.first].get() + startPass + 4);
+                uint startAxis0_Pass = charTouint(Core[Pass.first].get() + startPass + 2);
+                pair<uint, ushort> start = charToPair(Core[Pass.first].get() + startAxis0_Pass);
                 user = i + 1;
                 cNode[user] = start.first;
                 cCh[user] = start.second;
@@ -2671,6 +2752,7 @@ int Network()
                     else
                     { // 아이디까지 입력한 이후 상태
                         string inputText = wstringToUtf8(clientMvec[3]);
+                        std::cerr << "inputText = " << inputText << std::endl;
                         if (clientMvec[1] == L"34,199" || clientMvec[1] == L"34199")
                         { // 비밀번호 입력한 상태
                             uint startCoo = startCh(34196, 1);
@@ -2701,7 +2783,6 @@ int Network()
                                 {
                                     study(user);
                                     sendMsg(client_socket, makeContent(user, L"98"));
-                                    cerr << "989898" << endl;
                                 }
                                 else if (num == 982) // if not working 98 function
                                 {
@@ -2731,16 +2812,17 @@ int Network()
                             else
                             {
                                 // std::cout << "Invalid argument: the wstring cannot be converted to an integer." << std::endl;
-                                uint startCoo = charTouint(Core[6478].get() + 10);
-                                uint sizeCoo = charTouint(Core[6478].get() + startCoo) / 6;
-                                for (int i = 0; i < sizeCoo; i++)
+                                uint startCh_6478 = charTouint(Core[6478].get() + 10); // ch = 1
+                                uint startAxis0 = charTouint(Core[6478].get() + startCh_6478 + 2);
+                                uint sizeAxis0 = sizeAxis(6478, 1, 0) / 6;
+                                for (int i = 0; i < sizeAxis0; i++)
                                 { // 바로가기 기능 구현
-                                    uint nextNode = charTouint(Core[6478].get() + startCoo + 4 + 6 * i);
+                                    uint nextNode = charTouint(Core[6478].get() + startAxis0 + 6 * i);
                                     uchar *sheetNode = Sheet(nextNode);
                                     wstring ws = charToWstring(sheetNode);
                                     if (clientMvec[3] == ws)
                                     {
-                                        ushort nextCh = charToushort(Core[6478].get() + startCoo + 8 + 6 * i);
+                                        ushort nextCh = charToushort(Core[6478].get() + startAxis0 + 4 + 6 * i);
                                         cNode[user] = nextNode;
                                         cCh[user] = nextCh;
                                         delete[] sheetNode;
@@ -2762,7 +2844,7 @@ int Network()
                                 {
                                     cNode[user] = 0;
                                     cCh[user] = 1;
-                                    sendMsg(client_socket, makeContent(user, L"", L""));
+                                    sendMsg(client_socket, makeContent(user, L""));
                                 }
                                 else if (inputText == "수정")
                                 {
@@ -2792,6 +2874,7 @@ int Network()
                                 }
                                 else if (inputText == "save" || inputText == "저장")
                                 {
+                                    std::cerr << "start save()" << std::endl;
                                     save("");
                                     sendMsg(client_socket, makeContent(user, L"", L"save complete!"));
                                 }
@@ -3143,11 +3226,19 @@ int main(int argc, char const *argv[])
         ushort numch = charToushort(CoRe[i] + 4);
         auto outer2 = std::make_unique<uchar[]>(6 + 4 * (numch + 1));
         uint totalBytes = 0;
-        changeInt(outer2.get(), 0, 6 + 4 * (numch + 1));
+        changeInt(outer2.get(), 0, 2 + 4 * (numch + 1));//6 + 4 * (numch + 1)에서 4를 빼야 함(size에 처음 4바이트는 미포함되므로 ) 
         changeShort(outer2.get(), 4, numch);
+        uint size = charTouint(CoRe[i]);
+        if (i == 41200)
+        {
+            std::cerr << "i = 41200, size = " << size << std::endl;
+        }
         for (int j = 0; j < numch; j++)
         {
-            uint size = charTouint(CoRe[i]);
+            // if (i == 41200)
+            // {
+            //     std::cerr << "i = 41200, j = " << j << ", totalbytes = " << totalBytes << std::endl;
+            // }
             if (6 + (4 * j) >= size + 4)
             {
                 std::cerr << "Index out of range for outer array." << std::endl;
@@ -3162,23 +3253,17 @@ int main(int argc, char const *argv[])
             }
             uint sizeAxis1 = charTouint(CoRe[i] + startAxis1);
             uint sizeAxis2 = 0, startAxis2 = 0, sizeAxis3 = 0, endAxis2 = 0;
-            // if (i >= 65407)
-            // {
-            //     std::cerr << "i = " << i << ", j = " << j << ", numch = " << numch << ", startAxis1 = " << startAxis1 << ", sizeAxis1 = " << sizeAxis1 << std::endl;
-            // }
 
-            if (sizeAxis1 == 0)
+            if (sizeAxis1 > size)
             {
-                // nAxis = 0;
-            }
-            else if (sizeAxis1 > size)
-            {
-                std::cerr << "i ==" << i << ", sizeAxis1 = " << sizeAxis1 << ", size = " << size << std::endl;
+                std::cerr << "i == " << i << ", startAxis1 = " << startAxis1 << ", sizeAxis1 = " << sizeAxis1 << ", size = " << size << std::endl;
                 nAxis = 0;
             }
             else
             {
+
                 startAxis2 = startAxis1 + 4 + sizeAxis1;
+
                 if (startAxis2 > size + 4)
                 {
                     // std::cerr << "Invalid startAxis2 index. i =" << i << std::endl;
@@ -3187,6 +3272,13 @@ int main(int argc, char const *argv[])
                 else
                 {
                     sizeAxis2 = charTouint(CoRe[i] + startAxis2);
+                    if (sizeAxis2 < 4)
+                        sizeAxis2 = 0;
+                    if (sizeAxis1 == 0 && sizeAxis2 > 0)
+                    {
+                        nAxis = 2;
+                    }
+
                     if (j < numch - 1 && charTouint(CoRe[i] + 6 + 4 * (j + 1)) <= sizeAxis2)
                     {
                         nAxis = 1;
@@ -3195,10 +3287,25 @@ int main(int argc, char const *argv[])
                     {
                         nAxis = 1;
                     }
-                    // else if (sizeAxis2 == 0)
-                    // {
-                    //     nAxis = 1;
-                    // }
+                    else if (sizeAxis2 == 0)
+                    {
+                        nAxis = 1;
+                        // if (sizeAxis1 == 0 || i == 15422 || i == 15547 || i == 30089)
+                        if (sizeAxis1 == 0 || j == numch - 1)
+                        {
+                            nAxis = 3;
+                            endAxis2 = startAxis2 + 4 + sizeAxis2;
+                            // sizeAxis3 = charTouint(CoRe[i] + endAxis2);
+                            sizeAxis3 = size - endAxis2;
+                        }
+                        else if (charTouint(CoRe[i] + 6 + 4 * (j + 1)) > startAxis2 + 4)
+                        {
+                            nAxis = 3;
+                            endAxis2 = startAxis2 + 4 + sizeAxis2;
+                            // sizeAxis3 = charTouint(CoRe[i] + endAxis2);
+                            sizeAxis3 = charTouint(CoRe[i] + 6 + 4 * (j + 1)) - endAxis2 - 4;
+                        }
+                    }
                     else
                     {
                         endAxis2 = startAxis2 + 4 + sizeAxis2;
@@ -3209,7 +3316,8 @@ int main(int argc, char const *argv[])
                         }
                         else if (j < numch - 1 && nAxis == 2)
                         {
-                            if (charTouint(CoRe[i] + 6 + (4 * (j + 1))) > endAxis2)
+                            uint startNextCh = charTouint(CoRe[i] + 6 + (4 * (j + 1)));
+                            if (startNextCh > endAxis2)
                             {
                                 nAxis = 3;
                                 if (endAxis2 > size + 4)
@@ -3217,33 +3325,57 @@ int main(int argc, char const *argv[])
                                     std::cerr << "Invalid endAxis2 index for sizeAxis3." << std::endl;
                                     return 1;
                                 }
-                                sizeAxis3 = charTouint(CoRe[i] + endAxis2);
+                                // sizeAxis3 = charTouint(CoRe[i] + endAxis2);
+                                sizeAxis3 = startNextCh - endAxis2 - 4;
+                                if (i == 41200)
+                                {
+                                    std::cerr << "find!! " << ", startNextCh = " << startNextCh << ", endAxis2 = " << endAxis2 << ", sizeAxis3 = " << charTouint(CoRe[i] + endAxis2) << std::endl;
+                                }
                             }
                         }
                         else if (4 + size > endAxis2)
                         {
+                            uint startNextCh = charTouint(CoRe[i] + 6 + (4 * (j + 1)));
+                            if (j == numch - 1)
+                            {
+                                sizeAxis3 = size - endAxis2;
+                            }
+                            else if (startNextCh < endAxis2)
+                            {
+                                sizeAxis3 = startNextCh - endAxis2 - 4;
+                            }
                             nAxis = 3;
                             if (endAxis2 > size + 4)
                             {
                                 std::cerr << "Invalid endAxis2 index for sizeAxis3. i = " << i << ", j = " << j << ", startAxis1 = " << startAxis1 << ", sizeAxis1 = " << sizeAxis1 << ", startAxis2 = " << startAxis2 << ", sizeAxis2 = " << sizeAxis2 << ", endAxis2 = " << endAxis2 << ", size = " << size << std::endl;
                                 nAxis = 2;
                             }
-                            sizeAxis3 = charTouint(CoRe[i] + endAxis2);
+                            // sizeAxis3 = charTouint(CoRe[i] + endAxis2);
                         }
                     }
                 }
             }
-            if (sizeAxis3 > size)
+            if (endAxis2 == size + 4 && nAxis == 3)
             {
                 nAxis = 2;
+            }
+
+            if (sizeAxis3 > size && nAxis == 3)
+            {
+                nAxis = 2;
+                size = endAxis2 - 4;
+                std::cerr << "i = " << i << ", j = " << j << ", numch = " << numch << ", numAxis = " << nAxis << ", startAxis1 = " << startAxis1 << ", sizeAxis1 = " << sizeAxis1 << ", startAxis2 = " << startAxis2 << ", sizeAxis2 = " << sizeAxis2 << ", endAxis2 = " << endAxis2 << ", sizeAxis3 = " << sizeAxis3 << ", size = " << size << std::endl;
+                // sizeAxis3 = 22;
             }
             std::unique_ptr<uchar[]> byteCh;
             uint bytes = 0;
             uint aa = 6 + 4 * (numch + 1) + totalBytes;
             if (nAxis == 0)
             {
-                byteCh = ushortToUniqBytes(nAxis);
-                bytes = 2;
+                bytes = 6;
+                byteCh = std::make_unique<uchar[]>(bytes);
+                changeShort(byteCh.get(), 0, nAxis);
+                changeInt(byteCh.get(), 2, aa + bytes);
             }
             else if (nAxis == 1)
             {
@@ -3271,6 +3403,10 @@ int main(int argc, char const *argv[])
             }
             else
             {
+                // if (i == 26563)
+                // {
+                //     std::cerr << "startAxis1 = " << startAxis1 << ", i == 26563, sizeAxis1 = " << sizeAxis1 << ", size = " << size << ", startAxis2 = " << startAxis2 << ", sizeAxis2 = " << sizeAxis2 << ", endAxis2 = " << endAxis2 << ", sizeAxis3 = " << sizeAxis3 << std::endl;
+                // }
                 bytes = 18 + sizeAxis1 + sizeAxis2 + sizeAxis3;
                 byteCh = std::make_unique<uchar[]>(bytes);
                 changeShort(byteCh.get(), 0, nAxis);
@@ -3288,7 +3424,16 @@ int main(int argc, char const *argv[])
         }
         changeInt(outer2.get(), 6 + 4 * (numch), 6 + 4 * (numch + 1) + totalBytes);
         Core.push_back(std::move(outer2));
+        // uint size = charTouint(CoRe[i]);
+        // uint size2 = charTouint(Core[i].get());
+        // if (size != size2){
+        //     std::cerr << "!= size : i = " << i << ", sizeCoRe = " << size << ", sizeCore = " << size2 << std::endl;
+        // }
     }
+    uint startCh = charTouint(Core[0].get() + 6 + 4 * 1);
+    uint startAxis0 = charTouint(Core[0].get() + startCh + 2);
+    changeShort(Core[0].get(), startAxis0 + 6 * 10 + 4, 0);
+    chInfo3(41200, 653);
 
     // for (int i = 0; i < CoRe.size(); i++)
     // {
@@ -3395,7 +3540,7 @@ int main(int argc, char const *argv[])
     //     Core.push_back(outer2);
     // }
 
-    // std::cout << "numOrder: " << numOrder(1) << "" << std::endl;
+    std::cout << "numOrder: " << numOrder(1) << "" << std::endl;
     cNode[1] = 0;
     cCh[1] = 1;
 
