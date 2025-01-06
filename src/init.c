@@ -1,5 +1,6 @@
 #include "init.h"
 #include "free_space.h"
+#include "database.h"
 #include <sys/stat.h>
 #include <string.h>
 
@@ -38,34 +39,6 @@ void init_core_mapping() {
         fclose(map_file);
     }
 }
-int initialize_database() {
-    // Check if map.bin exists
-    FILE* map_file = fopen(MAP_FILE, "rb");
-    FILE* data_file = fopen(DATA_FILE, "rb");
-    
-    if (!map_file || !data_file) {
-        // Need to create new database
-        if (map_file) fclose(map_file);
-        if (data_file) fclose(data_file);
-        
-        create_DB();
-        save_DB();
-        return INIT_NEW_DB;
-    }
-    
-    // Initialize CoreMap and load mapping information
-    init_core_mapping();
-    
-    // Load initial set of nodes
-    Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
-    for (int i = 0; i < MaxCoreSize && i < 256; i++) {
-        load_node_to_core(i);
-    }
-    
-    fclose(map_file);
-    fclose(data_file);
-    return INIT_SUCCESS;
-}
 
 int initialize_system() {
     // 1. Check and create binary-data directory
@@ -76,7 +49,7 @@ int initialize_system() {
     
     // 2. Initialize database (creates or loads existing)
     int db_status = initialize_database();
-    if (db_status == INIT_ERROR) {
+    if (db_status == DB_ERROR) {
         printf("Error initializing database\n");
         return INIT_ERROR;
     }
@@ -89,8 +62,8 @@ int initialize_system() {
     }
     
     // Return NEW if either database or free space was newly created
-    if (db_status == INIT_NEW_DB || fs_status == FREE_SPACE_NEW) {
-        return INIT_NEW_DB;
+    if (db_status == DB_NEW || fs_status == FREE_SPACE_NEW) {
+        return DB_NEW;
     }
     
     return INIT_SUCCESS;

@@ -37,6 +37,58 @@ The initialization process ensures all necessary components are properly set up 
    - Loads existing free space data
    - Creates new free space file if needed
 
+## Testing Structure
+
+### Test Files Organization
+```
+src/
+├── tests/
+│   ├── axis_tests.h     # Test function declarations
+│   └── axis_tests.c     # Test implementations
+└── ...
+```
+
+### Test Functions
+Each test module contains:
+1. Individual test cases
+2. Success/failure reporting
+3. Expected behavior verification
+4. Error case testing
+
+### Axis Tests
+Located in `src/tests/axis_tests.c`:
+```c
+int test_axis_creation(void);  // Returns number of failed tests
+```
+
+#### Test Cases
+1. Basic Axis Creation
+   - Forward axis
+   - Backward axis
+   - Time axis
+
+2. Error Handling
+   - Duplicate axis creation
+   - Invalid node index
+
+3. Success Criteria
+   - Successful creation returns AXIS_SUCCESS
+   - Proper error handling returns AXIS_ERROR
+   - Appropriate warning messages displayed
+
+### Running Tests
+```c
+int main() {
+    initialize_system();
+    
+    // Run axis tests
+    int failed_tests = test_axis_creation();
+    
+    cleanup_system();
+    return failed_tests;
+}
+```
+
 ## Implementation Details
 
 ### Key Functions
@@ -75,7 +127,10 @@ int main() {
         return 1;
     }
     
-    // Program logic...
+    // Test axis creation
+    create_axis(0, 0, AXIS_FORWARD);
+    create_axis(0, 0, AXIS_BACKWARD);
+    create_axis(0, 0, AXIS_TIME);
     
     cleanup_system();
     return 0;
