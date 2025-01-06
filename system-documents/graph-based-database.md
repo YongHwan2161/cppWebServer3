@@ -1,3 +1,26 @@
+# Getting Started
+
+## Building the Project
+The project uses a standard Makefile build system. To build:
+
+```bash
+make
+```
+
+For detailed build instructions, see [Build Instructions](build-instructions.md).
+
+## Running the Program
+After building, run the program:
+
+```bash
+./cgdb
+```
+
+The program will automatically:
+1. Create binary-data directory if needed
+2. Initialize or load existing database
+3. Set up memory management structures
+
 # Node
 - Node는 데이터를 구분하는 기본 단위이다. 
 - Node는 고유한 index가 0부터 순차적으로 부여된다. 
@@ -9,6 +32,35 @@
 - data size 다음에는 channel 개수를 알려주는 2 bytes가 기록된다. 
 - channel 개수 다음에는 각 채널의 offset을 가리키는 4 bytes * (채널 개수) 만큼의 데이터가 기록된다. 
 - 채널 데이터에 접근하기 위해서는 채널 수 정보 다음부터 원하는 채널번호의 offset을 찾아서 해당 offset으로 이동하면 된다. offset은 node data의 시작점을 기준으로 계산한다. 
+
+# Node 구조
+## 기본 구조
+- Node의 기본 크기는 16 bytes (2^4)이며, 다음과 같은 구조를 가진다:
+  1. Data Size (2 bytes): 2의 지수로 표현된 노드 크기 (예: 4는 2^4=16 bytes를 의미)
+  2. Channel Count (2 bytes): 노드가 가진 채널의 수
+  3. Channel 0 Offset (4 bytes): 첫 번째 채널의 오프셋 (8부터 시작, 2+2+4=8)
+  4. Axis Count (2 bytes): 축의 개수
+  5. Reserved (6 bytes): 추가 데이터를 위한 예약 공간
+
+## 메모리 할당
+- 노드의 크기는 항상 2의 제곱수로 할당된다 (16, 32, 64, 128, ... bytes)
+- 새로운 노드 생성 시 기본 크기인 16 bytes로 초기화된다
+- 데이터 크기가 증가하면 다음 2의 제곱수 크기로 재할당된다
+
+```c
+uchar initValues[16] = {
+    4,  0,     // data size (2^4 = 16 bytes)
+    1,  0,     // number of channels (1)
+    8,  0, 0, 0,   // offset for channel 0 (starts at byte 8)
+    0,  0,     // number of axes (0)
+    0,  0, 0, 0, 0, 0    // remaining bytes
+};
+```
+
+## 파일 저장 구조
+- data.bin 파일에서 각 노드는 2의 제곱수 크기로 저장된다
+- 노드 크기는 첫 2바이트에 지수 형태로 저장된다 (예: 4는 16바이트를 의미)
+- map.bin 파일은 각 노드의 offset을 저장하여 빠른 접근을 가능하게 한다
 
 # Channel
 - 채널은 노드마다 1개 이상 부여될 수 있는 개념이다. 같은 노드 내에서 서로 다른 채널을 가진 경우에는, Node에 저장된 데이터는 공유하지만, 각각의 채널은 서로 독립적이다. 따라서 한 채널에서의 연결 관계들은 다른 채널의 연결 관계들과 완전히 독립적이다.
@@ -40,8 +92,8 @@
         Core = (uchar**)malloc(256 * sizeof(uchar*));
         for (int i = 0; i < 256; ++i) {
             create_new_node(i);  // index를 전달하여 node 생성 및 저장
-        }
-    }
+    }
+}
 ```
 
 - Core 배열은 각각의 node에 대한 포인터를 저장하는 배열이다. 각 node의 index는 Core 배열의 index와 일치한다.
@@ -217,3 +269,92 @@ void load_DB() {
   5. 파일들을 닫는다
 
 이러한 구현을 통해 프로그램이 시작될 때 기존 데이터베이스를 효율적으로 메모리에 로딩할 수 있다.
+
+# Core 메모리 관리
+## Core 구조
+- Core는 현재 RAM에 로드된 노드들의 포인터를 관리하는 배열
+- 모든 노드를 RAM에 동시에 유지하지 않고, 필요한 노드만 로드
+- 최대 MaxCoreSize(1024)개의 노드만 RAM에 유지
+
+## CoreMap 구조
+```c
+typedef struct {
+    int core_position;   // Position in Core array (-1 if not loaded)
+    int is_loaded;      // 1 if loaded in RAM, 0 if not
+    long file_offset;   // Offset position in data.bin
+} NodeMapping;
+```
+
+### 구조체 설명
+- core_position: Core 배열에서의 위치 (-1은 메모리에 없음을 의미)
+- is_loaded: RAM 적재 상태 (1: 적재됨, 0: 적재되지 않음)
+- file_offset: data.bin 파일에서의 offset 위치
+
+### 초기화 과정
+1. 메모리 할당
+   - 256개의 노드에 대한 매핑 정보 저장 공간 할당
+   - 기본값으로 초기화 (core_position: -1, is_loaded: 0)
+
+2. Offset 정보 로드
+   - 프로그램 시작 시 map.bin에서 모든 offset 정보를 읽어옴
+   - CoreMap의 file_offset 필드에 저장
+   - 이후 노드 접근 시 map.bin을 다시 읽을 필요 없음
+
+### 메모리 최적화
+- map.bin의 offset 정보를 미리 메모리에 로드
+- 노드 데이터 접근 시 파일 I/O 최소화
+- 빠른 노드 위치 탐색 가능
+
+### 구현 예시
+```c
+void init_core_mapping() {
+    CoreMap = (NodeMapping*)malloc(256 * sizeof(NodeMapping));
+    
+    // Initialize with default values
+    for (int i = 0; i < 256; i++) {
+        CoreMap[i].core_position = -1;
+        CoreMap[i].is_loaded = 0;
+        CoreMap[i].file_offset = 0;
+    }
+    
+    // Read offsets from map.bin
+    FILE* map_file = fopen(MAP_FILE, "rb");
+    if (map_file) {
+        fseek(map_file, sizeof(uint), SEEK_SET);
+        for (int i = 0; i < 256; i++) {
+            fread(&CoreMap[i].file_offset, sizeof(long), 1, map_file);
+        }
+        fclose(map_file);
+    }
+}
+```
+
+### 주요 기능
+1. 노드 로딩 관리
+   - Core 배열의 현재 상태 추적
+   - 노드의 RAM 내 위치 매핑
+   - 로드/언로드 상태 관리
+
+2. 메모리 최적화
+   - 필요한 노드만 RAM에 유지
+   - MaxCoreSize 초과 시 자동 언로드
+   - 메모리 사용량 제어
+
+### 구현된 함수들
+```c
+void init_core_mapping(void);        // CoreMap 초기화
+int get_core_position(int node_index);  // Core에서의 위치 조회
+int load_node_to_core(int node_index);  // 노드를 Core에 로드
+void unload_node_from_core(int node_index);  // 노드를 Core에서 언로드
+```
+
+### 동작 방식
+1. 노드 접근 시
+   - CoreMap을 통해 노드의 현재 상태 확인
+   - RAM에 없으면 자동으로 로드
+   - MaxCoreSize 초과 시 다른 노드 언로드
+
+2. 메모리 관리
+   - 노드 로드 시 여유 공간 확인
+   - 공간 부족 시 사용 빈도가 낮은 노드 언로드
+   - Core 배열 재정렬 및 매핑 정보 업데이트
