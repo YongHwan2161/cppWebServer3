@@ -15,6 +15,9 @@ int handle_command(char* command);
 int handle_create_axis(char* args);
 int handle_check_axis(char* args);
 int handle_list_axes(char* args);
+int handle_delete_axis(char* args);
+int handle_create_link(char* args);
+int handle_print_node(char* args);
 void print_help(void);
 
 // Error handling utilities

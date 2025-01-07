@@ -1,6 +1,7 @@
 #include "command_handler.h"
 #include "../axis.h"
 #include "../channel.h"
+#include "../link.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -22,18 +23,16 @@ void print_argument_error(const char* command, const char* args_desc, bool is_mi
         printf("Example: check-axis 0 0 0\n");
     } else if (strcmp(command, "list-axes") == 0) {
         printf("Example: list-axes 0 0\n");
+    } else if (strcmp(command, "delete-axis") == 0) {
+        printf("Example: delete-axis 0 0 0\n");
+    } else if (strcmp(command, "create-link") == 0) {
+        printf("Example: create-link 0 0 1 0 0\n");
     }
 }
 
 // Modified command handlers
 int handle_create_axis(char* args) {
     int node_index, channel_index, axis_number;
-    
-    // Check if arguments are provided
-    if (!args) {
-        print_argument_error("create-axis", "<node_index> <channel_index> <axis_number>", true);
-        return CMD_ERROR;
-    }
     
     // Parse arguments
     int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &axis_number);
@@ -63,12 +62,7 @@ int handle_create_axis(char* args) {
 int handle_check_axis(char* args) {
     int node_index, channel_index, axis_number;
     
-    // Check if arguments are provided
-    if (!args) {
-        print_argument_error("check-axis", "<node_index> <channel_index> <axis_number>", true);
-        return CMD_ERROR;
-    }
-    
+
     // Parse arguments
     int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &axis_number);
     if (parsed != 3) {
@@ -105,11 +99,7 @@ int handle_check_axis(char* args) {
 int handle_list_axes(char* args) {
     int node_index, channel_index;
     
-    // Check if arguments are provided
-    if (!args) {
-        print_argument_error("list-axes", "<node_index> <channel_index>", true);
-        return CMD_ERROR;
-    }
+
     
     // Parse arguments
     int parsed = sscanf(args, "%d %d", &node_index, &channel_index);
@@ -191,11 +181,7 @@ int handle_list_axes(char* args) {
 int handle_delete_axis(char* args) {
     int node_index, channel_index, axis_number;
     
-    // Check if arguments are provided
-    if (!args) {
-        print_argument_error("delete-axis", "<node_index> <channel_index> <axis_number>", true);
-        return CMD_ERROR;
-    }
+
     
     // Parse arguments
     int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &axis_number);
@@ -215,11 +201,98 @@ int handle_delete_axis(char* args) {
     return (result == AXIS_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
 }
 
+int handle_create_link(char* args) {
+    int source_node, source_ch, dest_node, dest_ch, axis_number;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d %d %d %d %d", 
+                       &source_node, &source_ch, 
+                       &dest_node, &dest_ch, 
+                       &axis_number);
+    if (parsed != 5) {
+        print_argument_error("create-link", 
+            "<source_node> <source_ch> <dest_node> <dest_ch> <axis_number>", 
+            false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (source_node < 0 || source_node >= 256 || 
+        dest_node < 0 || dest_node >= 256) {
+        printf("Error: Node indices must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+    
+    // Create the link
+    int result = create_link(source_node, source_ch, 
+                           dest_node, dest_ch, 
+                           axis_number);
+    return (result == LINK_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
+}
+
+int handle_print_node(char* args) {
+    int node_index;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d", &node_index);
+    if (parsed != 1) {
+        print_argument_error("print-node", "<node_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: Node index must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+    
+    // Check if node exists
+    if (!Core[node_index]) {
+        printf("Error: Node %d does not exist\n", node_index);
+        return CMD_ERROR;
+    }
+    
+    // Get node size
+    ushort node_size = 1 << (*(ushort*)Core[node_index]);
+    
+    // Print node data in hexadecimal format
+    printf("\nNode %d Data (Size: %d bytes):\n", node_index, node_size);
+    printf("Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII\n");
+    printf("--------  -----------------------------------------------    ----------------\n");
+    
+    for (int i = 0; i < node_size; i += 16) {
+        // Print offset
+        printf("%08X  ", i);
+        
+        // Print hex values
+        for (int j = 0; j < 16; j++) {
+            if (i + j < node_size) {
+                printf("%02X ", Core[node_index][i + j]);
+            } else {
+                printf("   ");
+            }
+        }
+        
+        // Print ASCII representation
+        printf("   ");
+        for (int j = 0; j < 16 && i + j < node_size; j++) {
+            char c = Core[node_index][i + j];
+            printf("%c", (c >= 32 && c <= 126) ? c : '.');
+        }
+        printf("\n");
+    }
+    
+    return CMD_SUCCESS;
+}
+
 void print_help() {
     printf("\nAvailable commands:\n");
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
     printf("  check-axis <node> <channel> <axis>   Check if specific axis exists\n");
     printf("  list-axes <node> <channel>           List all axes in channel\n");
+    printf("  delete-axis <node> <channel> <axis>  Delete an existing axis\n");
+    printf("  create-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>  Create a link\n");
+    printf("  print-node <node_index>               Print node data in hexadecimal format\n");
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
     printf("\nAxis types:\n");
@@ -234,6 +307,43 @@ int handle_command(char* command) {
     
     char* args = strtok(NULL, "\n");
     
+    // Common argument validation
+    if (strcmp(cmd, "help") == 0 || strcmp(cmd, "exit") == 0) {
+        // These commands don't need arguments
+        if (strcmp(cmd, "help") == 0) {
+            print_help();
+            return CMD_SUCCESS;
+        }
+        return CMD_EXIT;
+    }
+    
+    // Check if arguments are required but missing
+    if (!args) {
+        if (strcmp(cmd, "create-axis") == 0) {
+            print_argument_error(cmd, "<node_index> <channel_index> <axis_number>", true);
+        }
+        else if (strcmp(cmd, "check-axis") == 0) {
+            print_argument_error(cmd, "<node_index> <channel_index> <axis_number>", true);
+        }
+        else if (strcmp(cmd, "list-axes") == 0) {
+            print_argument_error(cmd, "<node_index> <channel_index>", true);
+        }
+        else if (strcmp(cmd, "delete-axis") == 0) {
+            print_argument_error(cmd, "<node_index> <channel_index> <axis_number>", true);
+        }
+        else if (strcmp(cmd, "create-link") == 0) {
+            print_argument_error(cmd, "<source_node> <source_ch> <dest_node> <dest_ch> <axis_number>", true);
+        }
+        else if (strcmp(cmd, "print-node") == 0) {
+            print_argument_error(cmd, "<node_index>", true);
+        }
+        else {
+            printf("Unknown command. Type 'help' for available commands.\n");
+        }
+        return CMD_ERROR;
+    }
+    
+    // Execute command with arguments
     if (strcmp(cmd, "create-axis") == 0) {
         return handle_create_axis(args);
     }
@@ -243,12 +353,14 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "list-axes") == 0) {
         return handle_list_axes(args);
     }
-    else if (strcmp(cmd, "help") == 0) {
-        print_help();
-        return CMD_SUCCESS;
+    else if (strcmp(cmd, "delete-axis") == 0) {
+        return handle_delete_axis(args);
     }
-    else if (strcmp(cmd, "exit") == 0) {
-        return CMD_EXIT;
+    else if (strcmp(cmd, "create-link") == 0) {
+        return handle_create_link(args);
+    }
+    else if (strcmp(cmd, "print-node") == 0) {
+        return handle_print_node(args);
     }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");

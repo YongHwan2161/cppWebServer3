@@ -10,7 +10,7 @@ uint get_channel_offset(uchar* node, int channel_index) {
     if (channel_index >= channel_count) {
         printf("Error: Invalid channel index %d (max: %d)\n", 
                channel_index, channel_count - 1);
-        exit(1);  // Fatal error: invalid memory access
+        // return 0;  // Return 0 to indicate an error
     }
     return *(uint*)(node + 4 + (channel_index * 4));  // 4: size(2) + channels(2)
 }

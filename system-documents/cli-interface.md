@@ -88,6 +88,79 @@ exit
 ```
 Exits the program, saving all changes.
 
+### Create Link
+```
+create-link <source_node> <source_ch> <dest_node> <dest_ch> <axis_number>
+```
+Creates a link between two channels using the specified axis.
+
+Parameters:
+- source_node: Source node index (0-255)
+- source_ch: Source channel index
+- dest_node: Destination node index (0-255)
+- dest_ch: Destination channel index
+- axis_number: Axis to use for the link
+  - 0: Forward link
+  - 1: Backward link
+  - 3: Time axis
+
+Example:
+```
+> create-link 0 0 1 0 0
+Created link from node 0 channel 0 to node 1 channel 0 using axis 0
+
+> create-link 1 0 0 0 1
+Created link from node 1 channel 0 to node 0 channel 0 using axis 1
+```
+
+Error handling:
+```
+> create-link
+Error: Missing arguments
+Usage: create-link <source_node> <source_ch> <dest_node> <dest_ch> <axis_number>
+Example: create-link 0 0 1 0 0
+
+> create-link 0 0
+Error: Invalid arguments
+Usage: create-link <source_node> <source_ch> <dest_node> <dest_ch> <axis_number>
+Example: create-link 0 0 1 0 0
+```
+
+### Print Node Data
+```
+print-node <node_index>
+```
+Displays the node's data in hexadecimal format with ASCII representation.
+
+Parameters:
+- node_index: Target node (0-255)
+
+Example:
+```
+> print-node 0
+Node 0 Data (Size: 32 bytes):
+Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII
+--------  -----------------------------------------------    ----------------
+00000000  04 00 01 00 08 00 00 00 02 00 00 00 00 00 00 00    ................
+00000010  01 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+```
+
+The output shows:
+1. Memory offset (in hexadecimal)
+2. Hexadecimal values of each byte
+3. ASCII representation of the bytes (if printable)
+
+Error handling:
+```
+> print-node
+Error: Missing arguments
+Usage: print-node <node_index>
+Example: print-node 0
+
+> print-node 256
+Error: Node index must be between 0 and 255
+```
+
 ## Error Handling
 
 ### Missing Arguments

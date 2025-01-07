@@ -147,4 +147,55 @@ void release_node_space(int node_index) {
     
     // Update free space file
     save_free_space();
+}
+
+uchar* resize_node_space(uchar* node, ushort required_size, int node_index, uint* new_size) {
+    // Calculate new size (next power of 2)
+    ushort node_size_power = *(ushort*)node;
+    uint current_size = 1 << node_size_power;
+    
+    while ((1 << node_size_power) < required_size) {
+        node_size_power++;
+    }
+    
+    // Set new size for caller
+    *new_size = 1 << node_size_power;
+    
+    // Allocate new space
+    FreeBlock* free_block = find_free_block(*new_size);
+    uchar* new_node = NULL;
+    
+    if (free_block) {
+        // Use found free block
+        new_node = (uchar*)malloc(*new_size);
+        memcpy(new_node, node, current_size);
+        
+        // Update CoreMap with new location
+        CoreMap[node_index].file_offset = free_block->offset;
+        
+        // Add old space to free space
+        add_free_block(current_size, CoreMap[node_index].file_offset);
+    } else {
+        // No suitable free block found, allocate at end of file
+        new_node = (uchar*)malloc(*new_size);
+        memcpy(new_node, node, current_size);
+        
+        // Add old space to free space
+        add_free_block(current_size, CoreMap[node_index].file_offset);
+        
+        // Update CoreMap with new location
+        FILE* data_file = fopen(DATA_FILE, "ab");
+        if (data_file) {
+            CoreMap[node_index].file_offset = ftell(data_file);
+            fclose(data_file);
+        }
+    }
+    
+    // Update node size
+    *(ushort*)new_node = node_size_power;
+    
+    // Free old node
+    free(node);
+    
+    return new_node;
 } 
