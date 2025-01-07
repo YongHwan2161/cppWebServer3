@@ -150,4 +150,58 @@ int create_axis(int node_index, int channel_index, int axis_number) {
     printf("Created axis %d in node %d, channel %d\n",
            axis_number, node_index, channel_index);
     return AXIS_SUCCESS;
+}
+
+int delete_axis(int node_index, int channel_index, int axis_number) {
+    if (!Core[node_index]) {
+        printf("Error: Invalid node index\n");
+        return AXIS_ERROR;
+    }
+    
+    uchar* node = Core[node_index];
+    uint channel_offset = get_channel_offset(node, channel_index);
+    
+    // Check if axis exists
+    if (!has_axis(node, channel_offset, axis_number)) {
+        printf("Error: Axis %d does not exist in node %d, channel %d\n",
+               axis_number, node_index, channel_index);
+        return AXIS_ERROR;
+    }
+    
+    // Get current axis count
+    ushort* axis_count = (ushort*)(node + channel_offset);
+    ushort current_axis_count = *axis_count;
+    
+    // Find the axis position
+    int axis_data_offset = channel_offset + 2;  // Skip axis count
+    int axis_position = -1;
+    
+    for (int i = 0; i < current_axis_count; i++) {
+        if (*(ushort*)(node + axis_data_offset + (i * 6)) == axis_number) {
+            axis_position = i;
+            break;
+        }
+    }
+    
+    // Shift remaining axes to fill the gap
+    if (axis_position < current_axis_count - 1) {
+        memmove(node + axis_data_offset + (axis_position * 6),
+                node + axis_data_offset + ((axis_position + 1) * 6),
+                (current_axis_count - axis_position - 1) * 6);
+    }
+    
+    // Update axis count
+    (*axis_count)--;
+    
+    // Save changes to data.bin
+    FILE* data_file = fopen(DATA_FILE, "r+b");
+    if (data_file) {
+        fseek(data_file, CoreMap[node_index].file_offset, SEEK_SET);
+        fwrite(node, 1, 1 << (*(ushort*)node), data_file);
+        fclose(data_file);
+    }
+    
+    printf("Deleted axis %d from node %d, channel %d\n",
+           axis_number, node_index, channel_index);
+    return AXIS_SUCCESS;
 } 

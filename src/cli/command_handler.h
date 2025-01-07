@@ -13,6 +13,12 @@ int handle_command(char* command);
 
 // Individual command handlers
 int handle_create_axis(char* args);
+int handle_check_axis(char* args);
+int handle_list_axes(char* args);
 void print_help(void);
+
+// Error handling utilities
+void print_command_usage(const char* command, const char* args_desc);
+void print_argument_error(const char* command, const char* args_desc, bool is_missing);
 
 #endif // COMMAND_HANDLER_H 
