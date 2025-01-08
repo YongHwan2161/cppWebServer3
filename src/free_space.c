@@ -163,7 +163,7 @@ uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uin
     *new_size = 1 << node_size_power;
     
     // Allocate new space
-    FreeBlock* free_block = find_free_block(*new_size);
+    FreeBlock* free_block = find_and_get_free_block(*new_size);
     uchar* new_node = NULL;
     
     if (free_block) {
@@ -171,11 +171,14 @@ uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uin
         new_node = (uchar*)malloc(*new_size);
         memcpy(new_node, node, current_size);
         
-        // Update CoreMap with new location
+        // Store old offset before updating CoreMap
+        long old_offset = CoreMap[node_index].file_offset;
         CoreMap[node_index].file_offset = free_block->offset;
         
-        // Add old space to free space
-        add_free_block(current_size, CoreMap[node_index].file_offset);
+        // Add old space to free space using stored old_offset
+        add_free_block(current_size, old_offset);
+        
+        free(free_block);  // Don't forget to free the block
     } else {
         // No suitable free block found, allocate at end of file
         new_node = (uchar*)malloc(*new_size);
@@ -205,4 +208,46 @@ uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uin
         printf("Warning: Failed to update map.bin\n");
     }
     return new_node;
+}
+
+FreeBlock* find_and_get_free_block(uint size) {
+    // Find suitable block
+    FreeBlock* found = NULL;
+    uint block_position = -1;
+    
+    for (uint i = 0; i < free_space->count; i++) {
+        if (free_space->blocks[i].size == size) {
+            found = &free_space->blocks[i];
+            block_position = i;
+            break;
+        }
+    }
+    
+    if (found) {
+        // Create return block
+        FreeBlock* result = (FreeBlock*)malloc(sizeof(FreeBlock));
+        result->size = found->size;
+        result->offset = found->offset;
+        
+        // Remove block from free space list
+        if (block_position < free_space->count - 1) {
+            memmove(&free_space->blocks[block_position],
+                    &free_space->blocks[block_position + 1],
+                    (free_space->count - block_position - 1) * sizeof(FreeBlock));
+        }
+        
+        // Update free space
+        free_space->count--;
+        if (free_space->count > 0) {
+            free_space->blocks = (FreeBlock*)realloc(free_space->blocks, 
+                                                   free_space->count * sizeof(FreeBlock));
+        } else {
+            free(free_space->blocks);
+            free_space->blocks = NULL;
+        }
+        
+        return result;
+    }
+    
+    return NULL;
 } 

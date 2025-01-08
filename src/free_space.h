@@ -28,6 +28,7 @@ extern FreeSpace* free_space;
 int init_free_space(void);
 void save_free_space(void);
 FreeBlock* find_free_block(uint size);
+FreeBlock* find_and_get_free_block(uint size);
 void add_free_block(uint size, long offset);
 int get_free_index(void);
 void add_free_index(uint index);

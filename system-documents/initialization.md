@@ -89,6 +89,59 @@ int main() {
 }
 ```
 
+## Testing
+
+### Test Commands
+The following commands are available for testing:
+
+1. Run All Tests
+```shell
+run-tests
+```
+Executes all available test cases including:
+- Axis creation tests
+- Resize node space tests
+- Reports total number of failed tests
+
+2. Test Resize Functionality
+```shell
+test-resize
+```
+Specifically tests the resize_node_space functionality:
+- Creates initial test conditions
+- Verifies free space management
+- Checks block allocation and reuse
+- Reports test results
+
+### Test Output Format
+Tests provide detailed feedback:
+```
+Running test: [test name]
+✓ Passed: [success description]
+✗ Failed: [failure description]
+```
+
+### Example Usage
+```shell
+> run-tests
+Running all tests...
+Testing axis creation...
+✓ Successfully created forward axis
+✓ Successfully created backward axis
+...
+Testing resize_node_space functionality...
+✓ Correct number of initial free blocks
+...
+All tests completed. Total failed tests: 0
+
+> test-resize
+Testing resize_node_space functionality...
+✓ Correct number of initial free blocks
+✓ Successfully created axis triggering resize
+...
+Resize node space tests completed: 0 failed
+```
+
 ## Implementation Details
 
 ### Key Functions

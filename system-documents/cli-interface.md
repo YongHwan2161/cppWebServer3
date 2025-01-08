@@ -261,6 +261,51 @@ Error: Node indices must be between 0 and 255
 Error: Link not found
 ```
 
+### Test Commands
+
+#### Run All Tests
+```
+run-tests
+```
+Executes all available test cases in the system.
+
+Parameters: None
+
+Example:
+```
+> run-tests
+Running all tests...
+Testing axis creation...
+✓ Successfully created forward axis
+...
+All tests completed. Total failed tests: 0
+```
+
+#### Test Resize Functionality
+```
+test-resize
+```
+Runs specific tests for resize_node_space functionality.
+
+Parameters: None
+
+Example:
+```
+> test-resize
+Testing resize_node_space functionality...
+✓ Correct number of initial free blocks
+...
+Resize node space tests completed: 0 failed
+```
+
+Error handling:
+```
+> test-resize something
+Error: Invalid arguments
+Usage: test-resize
+Example: test-resize
+```
+
 ## Error Handling
 
 ### Missing Arguments

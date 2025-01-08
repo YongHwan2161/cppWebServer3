@@ -214,3 +214,183 @@ Channel Start
    - 새로운 위치로 데이터 복사
    - CoreMap 업데이트
    - 파일 offset 조정 
+
+### Axis Creation Process Details
+
+#### Channel Offset 계산
+1. Channel 위치 찾기
+   ```c
+   uint channel_offset = get_channel_offset(node, channel_index);
+   ```
+
+2. Axis Count 확인
+   ```c
+   ushort current_count = *(ushort*)(node + channel_offset);
+   ```
+
+#### Required Size 계산
+1. Axis Table Size
+   ```c
+   uint axis_table_size = (current_count + 1) * 6;
+   ```
+
+2. 필요 공간 계산
+   - 첫 번째 axis 생성 시:
+   ```c
+   required_size = channel_offset + axis_table_size + 4;
+   // +2 for axis count
+   // +2 for initial link count
+   ```
+   
+   - 기존 axis가 있는 경우:
+   ```c
+   required_size = channel_offset + last_axis_offset + 
+                  last_axis_data_size + 6 + 2;
+   ```
+
+#### Offset 계산
+1. Channel 기준 상대 offset
+   - 첫 번째 axis:
+   ```c
+   new_axis_offset = 2 + 6;  // After axis count and its table entry
+   ```
+   
+   - 추가 axis:
+   ```c
+   new_axis_offset = 2 + axis_table_size;  // After all table entries
+   ```
+
+2. 데이터 이동
+   - 기존 데이터를 6바이트 뒤로 이동
+   - 모든 axis offset 값 6바이트 증가
+
+#### 메모리 구조
+```
+[Channel Start]
++0: Axis Count (2)
++2: Axis Table (6 * N)
+   - Axis Number (2)
+   - Relative Offset (4)
++2+6N: Axis Data
+   - Link Count (2)
+   - Link Data (...)
+``` 
+
+### Data Movement Strategy
+
+#### Axis Data Movement
+1. 단순화된 이동 방식
+   ```c
+   uint data_start = channel_offset + 2 + (current_count * 6);  // Axis data 시작점
+   uint data_size = current_node_size - data_start - 6;         // 전체 남은 데이터
+   ```
+
+2. 이동 과정
+   - Axis table 뒤의 모든 데이터를 6바이트 뒤로 이동
+   - 메모리 이동은 한 번의 memmove로 처리
+   - 복잡한 크기 계산 불필요
+
+3. Offset 업데이트
+   - 모든 axis의 offset을 6바이트씩 증가
+   - Table entry 순서대로 순차 처리
+
+#### 장점
+1. 단순성
+   - 복잡한 크기 계산 제거
+   - 전체 데이터를 한 번에 이동
+   - 실수 가능성 감소
+
+2. 효율성
+   - 메모리 접근 최소화
+   - 불필요한 계산 제거
+   - 코드 가독성 향상
+
+#### 메모리 레이아웃
+```
+[Channel Start]
++0: Axis Count (2)
++2: Axis Table (6 * N)
++2+6N: All Axis Data (moved as one block)
+``` 
+
+### Axis Offset 계산
+
+#### 첫 번째 Axis (axis_count = 0)
+```
+new_axis_offset = 8
+```
+- axis count (2 bytes)
+- first axis table entry (6 bytes)
+- 첫 번째 axis는 항상 고정된 위치에 생성
+
+#### 추가 Axis (axis_count > 0)
+```
+new_axis_offset = required_size - channel_offset - 2
+```
+구성:
+1. required_size: 전체 필요한 공간
+2. channel_offset: 채널 시작 위치
+3. -2: 새로운 axis의 link count 공간
+
+#### 계산 장점
+1. 단순성
+   - 이미 계산된 required_size 활용
+   - 복잡한 link count 계산 불필요
+   - 실수 가능성 감소
+
+2. 효율성
+   - 중복 계산 제거
+   - 코드 가독성 향상
+   - 유지보수 용이
+
+### Axis 삭제 프로세스
+
+#### 기본 검증
+1. 노드 유효성 검사
+2. Axis 존재 여부 확인
+3. Axis 위치 찾기
+
+#### 삭제할 데이터 계산
+```c
+uint bytes_to_remove = 6 + 2 + (link_count * 6);
+```
+구성:
+- Axis entry (6 bytes)
+- Link count (2 bytes)
+- Link data (6 bytes * link_count)
+
+#### 데이터 이동 처리
+1. 마지막 Axis인 경우
+   - Axis entry만 제거
+   - Axis count 감소
+
+2. 중간 Axis 삭제
+   - 뒤쪽 Axis 데이터를 앞으로 이동
+   - 남은 Axis들의 offset 업데이트
+   - Axis entry 제거
+   - Axis count 감소
+
+#### 최적화 포인트
+1. 메모리 관리
+   - Resize 불필요 (데이터 감소)
+   - 한 번의 memmove로 데이터 이동
+   - 불필요한 메모리 할당 없음
+
+2. 데이터 이동
+   - 정확한 이동 크기 계산
+   - 효율적인 데이터 이동
+   - Offset 정확한 업데이트
+
+3. 파일 동기화
+   - 변경된 데이터만 저장
+   - 단일 파일 쓰기 작업
+
+#### 에러 처리
+1. 입력 검증
+   - 유효하지 않은 노드
+   - 존재하지 않는 Axis
+   - 파일 I/O 오류
+
+2. 반환 값
+   - AXIS_SUCCESS: 삭제 성공
+   - AXIS_ERROR: 삭제 실패

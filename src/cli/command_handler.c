@@ -3,6 +3,7 @@
 #include "../channel.h"
 #include "../link.h"
 #include "../free_space.h"
+#include "../tests/axis_tests.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -353,6 +354,35 @@ int handle_print_free_space(char* args) {
     return CMD_SUCCESS;
 }
 
+int handle_run_tests(char* args) {
+    if (args) {
+        print_argument_error("run-tests", "", false);
+        return CMD_ERROR;
+    }
+    
+    printf("\nRunning all tests...\n");
+    int failed = 0;
+    
+    // Run axis creation tests
+    failed += test_axis_creation();
+    
+    // Run resize node space tests
+    failed += test_resize_node_space();
+    
+    printf("\nAll tests completed. Total failed tests: %d\n", failed);
+    return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
+}
+
+int handle_test_resize(char* args) {
+    if (args) {
+        print_argument_error("test-resize", "", false);
+        return CMD_ERROR;
+    }
+    
+    int failed = test_resize_node_space();
+    return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
+}
+
 void print_help() {
     printf("\nAvailable commands:\n");
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
@@ -363,6 +393,8 @@ void print_help() {
     printf("  delete-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>  Delete a link\n");
     printf("  print-node <node_index>               Print node data in hexadecimal format\n");
     printf("  print-free-space                     Print free space information\n");
+    printf("  run-tests                           Run all test cases\n");
+    printf("  test-resize                         Run resize node space tests\n");
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
     printf("\nAxis types:\n");
@@ -379,7 +411,8 @@ int handle_command(char* command) {
     
     // Common argument validation
     if (strcmp(cmd, "help") == 0 || strcmp(cmd, "exit") == 0 || 
-        strcmp(cmd, "print-free-space") == 0) {
+        strcmp(cmd, "print-free-space") == 0 || strcmp(cmd, "run-tests") == 0 ||
+        strcmp(cmd, "test-resize") == 0) {
         // These commands don't need arguments
         if (strcmp(cmd, "help") == 0) {
             print_help();
@@ -387,6 +420,12 @@ int handle_command(char* command) {
         }
         else if (strcmp(cmd, "print-free-space") == 0) {
             return handle_print_free_space(args);
+        }
+        else if (strcmp(cmd, "run-tests") == 0) {
+            return handle_run_tests(args);
+        }
+        else if (strcmp(cmd, "test-resize") == 0) {
+            return handle_test_resize(args);
         }
         return CMD_EXIT;
     }

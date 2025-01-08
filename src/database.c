@@ -1,4 +1,5 @@
 #include "database.h"
+#include "init.h"
 #include <string.h>
 
 #ifdef _WIN32
