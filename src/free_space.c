@@ -1,4 +1,5 @@
 #include "free_space.h"
+#include "map.h"
 #include <string.h>
 
 FreeSpace* free_space = NULL;
@@ -149,7 +150,7 @@ void release_node_space(int node_index) {
     save_free_space();
 }
 
-uchar* resize_node_space(uchar* node, ushort required_size, int node_index, uint* new_size) {
+uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uint* new_size) {
     // Calculate new size (next power of 2)
     ushort node_size_power = *(ushort*)node;
     uint current_size = 1 << node_size_power;
@@ -196,6 +197,12 @@ uchar* resize_node_space(uchar* node, ushort required_size, int node_index, uint
     
     // Free old node
     free(node);
-    
+        // Save updated free space information
+    save_free_space();
+        // Save updated mapping information
+    if (save_map(node_index) != MAP_SUCCESS)
+    {
+        printf("Warning: Failed to update map.bin\n");
+    }
     return new_node;
 } 

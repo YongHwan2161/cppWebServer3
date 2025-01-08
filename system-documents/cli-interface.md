@@ -130,15 +130,33 @@ Example: create-link 0 0 1 0 0
 ```
 print-node <node_index>
 ```
-Displays the node's data in hexadecimal format with ASCII representation.
+Displays detailed node information and its data in hexadecimal format with ASCII representation.
 
 Parameters:
 - node_index: Target node (0-255)
 
+Output includes:
+1. Node Information
+   - Size in bytes
+   - Position in Core array
+   - File offset in data.bin
+   - Load status in memory
+
+2. Memory Contents
+   - Hexadecimal view of node data
+   - ASCII representation
+   - Memory offset for each line
+
 Example:
 ```
 > print-node 0
-Node 0 Data (Size: 32 bytes):
+Node 0 Information:
+Size: 32 bytes
+Core Position: 0
+File Offset: 0x00000000
+Load Status: Loaded
+
+Memory Contents:
 Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII
 --------  -----------------------------------------------    ----------------
 00000000  04 00 01 00 08 00 00 00 02 00 00 00 00 00 00 00    ................
@@ -146,9 +164,16 @@ Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII
 ```
 
 The output shows:
-1. Memory offset (in hexadecimal)
-2. Hexadecimal values of each byte
-3. ASCII representation of the bytes (if printable)
+1. Node metadata
+   - Memory allocation size
+   - Location in Core array
+   - Position in data.bin file
+   - Current memory status
+
+2. Memory layout
+   - Memory offset (in hexadecimal)
+   - Hexadecimal values of each byte
+   - ASCII representation of bytes (if printable)
 
 Error handling:
 ```
@@ -159,6 +184,81 @@ Example: print-node 0
 
 > print-node 256
 Error: Node index must be between 0 and 255
+```
+
+### Print Free Space Information
+```
+print-free-space
+```
+Displays detailed information about the free space management system.
+
+Output includes:
+1. Total number of free blocks
+2. Number of free node indices
+3. List of free blocks with their sizes and offsets
+4. List of available node indices
+
+Example:
+```
+> print-free-space
+Free Space Information:
+Total free blocks: 2
+Free node indices: 1
+
+Free Blocks:
+Size (bytes)    Offset
+------------    ------
+16              0x00001000
+32              0x00002000
+
+Free Node Indices:
+5
+```
+
+The output shows:
+1. Summary of free space status
+2. Detailed list of available blocks
+3. List of node indices available for reuse
+
+Error handling:
+```
+> print-free-space something
+Error: Invalid arguments
+Usage: print-free-space
+Example: print-free-space
+```
+
+### Delete Link
+```
+delete-link <source_node> <source_ch> <dest_node> <dest_ch> <axis_number>
+```
+Deletes an existing link between two nodes.
+
+Parameters:
+- source_node: Source node index (0-255)
+- source_ch: Source channel index
+- dest_node: Destination node index (0-255)
+- dest_ch: Destination channel index
+- axis_number: Axis number for the link
+
+Example:
+```
+> delete-link 0 0 1 0 0
+Successfully deleted link from node 0 channel 0 to node 1 channel 0 using axis 0
+```
+
+Error handling:
+```
+> delete-link
+Error: Missing arguments
+Usage: delete-link <source_node> <source_ch> <dest_node> <dest_ch> <axis_number>
+Example: delete-link 0 0 1 0 0
+
+> delete-link 256 0 1 0 0
+Error: Node indices must be between 0 and 255
+
+> delete-link 0 0 1 0 0
+Error: Link not found
 ```
 
 ## Error Handling

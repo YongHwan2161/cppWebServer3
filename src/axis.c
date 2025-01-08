@@ -1,17 +1,18 @@
 #include "axis.h"
 #include "channel.h"
 #include "free_space.h"
+#include "link.h"
 #include <string.h>
 #include <stdbool.h>
 
-int get_axis_count(uchar* node, int channel_index) {
+int get_axis_count(uchar* node, ushort channel_index) {
     int offset = get_channel_offset(node, channel_index);
     if (offset < 0) return -1;
     
     return *(ushort*)(node + offset);  // First 2 bytes contain axis count
 }
 
-int get_axis_offset(uchar* node, int channel_index, int axis_number) {
+int get_axis_offset(uchar* node, ushort channel_index, ushort axis_number) {
     int channel_offset = get_channel_offset(node, channel_index);
     if (channel_offset < 0) return -1;
     
@@ -29,7 +30,7 @@ int get_axis_offset(uchar* node, int channel_index, int axis_number) {
     return -1;  // Axis not found
 }
 
-bool has_axis(uchar* node, uint channel_offset, int axis_number) {
+bool has_axis(uchar* node, uint channel_offset, ushort axis_number) {
     ushort axis_count = *(ushort*)(node + channel_offset);
     int axis_data_offset = channel_offset + 2;  // Skip axis count
     
@@ -44,7 +45,8 @@ bool has_axis(uchar* node, uint channel_offset, int axis_number) {
     return false;
 }
 
-int create_axis(int node_index, int channel_index, int axis_number) {
+int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
+    // Validate node
     if (!Core[node_index]) {
         printf("Error: Invalid node index\n");
         return AXIS_ERROR;
@@ -55,19 +57,34 @@ int create_axis(int node_index, int channel_index, int axis_number) {
     
     // Get current axis count
     ushort* axis_count = (ushort*)(node + channel_offset);
-    ushort current_axis_count = *axis_count;
+    ushort current_count = *axis_count;
     
     // Check if axis already exists
     if (has_axis(node, channel_offset, axis_number)) {
-        printf("Error: Axis %d already exists in node %d, channel %d\n",
-               axis_number, node_index, channel_index);
+        printf("Error: Axis %d already exists\n", axis_number);
         return AXIS_ERROR;
     }
     
     // Calculate required space
-    uint axis_data_offset = channel_offset + 2 + (current_axis_count * 6);  // Skip axis count and existing axes
-    uint link_data_offset = axis_data_offset + 6;  // Space for new axis entry
-    ushort required_size = link_data_offset + 2;  // Add space for link count
+    uint axis_table_size = (current_count + 1) * 6;  // Including new axis entry
+    uint last_axis_offset = 0;
+    uint last_axis_data_size = 0;
+    
+    if (current_count > 0) {
+        // Get last axis's offset and data size
+        uint* last_offset_ptr = (uint*)(node + channel_offset + 2 + ((current_count - 1) * 6) + 2);
+        last_axis_offset = *last_offset_ptr;
+        ushort* last_link_count = (ushort*)(node + channel_offset + last_axis_offset);
+        last_axis_data_size = 2 + (*last_link_count * sizeof(Link));  // 2 for link count
+    }
+    
+    // Calculate total required size
+    uint required_size = channel_offset + axis_table_size;  // Channel header + axis table
+    if (current_count > 0) {
+        required_size = channel_offset + last_axis_offset + last_axis_data_size + 6 + 2;
+    } else {
+        required_size += 2;  // Just need space for new axis's link count
+    }
     
     // Check if we need more space
     uint current_node_size = 1 << (*(ushort*)node);
@@ -78,23 +95,42 @@ int create_axis(int node_index, int channel_index, int axis_number) {
             printf("Error: Failed to resize node\n");
             return AXIS_ERROR;
         }
-        
-        // Update Core pointer
         Core[node_index] = node;
-        
-        // Recalculate offsets with new node pointer
         channel_offset = get_channel_offset(node, channel_index);
-        axis_data_offset = channel_offset + 2 + (current_axis_count * 6);
-        link_data_offset = axis_data_offset + 6;
         axis_count = (ushort*)(node + channel_offset);
     }
     
-    // Write axis number and offset
-    *(ushort*)(node + axis_data_offset) = (ushort)axis_number;
-    *(uint*)(node + axis_data_offset + 2) = link_data_offset;
+    // Move existing axis data forward
+    if (current_count > 0) {
+        uint data_start = channel_offset + 2 + (current_count * 6);
+        uint data_size = last_axis_offset + last_axis_data_size - (current_count * 6);
+        
+        // Move data forward by 6 bytes
+        memmove(node + data_start + 6, 
+                node + data_start, 
+                data_size);
+        
+        // Update all existing axis offsets
+        for (int i = 0; i < current_count; i++) {
+            uint* offset_ptr = (uint*)(node + channel_offset + 2 + (i * 6) + 2);
+            *offset_ptr += 6;
+        }
+    }
     
-    // Initialize link count to 0
-    *(ushort*)(node + link_data_offset) = 0;
+    // Add new axis entry
+    uint new_axis_offset = (current_count > 0) ? 
+                          last_axis_offset + last_axis_data_size + 6 : 
+                          2 + axis_table_size;
+    
+    ushort* new_axis_number = (ushort*)(node + channel_offset + 2 + (current_count * 6));
+    uint* new_axis_offset_ptr = (uint*)(node + channel_offset + 2 + (current_count * 6) + 2);
+    
+    *new_axis_number = axis_number;
+    *new_axis_offset_ptr = new_axis_offset;
+    
+    // Initialize new axis data (link count = 0)
+    ushort* new_link_count = (ushort*)(node + channel_offset + new_axis_offset);
+    *new_link_count = 0;
     
     // Update axis count
     (*axis_count)++;
@@ -105,10 +141,10 @@ int create_axis(int node_index, int channel_index, int axis_number) {
         fseek(data_file, CoreMap[node_index].file_offset, SEEK_SET);
         fwrite(node, 1, 1 << (*(ushort*)node), data_file);
         fclose(data_file);
+    } else {
+        printf("Error: Failed to update data.bin\n");
+        return AXIS_ERROR;
     }
-    
-    // Save updated free space information
-    save_free_space();
     
     printf("Created axis %d in node %d, channel %d\n",
            axis_number, node_index, channel_index);
@@ -116,7 +152,7 @@ int create_axis(int node_index, int channel_index, int axis_number) {
     return AXIS_SUCCESS;
 }
 
-int delete_axis(int node_index, int channel_index, int axis_number) {
+int delete_axis(uint node_index, ushort channel_index, ushort axis_number) {
     if (!Core[node_index]) {
         printf("Error: Invalid node index\n");
         return AXIS_ERROR;

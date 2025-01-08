@@ -78,3 +78,46 @@ if (new_node) {
 - 메모리 할당 실패
 - 파일 I/O 오류
 - 적절한 Free Block 없음 
+
+## Monitoring
+
+### Free Space Information
+```c
+int handle_print_free_space(void);
+```
+
+#### Display Format
+1. Summary Information
+   - Total number of free blocks
+   - Number of free node indices
+
+2. Free Block Details
+   - Block size in bytes
+   - File offset in hexadecimal
+   - Sorted by offset
+
+3. Free Node Indices
+   - List of available node indices
+   - Used for new node allocation
+
+#### Example Output
+```
+Free Space Information:
+Total free blocks: 2
+Free node indices: 1
+
+Free Blocks:
+Size (bytes)    Offset
+------------    ------
+16              0x00001000
+32              0x00002000
+
+Free Node Indices:
+5
+```
+
+### Usage
+- Monitor available space
+- Debug memory allocation
+- Track node deletion
+- Verify space reclamation 

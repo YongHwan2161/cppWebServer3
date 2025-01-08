@@ -32,6 +32,6 @@ void add_free_block(uint size, long offset);
 int get_free_index(void);
 void add_free_index(uint index);
 void release_node_space(int node_index);
-uchar* resize_node_space(uchar* node, ushort required_size, int node_index, uint* new_size);
+uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uint* new_size);
 
 #endif 

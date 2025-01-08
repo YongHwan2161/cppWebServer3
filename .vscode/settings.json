@@ -58,5 +58,12 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/root/cppWebServer3",
+            "binaryPath": "/root/cppWebServer3/cgdb",
+            "binaryArgs": []
+        }
+    ]
 }

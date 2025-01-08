@@ -2,6 +2,7 @@
 #include "../axis.h"
 #include "../channel.h"
 #include "../link.h"
+#include "../free_space.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -99,8 +100,6 @@ int handle_check_axis(char* args) {
 int handle_list_axes(char* args) {
     int node_index, channel_index;
     
-
-    
     // Parse arguments
     int parsed = sscanf(args, "%d %d", &node_index, &channel_index);
     if (parsed != 2) {
@@ -180,9 +179,6 @@ int handle_list_axes(char* args) {
 
 int handle_delete_axis(char* args) {
     int node_index, channel_index, axis_number;
-    
-
-    
     // Parse arguments
     int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &axis_number);
     if (parsed != 3) {
@@ -203,7 +199,6 @@ int handle_delete_axis(char* args) {
 
 int handle_create_link(char* args) {
     int source_node, source_ch, dest_node, dest_ch, axis_number;
-    
     // Parse arguments
     int parsed = sscanf(args, "%d %d %d %d %d", 
                        &source_node, &source_ch, 
@@ -225,6 +220,35 @@ int handle_create_link(char* args) {
     
     // Create the link
     int result = create_link(source_node, source_ch, 
+                           dest_node, dest_ch, 
+                           axis_number);
+    return (result == LINK_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
+}
+
+int handle_delete_link(char* args) {
+    int source_node, source_ch, dest_node, dest_ch, axis_number;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d %d %d %d %d", 
+                       &source_node, &source_ch, 
+                       &dest_node, &dest_ch, 
+                       &axis_number);
+    if (parsed != 5) {
+        print_argument_error("delete-link", 
+            "<source_node> <source_ch> <dest_node> <dest_ch> <axis_number>", 
+            false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (source_node < 0 || source_node >= 256 || 
+        dest_node < 0 || dest_node >= 256) {
+        printf("Error: Node indices must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+    
+    // Delete the link
+    int result = delete_link(source_node, source_ch, 
                            dest_node, dest_ch, 
                            axis_number);
     return (result == LINK_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
@@ -255,8 +279,15 @@ int handle_print_node(char* args) {
     // Get node size
     ushort node_size = 1 << (*(ushort*)Core[node_index]);
     
+    // Print node information header
+    printf("\nNode %d Information:\n", node_index);
+    printf("Size: %d bytes\n", node_size);
+    printf("Core Position: %d\n", CoreMap[node_index].core_position);
+    printf("File Offset: 0x%08lX\n", CoreMap[node_index].file_offset);
+    printf("Load Status: %s\n", CoreMap[node_index].is_loaded ? "Loaded" : "Not loaded");
+    
     // Print node data in hexadecimal format
-    printf("\nNode %d Data (Size: %d bytes):\n", node_index, node_size);
+    printf("\nMemory Contents:\n");
     printf("Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII\n");
     printf("--------  -----------------------------------------------    ----------------\n");
     
@@ -285,6 +316,43 @@ int handle_print_node(char* args) {
     return CMD_SUCCESS;
 }
 
+int handle_print_free_space(char* args) {
+    if (args) {
+        print_argument_error("print-free-space", "", false);
+        return CMD_ERROR;
+    }
+    
+    if (!free_space) {
+        printf("Error: Free space manager not initialized\n");
+        return CMD_ERROR;
+    }
+    
+    printf("\nFree Space Information:\n");
+    printf("Total free blocks: %d\n", free_space->count);
+    printf("Free node indices: %d\n", free_space->index_count);
+    
+    if (free_space->count > 0) {
+        printf("\nFree Blocks:\n");
+        printf("Size (bytes)    Offset\n");
+        printf("------------    ------\n");
+        for (uint i = 0; i < free_space->count; i++) {
+            printf("%-14u    0x%08lX\n", 
+                   free_space->blocks[i].size,
+                   free_space->blocks[i].offset);
+        }
+    }
+    
+    if (free_space->index_count > 0) {
+        printf("\nFree Node Indices:\n");
+        for (uint i = 0; i < free_space->index_count; i++) {
+            printf("%d ", free_space->free_indices[i]);
+        }
+        printf("\n");
+    }
+    
+    return CMD_SUCCESS;
+}
+
 void print_help() {
     printf("\nAvailable commands:\n");
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
@@ -292,7 +360,9 @@ void print_help() {
     printf("  list-axes <node> <channel>           List all axes in channel\n");
     printf("  delete-axis <node> <channel> <axis>  Delete an existing axis\n");
     printf("  create-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>  Create a link\n");
+    printf("  delete-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>  Delete a link\n");
     printf("  print-node <node_index>               Print node data in hexadecimal format\n");
+    printf("  print-free-space                     Print free space information\n");
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
     printf("\nAxis types:\n");
@@ -308,11 +378,15 @@ int handle_command(char* command) {
     char* args = strtok(NULL, "\n");
     
     // Common argument validation
-    if (strcmp(cmd, "help") == 0 || strcmp(cmd, "exit") == 0) {
+    if (strcmp(cmd, "help") == 0 || strcmp(cmd, "exit") == 0 || 
+        strcmp(cmd, "print-free-space") == 0) {
         // These commands don't need arguments
         if (strcmp(cmd, "help") == 0) {
             print_help();
             return CMD_SUCCESS;
+        }
+        else if (strcmp(cmd, "print-free-space") == 0) {
+            return handle_print_free_space(args);
         }
         return CMD_EXIT;
     }
@@ -336,6 +410,11 @@ int handle_command(char* command) {
         }
         else if (strcmp(cmd, "print-node") == 0) {
             print_argument_error(cmd, "<node_index>", true);
+        }
+        else if (strcmp(cmd, "delete-link") == 0) {
+            print_argument_error(cmd, 
+                "<source_node> <source_ch> <dest_node> <dest_ch> <axis_number>", 
+                true);
         }
         else {
             printf("Unknown command. Type 'help' for available commands.\n");
@@ -361,6 +440,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "print-node") == 0) {
         return handle_print_node(args);
+    }
+    else if (strcmp(cmd, "delete-link") == 0) {
+        return handle_delete_link(args);
     }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");

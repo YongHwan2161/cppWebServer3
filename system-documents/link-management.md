@@ -55,6 +55,60 @@ int create_link(int source_node, int source_ch,
 7. Link count 증가
 8. 파일 동기화
 
+### Link Deletion
+```c
+int delete_link(int source_node, int source_ch, 
+               int dest_node, int dest_ch, 
+               int axis_number);
+```
+
+#### Process Flow
+1. 입력 유효성 검사
+   - 소스 노드 존재 확인
+   - 채널 오프셋 계산
+   - Axis 존재 확인
+
+2. 링크 데이터 접근
+   - Axis 오프셋 획득
+   - Link count 읽기
+   - Link 데이터 영역 접근
+
+3. 링크 검색
+   - 모든 링크 순회
+   - 대상 노드/채널 매칭
+   - 위치 기록
+
+4. 링크 삭제
+   - 남은 링크 데이터 이동
+   - Link count 감소
+   - 메모리 정리
+
+5. 파일 동기화
+   - data.bin 업데이트
+   - 변경사항 저장
+
+#### Error Cases
+- 유효하지 않은 소스 노드
+- 존재하지 않는 Axis
+- 찾을 수 없는 링크
+- 파일 I/O 오류
+
+#### Return Values
+- LINK_SUCCESS: 링크 삭제 성공
+- LINK_ERROR: 오류 발생
+
+#### Example Usage
+```c
+// Delete forward link
+int result = delete_link(0, 0,    // source node/channel
+                        1, 0,     // destination node/channel
+                        AXIS_FORWARD);  // axis number
+
+if (result == LINK_SUCCESS) {
+    printf("Link deleted successfully\n");
+}
+```
+
 ### Memory Management
 
 #### Space Requirements
@@ -71,11 +125,56 @@ int create_link(int source_node, int source_ch,
 4. 기존 데이터 복사
 5. 이전 공간 Free Space 반환
 
-## Error Handling
-- 유효하지 않은 노드/채널 인덱스
-- Axis 생성 실패
-- 메모리 할당 실패
-- 파일 I/O 오류
+### File Synchronization
+Link 생성 시 다음 파일들이 업데이트됩니다:
+
+1. data.bin
+   - 새로운 링크 데이터 저장
+   - 노드 크기 변경 시 새로운 위치에 데이터 저장
+
+2. map.bin
+   - 노드 위치 변경 시 offset 정보 업데이트
+   - 파일 구조: [노드 수(4)] [offset 1(8)] [offset 2(8)] ...
+
+3. free_space.bin
+   - 사용된/해제된 공간 정보 업데이트
+   - 새로운 free block 추가
+
+#### File Update Process
+1. 노드 크기 변경 시:
+   - 새로운 공간 할당
+   - data.bin에 새 위치에 데이터 저장
+   - map.bin의 offset 정보 업데이트
+   - free_space.bin 업데이트
+
+2. 링크 추가 시:
+   - data.bin의 해당 위치에 링크 데이터 추가
+   - 필요시 노드 크기 조정 및 관련 파일 업데이트
+
+### Error Handling
+파일 작업 관련 오류:
+- data.bin 업데이트 실패: LINK_ERROR 반환
+- map.bin 업데이트 실패: 경고 메시지 출력
+- free_space.bin 업데이트 실패: 경고 메시지 출력
+
+### Command Line Interface
+링크 관리를 위한 CLI 명령어:
+
+1. 링크 생성
+```
+create-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>
+```
+
+2. 링크 삭제
+```
+delete-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>
+```
+
+각 명령어는 다음을 검증합니다:
+- 노드 인덱스 범위 (0-255)
+- 채널 존재 여부
+- Axis 유효성
+- 링크 존재 여부 (삭제 시)
 
 ## Usage Example
 ```c
