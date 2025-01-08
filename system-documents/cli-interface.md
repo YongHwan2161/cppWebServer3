@@ -306,6 +306,67 @@ Usage: test-resize
 Example: test-resize
 ```
 
+#### Test Axis Creation/Deletion
+```
+test-axis-create-delete <node> <channel> <max_axis>
+```
+Tests complete cycle of axis creation and deletion.
+
+Parameters:
+- node: Node index (0-255)
+- channel: Channel index
+- max_axis: Maximum axis number to create
+
+Example:
+```
+> test-axis-create-delete 0 0 5
+Testing axis creation and deletion (max axis: 5)...
+Creating axes 0 to 5...
+Verifying created axes...
+Deleting all axes...
+Verifying axis deletion...
+Axis creation/deletion tests completed: 0 failed
+```
+
+Error handling:
+```
+> test-axis-create-delete
+Error: Missing arguments
+Usage: test-axis-create-delete <node_index> <channel_index> <max_axis>
+Example: test-axis-create-delete 0 0 5
+
+> test-axis-create-delete 256 0 5
+Error: Node index must be between 0 and 255
+
+> test-axis-create-delete 0 0 -1
+Error: Maximum axis number must be non-negative
+```
+
+#### Test Free Block Offsets
+```
+test-free-offsets
+```
+Verifies that all free blocks have unique and non-overlapping offsets.
+
+Parameters: None
+
+Example:
+```
+> test-free-offsets
+Testing free block offset uniqueness...
+Checking 3 free blocks for offset conflicts...
+✓ All free block offsets are unique and non-overlapping
+Free block offset tests completed: 0 failed
+```
+
+Error handling:
+```
+> test-free-offsets extra_arg
+Error: Invalid arguments
+Usage: test-free-offsets
+Example: test-free-offsets
+```
+
 ## Error Handling
 
 ### Missing Arguments

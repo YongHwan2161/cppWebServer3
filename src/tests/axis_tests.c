@@ -1,5 +1,6 @@
 #include "../axis.h"
 #include "../free_space.h"
+#include "../channel.h"
 #include <stdio.h>
 
 int test_axis_creation() {
@@ -118,5 +119,98 @@ int test_resize_node_space() {
     }
     
     printf("\nResize node space tests completed: %d failed\n", failed_tests);
+    return failed_tests;
+}
+
+int test_axis_create_delete(int node_index, int channel_index, int max_axis) {
+    printf("\nTesting axis creation and deletion (max axis: %d)...\n", max_axis);
+    int failed_tests = 0;
+    
+    // Test 1: Create axes from 0 to max_axis
+    printf("Creating axes 0 to %d...\n", max_axis);
+    for (int i = 0; i <= max_axis; i++) {
+        int result = create_axis(node_index, channel_index, i);
+        if (result != AXIS_SUCCESS) {
+            printf("✗ Failed to create axis %d\n", i);
+            failed_tests++;
+        }
+    }
+    
+    // Verify all axes were created
+    printf("\nVerifying created axes...\n");
+    for (int i = 0; i <= max_axis; i++) {
+        if (!has_axis(Core[node_index], get_channel_offset(Core[node_index], channel_index), i)) {
+            printf("✗ Axis %d not found after creation\n", i);
+            failed_tests++;
+        }
+    }
+    
+    // Test 2: Delete all axes
+    printf("\nDeleting all axes...\n");
+    for (int i = max_axis; i >= 0; i--) {
+        int result = delete_axis(node_index, channel_index, i);
+        if (result != AXIS_SUCCESS) {
+            printf("✗ Failed to delete axis %d\n", i);
+            failed_tests++;
+        }
+    }
+    
+    // Verify all axes were deleted
+    printf("\nVerifying axis deletion...\n");
+    for (int i = 0; i <= max_axis; i++) {
+        if (has_axis(Core[node_index], get_channel_offset(Core[node_index], channel_index), i)) {
+            printf("✗ Axis %d still exists after deletion\n", i);
+            failed_tests++;
+        }
+    }
+    
+    printf("\nAxis creation/deletion tests completed: %d failed\n", failed_tests);
+    return failed_tests;
+}
+
+int test_free_block_offsets() {
+    printf("\nTesting free block offset uniqueness...\n");
+    int failed_tests = 0;
+    
+    // Skip test if no free blocks
+    if (free_space->count == 0) {
+        printf("No free blocks to test\n");
+        return 0;
+    }
+    
+    printf("Checking %d free blocks for offset conflicts...\n", free_space->count);
+    
+    // Check each pair of blocks for offset conflicts
+    for (uint i = 0; i < free_space->count; i++) {
+        for (uint j = i + 1; j < free_space->count; j++) {
+            // Check if blocks overlap
+            long offset_i = free_space->blocks[i].offset;
+            long offset_j = free_space->blocks[j].offset;
+            uint size_i = free_space->blocks[i].size;
+            
+            if (offset_i == offset_j) {
+                printf("✗ Conflict found: Blocks %d and %d have same offset 0x%08lX\n",
+                       i, j, offset_i);
+                failed_tests++;
+                continue;
+            }
+            
+            // Check if one block overlaps with another
+            if ((offset_i < offset_j && offset_i + size_i > offset_j) ||
+                (offset_j < offset_i && offset_j + free_space->blocks[j].size > offset_i)) {
+                printf("✗ Overlap found between blocks %d and %d\n", i, j);
+                printf("  Block %d: offset=0x%08lX, size=%u\n", i, offset_i, size_i);
+                printf("  Block %d: offset=0x%08lX, size=%u\n", 
+                       j, offset_j, free_space->blocks[j].size);
+                failed_tests++;
+            }
+        }
+    }
+    
+    if (failed_tests == 0) {
+        printf("✓ All free block offsets are unique and non-overlapping\n");
+    }
+    
+    printf("\nFree block offset tests completed: %d failed\n", failed_tests);
     return failed_tests;
 } 

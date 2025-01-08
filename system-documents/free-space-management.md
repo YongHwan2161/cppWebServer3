@@ -92,7 +92,7 @@ FreeBlock* find_and_get_free_block(uint size);
 ##### 메모리 관리
 1. 반환 Block
    - 새로운 메모리 할당
-   - block 정보 복사
+   - block 정보젵 복사
    - 호출자가 메모리 해제 책임
 
 2. Free Space 관리
@@ -249,5 +249,53 @@ int test_resize_node_space(void);
 - Checks free space reclamation
 - Validates block size tracking
 - Confirms offset management
+
+### Free Block Offset Testing
+The system provides a test to verify that free blocks never have overlapping offsets:
+
+#### Test Command
+```shell
+test-free-offsets
+```
+
+#### Test Process
+1. Checks each pair of free blocks for:
+   - Identical offsets
+   - Overlapping ranges (offset + size)
+2. Reports any conflicts found:
+   - Block indices
+   - Conflicting offsets
+   - Block sizes involved
+
+#### Example Output
+Success case:
+```
+Testing free block offset uniqueness...
+Checking 3 free blocks for offset conflicts...
+✓ All free block offsets are unique and non-overlapping
+Free block offset tests completed: 0 failed
+```
+
+Error case:
+```
+Testing free block offset uniqueness...
+Checking 3 free blocks for offset conflicts...
+✗ Conflict found: Blocks 0 and 2 have same offset 0x00001000
+✗ Overlap found between blocks 1 and 2
+  Block 1: offset=0x00002000, size=32
+  Block 2: offset=0x00002010, size=16
+Free block offset tests completed: 2 failed
+```
+
+#### Implementation Details
+The test verifies:
+1. No two blocks share the same offset
+2. No block's range (offset to offset+size) overlaps with another
+3. All blocks maintain proper boundaries
+
+This ensures the integrity of the free space management system by preventing:
+- Double allocation of same space
+- Corruption of free block boundaries
+- Invalid memory access
 
 [Rest of the document remains unchanged...] 

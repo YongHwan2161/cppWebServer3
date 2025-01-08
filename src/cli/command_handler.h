@@ -22,6 +22,7 @@ int handle_print_free_space(char* args);
 int handle_delete_link(char* args);
 int handle_run_tests(char* args);
 int handle_test_resize(char* args);
+int handle_test_free_offsets(char* args);
 void print_help(void);
 
 // Error handling utilities

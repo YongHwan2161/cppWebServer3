@@ -383,6 +383,42 @@ int handle_test_resize(char* args) {
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
+int handle_test_axis_create_delete(char* args) {
+    int node_index, channel_index, max_axis;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &max_axis);
+    if (parsed != 3) {
+        print_argument_error("test-axis-create-delete", 
+            "<node_index> <channel_index> <max_axis>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: Node index must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+    
+    if (max_axis < 0) {
+        printf("Error: Maximum axis number must be non-negative\n");
+        return CMD_ERROR;
+    }
+    
+    int failed = test_axis_create_delete(node_index, channel_index, max_axis);
+    return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
+}
+
+int handle_test_free_offsets(char* args) {
+    if (args) {
+        print_argument_error("test-free-offsets", "", false);
+        return CMD_ERROR;
+    }
+    
+    int failed = test_free_block_offsets();
+    return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
+}
+
 void print_help() {
     printf("\nAvailable commands:\n");
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
@@ -395,6 +431,8 @@ void print_help() {
     printf("  print-free-space                     Print free space information\n");
     printf("  run-tests                           Run all test cases\n");
     printf("  test-resize                         Run resize node space tests\n");
+    printf("  test-axis-create-delete <node> <ch> <max>  Test axis creation/deletion\n");
+    printf("  test-free-offsets                    Test free block offset uniqueness\n");
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
     printf("\nAxis types:\n");
@@ -412,7 +450,7 @@ int handle_command(char* command) {
     // Common argument validation
     if (strcmp(cmd, "help") == 0 || strcmp(cmd, "exit") == 0 || 
         strcmp(cmd, "print-free-space") == 0 || strcmp(cmd, "run-tests") == 0 ||
-        strcmp(cmd, "test-resize") == 0) {
+        strcmp(cmd, "test-resize") == 0 || strcmp(cmd, "test-free-offsets") == 0) {
         // These commands don't need arguments
         if (strcmp(cmd, "help") == 0) {
             print_help();
@@ -426,6 +464,9 @@ int handle_command(char* command) {
         }
         else if (strcmp(cmd, "test-resize") == 0) {
             return handle_test_resize(args);
+        }
+        else if (strcmp(cmd, "test-free-offsets") == 0) {
+            return handle_test_free_offsets(args);
         }
         return CMD_EXIT;
     }
@@ -482,6 +523,12 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "delete-link") == 0) {
         return handle_delete_link(args);
+    }
+    else if (strcmp(cmd, "test-axis-create-delete") == 0) {
+        return handle_test_axis_create_delete(args);
+    }
+    else if (strcmp(cmd, "test-free-offsets") == 0) {
+        return handle_test_free_offsets(args);
     }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");

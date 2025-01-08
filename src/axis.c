@@ -11,8 +11,7 @@ int get_axis_count(uchar* node, ushort channel_index) {
 }
 
 int get_axis_offset(uchar* node, ushort channel_index, ushort axis_number) {
-    int channel_offset = get_channel_offset(node, channel_index);
-    if (channel_offset < 0) return -1;
+    uint channel_offset = get_channel_offset(node, channel_index);
     
     ushort axis_count = *(ushort*)(node + channel_offset);
     int axis_data_offset = channel_offset + 2;  // Skip axis count

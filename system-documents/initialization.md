@@ -113,79 +113,33 @@ Specifically tests the resize_node_space functionality:
 - Checks block allocation and reuse
 - Reports test results
 
+3. Test Axis Creation/Deletion
+```shell
+test-axis-create-delete <node> <channel> <max_axis>
+```
+Tests axis creation and deletion cycle:
+- Creates axes from 0 to max_axis
+- Verifies all axes were created
+- Deletes all axes
+- Verifies complete deletion
+- Reports any failures
+
+Parameters:
+- node: Target node index (0-255)
+- channel: Target channel index
+- max_axis: Maximum axis number to create
+
+Example:
+```shell
+> test-axis-create-delete 0 0 5
+Testing axis creation and deletion (max axis: 5)...
+Creating axes 0 to 5...
+Verifying created axes...
+Deleting all axes...
+Verifying axis deletion...
+Axis creation/deletion tests completed: 0 failed
+```
+
 ### Test Output Format
 Tests provide detailed feedback:
 ```
-Running test: [test name]
-✓ Passed: [success description]
-✗ Failed: [failure description]
-```
-
-### Example Usage
-```shell
-> run-tests
-Running all tests...
-Testing axis creation...
-✓ Successfully created forward axis
-✓ Successfully created backward axis
-...
-Testing resize_node_space functionality...
-✓ Correct number of initial free blocks
-...
-All tests completed. Total failed tests: 0
-
-> test-resize
-Testing resize_node_space functionality...
-✓ Correct number of initial free blocks
-✓ Successfully created axis triggering resize
-...
-Resize node space tests completed: 0 failed
-```
-
-## Implementation Details
-
-### Key Functions
-```c
-int initialize_system(void);        // Main initialization function
-int check_and_create_directory(void);  // Directory setup
-int initialize_database(void);      // Database initialization
-void cleanup_system(void);         // System cleanup
-```
-
-### Return Codes
-```c
-#define INIT_SUCCESS 0    // Successful initialization
-#define INIT_NEW_DB 1     // New database created
-#define INIT_ERROR -1     // Initialization failed
-```
-
-### Cleanup Process
-- Frees all allocated memory
-- Saves current state to files
-- Ensures proper system shutdown
-
-## Error Handling
-- Directory creation failures
-- File access issues
-- Memory allocation errors
-- Data corruption detection
-
-## Usage Example
-```c
-int main() {
-    int init_status = initialize_system();
-    
-    if (init_status == INIT_ERROR) {
-        printf("System initialization failed\n");
-        return 1;
-    }
-    
-    // Test axis creation
-    create_axis(0, 0, AXIS_FORWARD);
-    create_axis(0, 0, AXIS_BACKWARD);
-    create_axis(0, 0, AXIS_TIME);
-    
-    cleanup_system();
-    return 0;
-}
-``` 

@@ -19,7 +19,7 @@ Channel은 노드 내의 독립적인 데이터 영역을 나타냅니다. 각 �
 ### 1. Channel Information
 ```c
 int get_channel_count(uchar* node);
-int get_channel_offset(uchar* node, int channel_index);
+uint get_channel_offset(uchar* node, int channel_index);
 int get_channel_size(uchar* node, int channel_index);
 ```
 - 채널 개수 조회
@@ -58,7 +58,7 @@ int create_channel(int node_index);
 ```c
 // Get channel information
 int channel_count = get_channel_count(node);
-int channel_offset = get_channel_offset(node, 0);
+uint channel_offset = get_channel_offset(node, 0);
 int channel_size = get_channel_size(node, 0);
 
 // Create new channel
