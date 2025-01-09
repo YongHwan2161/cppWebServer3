@@ -130,19 +130,29 @@ Example: create-link 0 0 1 0 0
 ```
 print-node <node_index>
 ```
-Displays detailed node information and its data in hexadecimal format with ASCII representation.
+Displays detailed node information including structure and memory contents.
 
 Parameters:
 - node_index: Target node (0-255)
 
 Output includes:
-1. Node Information
+1. Node Metadata
    - Size in bytes
    - Position in Core array
    - File offset in data.bin
    - Load status in memory
+   - Channel count
 
-2. Memory Contents
+2. Channel Information (for each channel)
+   - Channel offset
+   - Axis count
+   - For each axis:
+     - Axis number and type
+     - Axis offset
+     - Link count
+     - Link details (destination node and channel)
+
+3. Memory Contents
    - Hexadecimal view of node data
    - ASCII representation
    - Memory offset for each line
@@ -156,6 +166,16 @@ Core Position: 0
 File Offset: 0x00000000
 Load Status: Loaded
 
+Channel Count: 1
+
+Channel 0 (offset: 0x0008):
+  Axis Count: 2
+  Axis 0 (Forward link) (offset: 0x0010):
+    Link Count: 1
+    Link 0: Node 1, Channel 0
+  Axis 1 (Backward link) (offset: 0x0018):
+    Link Count: 0
+
 Memory Contents:
 Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII
 --------  -----------------------------------------------    ----------------
@@ -164,13 +184,18 @@ Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII
 ```
 
 The output shows:
-1. Node metadata
+1. Basic node information
    - Memory allocation size
    - Location in Core array
    - Position in data.bin file
    - Current memory status
 
-2. Memory layout
+2. Detailed structure
+   - Channel count and offsets
+   - Axis information for each channel
+   - Link details for each axis
+
+3. Raw memory layout
    - Memory offset (in hexadecimal)
    - Hexadecimal values of each byte
    - ASCII representation of bytes (if printable)

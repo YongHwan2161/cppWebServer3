@@ -277,21 +277,64 @@ int handle_print_node(char* args) {
         return CMD_ERROR;
     }
     
-    // Get node size
-    ushort node_size = 1 << (*(ushort*)Core[node_index]);
-    
-    // Print node information header
+    // Print node metadata
     printf("\nNode %d Information:\n", node_index);
-    printf("Size: %d bytes\n", node_size);
+    printf("Size: %d bytes\n", 1 << (*(ushort*)Core[node_index]));
     printf("Core Position: %d\n", CoreMap[node_index].core_position);
     printf("File Offset: 0x%08lX\n", CoreMap[node_index].file_offset);
     printf("Load Status: %s\n", CoreMap[node_index].is_loaded ? "Loaded" : "Not loaded");
     
-    // Print node data in hexadecimal format
+    // Get channel count
+    ushort channel_count = *(ushort*)(Core[node_index] + 2);
+    printf("\nChannel Count: %d\n", channel_count);
+    
+    // Print channel information
+    for (int ch = 0; ch < channel_count; ch++) {
+        uint channel_offset = get_channel_offset(Core[node_index], ch);
+        printf("\nChannel %d (offset: 0x%04X):\n", ch, channel_offset);
+        
+        // Get axis count for this channel
+        ushort axis_count = *(ushort*)(Core[node_index] + channel_offset);
+        printf("  Axis Count: %d\n", axis_count);
+        
+        // Print axis information
+        for (int i = 0; i < axis_count; i++) {
+            // Get axis entry
+            int axis_entry_offset = channel_offset + 2 + (i * 6);
+            ushort axis_number = *(ushort*)(Core[node_index] + axis_entry_offset);
+            uint axis_offset = *(uint*)(Core[node_index] + axis_entry_offset + 2);
+            
+            // Get axis type label
+            const char* axis_type = "";
+            switch(axis_number) {
+                case AXIS_FORWARD: axis_type = "(Forward link)"; break;
+                case AXIS_BACKWARD: axis_type = "(Backward link)"; break;
+                case AXIS_TIME: axis_type = "(Time axis)"; break;
+            }
+            
+            printf("  Axis %d %s (offset: 0x%04X):\n", axis_number, axis_type, axis_offset);
+            
+            // Get link count for this axis
+            ushort link_count = *(ushort*)(Core[node_index] + channel_offset + axis_offset);
+            printf("    Link Count: %d\n", link_count);
+            
+            // Print link information
+            for (int j = 0; j < link_count; j++) {
+                int link_offset = channel_offset + axis_offset + 2 + (j * 6);
+                uint dest_node = *(uint*)(Core[node_index] + link_offset);
+                ushort dest_channel = *(ushort*)(Core[node_index] + link_offset + 4);
+                printf("    Link %d: Node %d, Channel %d\n", 
+                       j, dest_node, dest_channel);
+            }
+        }
+    }
+    
+    // Print raw memory contents
     printf("\nMemory Contents:\n");
     printf("Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII\n");
     printf("--------  -----------------------------------------------    ----------------\n");
     
+    ushort node_size = 1 << (*(ushort*)Core[node_index]);
     for (int i = 0; i < node_size; i += 16) {
         // Print offset
         printf("%08X  ", i);

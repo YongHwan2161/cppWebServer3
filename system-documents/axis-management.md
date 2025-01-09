@@ -394,3 +394,110 @@ uint bytes_to_remove = 6 + 2 + (link_count * 6);
 2. 반환 값
    - AXIS_SUCCESS: 삭제 성공
    - AXIS_ERROR: 삭제 실패
+
+### Memory Layout Details
+
+#### Offset Calculations
+1. Channel Offset
+   - Base offset from node start
+   - Used as reference for all channel data
+   - Calculated using get_channel_offset()
+
+2. Axis Offset
+   - Relative to channel offset
+   - Points to axis data within channel
+   - Must be added to channel_offset for absolute position
+
+3. Link Data Access
+   - Link count location: channel_offset + axis_offset
+   - Link data starts: channel_offset + axis_offset + 2
+   - Each link entry: 6 bytes (4 for node, 2 for channel)
+
+Example memory layout:
+```
+Node start
++0000: Node header
++0002: Channel count
++0004: Channel offsets
+      |
+      v
+Channel start (channel_offset)
++0008: Axis count
++000A: Axis entries
+      |
+      v
+Axis data (channel_offset + axis_offset)
++0010: Link count
++0012: Link entries
+```
+
+#### Access Pattern
+```c
+// Get link count for axis
+ushort link_count = *(ushort*)(node + channel_offset + axis_offset);
+
+// Access link data
+for (int i = 0; i < link_count; i++) {
+    int link_offset = channel_offset + axis_offset + 2 + (i * 6);
+    uint dest_node = *(uint*)(node + link_offset);
+    ushort dest_channel = *(ushort*)(node + link_offset + 4);
+}
+```
+
+### Axis Offset Functions
+
+#### get_axis_offset
+```c
+int get_axis_offset(uchar* node, ushort channel_index, ushort axis_number);
+```
+특정 axis의 offset을 반환합니다.
+- 입력: 노드, 채널 인덱스, axis 번호
+- 반환: axis의 offset 또는 -1 (axis가 없는 경우)
+
+#### get_last_axis_offset
+```c
+int get_last_axis_offset(uchar* node, ushort channel_index);
+```
+채널의 마지막 axis offset을 반환합니다.
+- 입력: 노드, 채널 인덱스
+- 반환: 마지막 axis의 offset 또는 -1 (axis가 없는 경우)
+
+##### 구현 세부사항
+1. 채널 오프셋 획득
+   ```c
+   uint channel_offset = get_channel_offset(node, channel_index);
+   ```
+
+2. Axis 개수 확인
+   ```c
+   ushort axis_count = *(ushort*)(node + channel_offset);
+   if (axis_count == 0) return -1;
+   ```
+
+3. 마지막 Axis의 오프셋 획득
+   ```c
+   int axis_data_offset = channel_offset + 2;  // Skip axis count
+   uint last_axis_offset = *(uint*)(node + axis_data_offset + ((axis_count - 1) * 6) + 2);
+   ```
+
+##### 사용 예시
+```c
+// 마지막 axis의 offset 획득
+int last_offset = get_last_axis_offset(node, channel_index);
+if (last_offset < 0) {
+    // 에러 처리: axis가 없음
+} else {
+    // 마지막 axis 데이터 접근
+    ushort* link_count = (ushort*)(node + channel_offset + last_offset);
+}
+```
+
+##### 주의사항
+1. 오프셋 계산
+   - axis table entry: 6 bytes (number: 2, offset: 4)
+   - 마지막 axis index: axis_count - 1
+   - offset 위치: entry 시작 + 2 bytes
+
+2. 에러 처리
+   - axis가 없는 경우 -1 반환
+   - 반환값 검사 필수

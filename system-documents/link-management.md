@@ -3,6 +3,55 @@
 ## Overview
 Link는 노드의 채널 간 연결을 나타내는 메커니즘입니다. 각 링크는 목적지 노드와 채널 정보를 포함하며, 특정 axis를 통해 연결됩니다.
 
+## Memory Layout
+
+### Offset Calculations
+모든 메모리 접근은 다음 세 가지 오프셋의 조합으로 이루어집니다:
+
+1. Channel Offset
+   - 노드 시작점부터의 기본 오프셋
+   - get_channel_offset() 함수로 계산
+   - 모든 채널 데이터의 기준점
+
+2. Axis Offset
+   - 채널 오프셋 기준의 상대적 위치
+   - get_axis_offset() 함수로 계산
+   - 실제 사용시 channel_offset과 합산 필요
+
+3. Link Data Offset
+   - channel_offset + axis_offset: 링크 카운트 위치
+   - channel_offset + axis_offset + 2: 첫 번째 링크 데이터 시작
+   - 각 링크 엔트리: 6 bytes (node: 4, channel: 2)
+
+### Memory Access Pattern
+```c
+// Link count access
+ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
+
+// Link data access
+Link* link_data = (Link*)(node + channel_offset + axis_offset + 2 + (index * 6));
+```
+
+## Link Creation Process
+
+### 1. Offset 계산
+```c
+uint channel_offset = get_channel_offset(node, source_ch);
+int axis_offset = get_axis_offset(node, source_ch, axis_number);
+ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
+```
+
+### 2. 공간 계산
+```c
+uint link_data_offset = channel_offset + axis_offset + 2 + (current_link_count * 6);
+ushort required_size = link_data_offset + sizeof(Link);
+```
+
+### 3. 메모리 관리
+- 필요시 노드 크기 확장
+- 오프셋 재계산
+- 링크 데이터 저장
+
 ## Data Structure
 
 ### Link Data Format (6 bytes)
@@ -54,6 +103,51 @@ int create_link(int source_node, int source_ch,
 6. Link 데이터 저장
 7. Link count 증가
 8. 파일 동기화
+
+#### 데이터 삽입 과정
+1. 위치 검사
+   ```c
+   ushort channel_count = *(ushort*)(node + 2);
+   bool is_last_channel = (source_ch == channel_count - 1);
+   bool is_last_axis = (axis_offset == last_axis_offset);
+   ```
+
+2. 데이터 이동 계산
+   ```c
+   uint move_start = link_insert_offset;
+   uint move_size = current_node_size - move_start;  // 남은 모든 데이터 이동
+   ```
+   - move_start: 새로운 링크가 삽입될 위치
+   - move_size: 현재 노드 크기에서 삽입 위치를 뺀 크기
+   - 장점:
+     * 정확한 크기 계산 불필요
+     * 모든 후속 데이터를 한 번에 이동
+     * 경계 계산 오류 방지
+
+3. 데이터 이동 실행
+   ```c
+   memmove(node + move_start + 6,
+           node + move_start,
+           move_size);
+   ```
+
+#### 주의사항
+1. 채널 위치 확인
+   - 마지막 채널인지 확인
+   - 채널 오프셋 테이블 업데이트 필요
+
+2. Axis 위치 확인
+   - 채널 내 마지막 axis인지 확인
+   - 후속 axis들의 offset 업데이트 필요
+
+3. 데이터 이동 범위
+   - 현재 위치부터 마지막 데이터까지
+   - 채널 간 데이터 이동 고려
+
+4. Offset 업데이트 순서
+   - 현재 채널의 axis offsets
+   - 후속 채널들의 channel offsets
+   - 후속 채널들의 axis offsets
 
 ### Link Deletion
 ```c
@@ -187,4 +281,98 @@ create_link(0, 0,    // source node/channel
 create_link(1, 0,    // source node/channel
            0, 0,     // destination node/channel
            AXIS_BACKWARD); // axis number
-``` 
+```
+
+### Memory Space Calculation
+
+#### Offset Types
+1. Channel Offset
+   - 채널의 시작 위치
+   - 노드 시작점 기준
+
+2. Axis Offset
+   - 특정 axis의 데이터 위치
+   - 채널 시작점 기준
+   - Link count 위치를 가리킴
+
+3. Last Axis Offset
+   - 마지막 axis의 데이터 위치
+   - 채널 시작점 기준
+   - 새로운 데이터 추가 위치 계산에 사용
+
+#### 필요 공간 계산 방법
+1. 마지막 링크 위치 계산
+   ```c
+   uint last_axis_offset = get_last_axis_offset(node, source_ch);
+   uint last_link_offset = channel_offset + last_axis_offset + 2 + (current_link_count * 6);
+   ```
+   - last_axis_offset: 마지막 axis의 위치
+   - 2: link count 필드 크기
+   - current_link_count * 6: 현재 저장된 링크들의 총 크기
+
+2. 새로운 링크를 위한 공간
+   ```c
+   uint required_size = last_link_offset + 6;  // 새로운 링크를 위한 6바이트 추가
+   ```
+
+#### 메모리 접근
+1. Link Count 읽기
+   ```c
+   ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
+   ```
+
+2. Link 데이터 쓰기
+   ```c
+   // 마지막 위치에 새 링크 추가
+   memcpy(node + last_link_offset, &link, sizeof(Link));
+   ```
+
+#### 주의사항
+1. Offset 구분
+   - axis_offset: 현재 작업중인 axis의 위치
+   - last_axis_offset: 마지막 axis의 위치
+   - 두 값은 다를 수 있음
+
+2. 공간 계산
+   - 항상 마지막 axis를 기준으로 계산
+   - 새로운 데이터는 마지막 axis 다음에 추가
+
+#### Offset 업데이트 규칙
+
+1. 현재 채널 내 Axis Offset
+   - 현재 axis 이후의 모든 axis offset 업데이트 필요
+   - axis offset은 채널 시작점 기준의 상대 위치
+   ```c
+   // Update offsets in current channel
+   for (int i = 0; i < axis_count; i++) {
+       uint current_axis_offset = *(uint*)(node + axis_data_offset + (i * 6) + 2);
+       if (current_axis_offset > axis_offset) {
+           *(uint*)(node + axis_data_offset + (i * 6) + 2) += 6;
+       }
+   }
+   ```
+
+2. 후속 채널 Offset
+   - 채널 offset만 업데이트
+   - axis offset은 업데이트 불필요 (상대 위치이므로)
+   ```c
+   // Update only channel offsets
+   if (!is_last_channel) {
+       for (int ch = source_ch + 1; ch < channel_count; ch++) {
+           uint* channel_offset_ptr = (uint*)(node + 4 + (ch * 4));
+           *channel_offset_ptr += 6;
+       }
+   }
+   ```
+
+#### 주의사항
+1. Offset 상대성
+   - Channel offset: 노드 시작점 기준 (절대 위치)
+   - Axis offset: 채널 시작점 기준 (상대 위치)
+   - 데이터 이동 시 각각 적절히 처리 필요
+
+2. 업데이트 범위
+   - 현재 채널: axis offset 업데이트 필요
+   - 후속 채널: channel offset만 업데이트
+   - axis offset은 채널 기준 상대값이므로 불변
+ 

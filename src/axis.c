@@ -226,4 +226,19 @@ int delete_axis(uint node_index, ushort channel_index, ushort axis_number) {
     
     printf("Error: Failed to update data.bin\n");
     return AXIS_ERROR;
+}
+
+uint get_last_axis_offset(uchar* node, ushort channel_index) {
+    uint channel_offset = get_channel_offset(node, channel_index);
+    ushort axis_count = *(ushort*)(node + channel_offset);
+    
+    if (axis_count == 0) {
+        return -1;  // No axes exist
+    }
+    
+    // Get offset of last axis from axis table
+    uint axis_data_offset = channel_offset + 2;  // Skip axis count
+    uint last_axis_offset = *(uint*)(node + axis_data_offset + ((axis_count - 1) * 6) + 2);
+    
+    return last_axis_offset;
 } 
