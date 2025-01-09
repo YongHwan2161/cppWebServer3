@@ -15,7 +15,7 @@
 
 // Function declarations
 int get_axis_count(uchar* node, ushort channel_index);
-int get_axis_offset(uchar* node, ushort channel_index, ushort axis_number);
+uint get_axis_offset(uchar* node, ushort channel_index, ushort axis_number);
 bool has_axis(uchar* node, uint channel_offset, ushort axis_number);
 int create_axis(uint node_index, ushort channel_index, ushort axis_number);
 int delete_axis(uint node_index, ushort channel_index, ushort axis_number);

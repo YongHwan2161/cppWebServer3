@@ -392,6 +392,49 @@ Usage: test-free-offsets
 Example: test-free-offsets
 ```
 
+### Test Multiple Link Creation
+```
+test-multiple-link <node_index> <channel_index> <axis_number>
+```
+Creates and verifies 100 random links for testing purposes.
+
+Parameters:
+- node_index: Source node (0-255)
+- channel_index: Source channel
+- axis_number: Axis to use for links
+
+Example:
+```
+> test-multiple-link 0 0 0
+Testing multiple link creation...
+Source: Node 0, Channel 0, Axis 0
+Link creation test completed: 0 failures
+
+> test-multiple-link 0 0 1
+Testing multiple link creation...
+Source: Node 0, Channel 0, Axis 1
+Link creation test completed: 2 failures
+Failed to create link 45
+Link count mismatch after link 67
+```
+
+Error handling:
+```
+> test-multiple-link
+Error: Missing arguments
+Usage: test-multiple-link <node_index> <channel_index> <axis_number>
+Example: test-multiple-link 0 0 0
+
+> test-multiple-link 256 0 0
+Error: Node index must be between 0 and 255
+```
+
+The command will:
+1. Create 100 random links
+2. Verify link count after each creation
+3. Verify link data correctness
+4. Report any failures encountered
+
 ## Error Handling
 
 ### Missing Arguments

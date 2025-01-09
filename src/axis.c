@@ -10,7 +10,7 @@ int get_axis_count(uchar* node, ushort channel_index) {
     return *(ushort*)(node + offset);  // First 2 bytes contain axis count
 }
 
-int get_axis_offset(uchar* node, ushort channel_index, ushort axis_number) {
+uint get_axis_offset(uchar* node, ushort channel_index, ushort axis_number) {
     uint channel_offset = get_channel_offset(node, channel_index);
     
     ushort axis_count = *(ushort*)(node + channel_offset);
@@ -24,7 +24,7 @@ int get_axis_offset(uchar* node, ushort channel_index, ushort axis_number) {
         }
     }
     
-    return -1;  // Axis not found
+    return 0;  // Axis not found
 }
 
 bool has_axis(uchar* node, uint channel_offset, ushort axis_number) {

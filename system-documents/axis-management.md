@@ -448,7 +448,7 @@ for (int i = 0; i < link_count; i++) {
 
 #### get_axis_offset
 ```c
-int get_axis_offset(uchar* node, ushort channel_index, ushort axis_number);
+uint get_axis_offset(uchar* node, ushort channel_index, ushort axis_number);
 ```
 특정 axis의 offset을 반환합니다.
 - 입력: 노드, 채널 인덱스, axis 번호

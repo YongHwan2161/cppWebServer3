@@ -33,8 +33,8 @@ int create_link(uint source_node, ushort source_ch,
     uint axis_offset = get_axis_offset(node, source_ch, axis_number);
     
     // Get current link count
-    ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
-    ushort current_link_count = *link_count;
+    // ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
+    ushort current_link_count = *(ushort*)(node + channel_offset + axis_offset);
     
     // Calculate required space for new link
     uint current_node_size = 1 << (*(ushort*)node);
@@ -53,13 +53,7 @@ int create_link(uint source_node, ushort source_ch,
         
         // Update Core pointer
         Core[source_node] = node;
-        
-        // Recalculate offsets with new node pointer
-        // channel_offset = get_channel_offset(node, source_ch);
-        // axis_offset = get_axis_offset(node, source_ch, axis_number);
-        // last_axis_offset = get_last_axis_offset(node, source_ch);
         // link_count = (ushort*)(node + channel_offset + axis_offset);
-        // last_link_offset = channel_offset + last_axis_offset + 2 + (current_link_count * 6);
     }
     
     // Create link data
@@ -110,8 +104,9 @@ int create_link(uint source_node, ushort source_ch,
     // Write link data at insert position
     memcpy(node + link_insert_offset, &link, sizeof(Link));
     
-    // Update link count
-    (*link_count)++;
+    // Update link count - recalculate pointer after possible node resize
+    // ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
+    (*(ushort*)(node + channel_offset + axis_offset))++;
     
     // Save changes to data.bin
     FILE* data_file = fopen(DATA_FILE, "r+b");

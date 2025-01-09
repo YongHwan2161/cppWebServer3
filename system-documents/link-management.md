@@ -375,4 +375,94 @@ create_link(1, 0,    // source node/channel
    - 현재 채널: axis offset 업데이트 필요
    - 후속 채널: channel offset만 업데이트
    - axis offset은 채널 기준 상대값이므로 불변
+
+### Link Creation Process
+
+#### 주의사항
+1. 포인터 재계산
+   - resize_node_space 호출 후 node 포인터가 변경될 수 있음
+   - link_count 포인터 재계산 필요
+   ```c
+   // 올바른 순서
+   memcpy(node + link_insert_offset, &link, sizeof(Link));
+   ushort* link_count = (ushort*)(node + channel_offset + axis_offset);  // 포인터 재계산
+   (*link_count)++;
+   ```
+
+2. 잘못된 구현
+   ```c
+   ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
+   // ... resize_node_space 호출 ...
+   (*link_count)++;  // 오류: node가 변경되어 link_count가 잘못된 주소를 가리킴
+   ```
+
+3. 메모리 안전성
+   - 포인터는 항상 최신 node 주소 기준으로 계산
+   - resize 후 이전 포인터 사용 금지
+   - 모든 오프셋 재계산 필요
+
+## Testing
+
+### Multiple Link Creation Test
+```c
+int test_multiple_link_creation(uint source_node, ushort source_ch, ushort axis_number);
+```
+
+#### Test Process
+1. 초기 상태 확인
+   - 현재 link count 저장
+   - node, channel, axis 유효성 검증
+
+2. 100개 링크 생성
+   - 무작위 대상 노드/채널 선택
+   - 링크 생성 실행
+   - 매 생성 후 검증
+
+3. 검증 항목
+   - Link Count 검증
+     * 매 링크 생성마다 1씩 증가
+     * 예상 값과 실제 값 비교
+   
+   - Link Data 검증
+     * 마지막 생성된 링크 데이터 확인
+     * 대상 노드/채널 정보 일치 여부
+
+4. 오류 처리
+   - 링크 생성 실패 감지
+   - Count 불일치 감지
+   - 데이터 불일치 감지
+
+#### 구현 세부사항
+1. 포인터 관리
+   ```c
+   node = Core[source_node];  // 매 검증 시 포인터 재로드
+   channel_offset = get_channel_offset(node, source_ch);
+   axis_offset = get_axis_offset(node, source_ch, axis_number);
+   ```
+
+2. Count 검증
+   ```c
+   ushort current_link_count = *(ushort*)(node + channel_offset + axis_offset);
+   if (current_link_count != expected_count) {
+       // 오류 처리
+   }
+   ```
+
+3. Data 검증
+   ```c
+   Link* last_link = (Link*)(node + channel_offset + axis_offset + 2 + 
+                            (current_link_count - 1) * sizeof(Link));
+   if (last_link->node != dest_node || last_link->channel != dest_ch) {
+       // 오류 처리
+   }
+   ```
+
+#### 사용 예시
+```c
+// 노드 0의 채널 0에 있는 axis 0에 대해 테스트
+int failed = test_multiple_link_creation(0, 0, 0);
+if (failed > 0) {
+    printf("%d tests failed\n", failed);
+}
+```
  
