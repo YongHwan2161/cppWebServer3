@@ -281,12 +281,13 @@ int handle_print_node(char* args) {
     // Print node metadata
     printf("\nNode %d Information:\n", node_index);
     printf("Size: %d bytes\n", 1 << (*(ushort*)Core[node_index]));
+    printf("Actual Size: %d bytes\n", *(uint*)(Core[node_index] + 2));
     printf("Core Position: %d\n", CoreMap[node_index].core_position);
     printf("File Offset: 0x%08lX\n", CoreMap[node_index].file_offset);
     printf("Load Status: %s\n", CoreMap[node_index].is_loaded ? "Loaded" : "Not loaded");
     
     // Get channel count
-    ushort channel_count = *(ushort*)(Core[node_index] + 2);
+    ushort channel_count = get_channel_count(Core[node_index]);
     printf("\nChannel Count: %d\n", channel_count);
     
     // Print channel information

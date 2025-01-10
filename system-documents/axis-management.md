@@ -117,6 +117,44 @@ create_axis(node_index, channel_index, AXIS_TIME);
 
 ## Memory Management
 
+### Size Calculations
+1. Required Size
+   ```c
+   // Simple size calculation using actual size
+   uint current_actual_size = *(uint*)(node + 2);
+   uint required_size = current_actual_size + 6;  // Add 6 bytes for new axis
+   ```
+
+2. Size Validation
+   ```c
+   // Check if resize needed
+   if (required_size > (1 << node_size_power)) {
+       // Resize to next power of 2
+   }
+   ```
+
+### Advantages of New Size Management
+1. Simplified Calculations
+   - Direct access to actual size
+   - No need to traverse channels/axes
+   - Simple addition for new requirements
+
+2. Memory Efficiency
+   - Accurate size tracking
+   - Immediate size information
+   - No recalculation needed
+
+### Size Update Process
+1. Before Adding Axis
+   ```
+   [Size Power(2)][Actual Size(14)][...]
+   ```
+
+2. After Adding Axis
+   ```
+   [Size Power(2)][Actual Size(20)][...]  // 14 + 6 bytes for new axis
+   ```
+
 ### Axis Creation Process
 1. 메모리 레이아웃
    - Channel 시작: Axis Count (2 bytes)
@@ -343,57 +381,62 @@ new_axis_offset = required_size - channel_offset - 2
    - 코드 가독성 향상
    - 유지보수 용이
 
-### Axis 삭제 프로세스
+### Axis Deletion
 
-#### 기본 검증
-1. 노드 유효성 검사
-2. Axis 존재 여부 확인
-3. Axis 위치 찾기
+### Size Management
+1. Actual Size Update
+   ```c
+   uint current_actual_size = *(uint*)(node + 2);
+   
+   // For last axis
+   uint new_actual_size = axis_offset + channel_offset;
+   *(uint*)(node + 2) = new_actual_size;
+   
+   // For middle axis
+   uint size_reduction = next_axis_offset - axis_offset;
+   *(uint*)(node + 2) = current_actual_size - size_reduction;
+   ```
 
-#### 삭제할 데이터 계산
+### Deletion Process
+1. Last Axis
+   - Simply update actual size
+   - No data movement needed
+   - Remove axis table entry
+
+2. Middle Axis
+   - Calculate move size from actual size
+   - Move remaining data forward
+   - Update remaining axis offsets
+   - Update actual size
+   - Remove axis table entry
+
+### Memory Management
 ```c
-uint bytes_to_remove = 6 + 2 + (link_count * 6);
+// Calculate size to move for middle axis
+move_size = current_actual_size - (channel_offset + next_axis_offset);
+
+// Move data
+memmove(node + channel_offset + axis_offset,
+        node + channel_offset + next_axis_offset,
+        move_size);
+
+// Update offsets
+for (int i = axis_index + 1; i < *axis_count; i++) {
+    uint* offset_ptr = (uint*)(node + channel_offset + 2 + (i * 6) + 2);
+    *offset_ptr -= size_reduction;
+}
 ```
-구성:
-- Axis entry (6 bytes)
-- Link count (2 bytes)
-- Link data (6 bytes * link_count)
 
-#### 데이터 이동 처리
-1. 마지막 Axis인 경우
-   - Axis entry만 제거
-   - Axis count 감소
+### Advantages
+1. Simplified Size Management
+   - Direct access to actual size
+   - No need to calculate from offsets
+   - Immediate size updates
 
-2. 중간 Axis 삭제
-   - 뒤쪽 Axis 데이터를 앞으로 이동
-   - 남은 Axis들의 offset 업데이트
-   - Axis entry 제거
-   - Axis count 감소
-
-#### 최적화 포인트
-1. 메모리 관리
-   - Resize 불필요 (데이터 감소)
-   - 한 번의 memmove로 데이터 이동
-   - 불필요한 메모리 할당 없음
-
-2. 데이터 이동
-   - 정확한 이동 크기 계산
-   - 효율적인 데이터 이동
-   - Offset 정확한 업데이트
-
-3. 파일 동기화
-   - 변경된 데이터만 저장
-   - 단일 파일 쓰기 작업
-
-#### 에러 처리
-1. 입력 검증
-   - 유효하지 않은 노드
-   - 존재하지 않는 Axis
-   - 파일 I/O 오류
-
-2. 반환 값
-   - AXIS_SUCCESS: 삭제 성공
-   - AXIS_ERROR: 삭제 실패
+2. Efficient Data Movement
+   - Accurate move size calculation
+   - Single memmove operation
+   - No temporary buffers needed
 
 ### Memory Layout Details
 
@@ -501,3 +544,51 @@ if (last_offset < 0) {
 2. 에러 처리
    - axis가 없는 경우 -1 반환
    - 반환값 검사 필수
+```
+
+### Size Management in Deletion
+1. Size Reduction Calculation
+   ```c
+   uint current_actual_size = *(uint*)(node + 2);
+   uint size_reduction;
+   
+   // For last axis
+   size_reduction = current_actual_size - (channel_offset + axis_offset);
+   
+   // For middle axis
+   size_reduction = next_axis_offset - axis_offset;
+   ```
+
+2. Total Size Update
+   ```c
+   // Update actual size
+   // Reduce by: data size (size_reduction) + axis entry (6 bytes)
+   *(uint*)(node + 2) = current_actual_size - size_reduction - 6;
+   ```
+
+3. Size Update Process
+   - Before Deletion
+     ```
+     [Size Power(2)][Actual Size(20)][...]
+     ```
+
+   - After Deletion
+     ```
+     [Size Power(2)][Actual Size(14)][...]  // Reduced by data size + axis entry (6)
+     ```
+
+4. Memory Management
+   - Data Movement
+     ```c
+     // For middle axis deletion
+     move_size = current_actual_size - (channel_offset + next_axis_offset);
+     memmove(node + channel_offset + axis_offset,
+             node + channel_offset + next_axis_offset,
+             move_size);
+     ```
+
+   - Size Updates
+     - Remove axis data size
+     - Remove axis entry (6 bytes)
+     - Update actual size field
+     - Keep size power unchanged

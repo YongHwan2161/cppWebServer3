@@ -35,17 +35,69 @@ The program will automatically:
 
 # Node 구조
 ## 기본 구조
-- Node의 기본 크기는 16 bytes (2^4)이며, 다음과 같은 구조를 가진다:
-  1. Data Size (2 bytes): 2의 지수로 표현된 노드 크기 (예: 4는 2^4=16 bytes를 의미)
-  2. Channel Count (2 bytes): 노드가 가진 채널의 수
-  3. Channel 0 Offset (4 bytes): 첫 번째 채널의 오프셋 (8부터 시작, 2+2+4=8)
-  4. Axis Count (2 bytes): 축의 개수
-  5. Reserved (6 bytes): 추가 데이터를 위한 예약 공간
+Node의 기본 크기는 16 bytes (2^4)이며, 다음과 같은 구조를 가진다:
+1. Allocated Size Power (2 bytes): 2의 지수로 표현된 할당된 노드 크기 (예: 4는 2^4=16 bytes를 의미)
+2. Actual Used Size (4 bytes): 실제 사용중인 데이터 크기
+3. Channel Count (2 bytes): 노드가 가진 채널의 수
+4. Channel Offsets (4 bytes each): 각 채널의 오프셋
+5. Channel Data: 각 채널의 실제 데이터
 
-## 메모리 할당
-- 노드의 크기는 항상 2의 제곱수로 할당된다 (16, 32, 64, 128, ... bytes)
-- 새로운 노드 생성 시 기본 크기인 16 bytes로 초기화된다
-- 데이터 크기가 증가하면 다음 2의 제곱수 크기로 재할당된다
+### 장점
+1. 데이터 이동 최적화
+   - 데이터 이동 시 정확한 크기 계산 가능
+   - 복잡한 오프셋 계산 불필요
+   - 한 번의 연산으로 이동 크기 결정
+
+2. 구현 단순화
+   - 마지막 데이터 위치 즉시 확인 가능
+   - 채널/axis 순회 없이 크기 확인
+   - 코드 복잡도 감소
+
+### 단점과 해결방안
+1. 추가 저장공간
+   - 노드당 4바이트 추가 필요
+   - 전체 데이터베이스 크기 소폭 증가
+   - 장점 대비 무시할만한 수준
+
+2. 크기 관리
+   - 데이터 변경 시 actual size 업데이트 필요
+   - 단순 대입으로 해결 가능
+   - 복잡한 계산보다 효율적
+
+### 메모리 레이아웃
+```
+[Allocated Size Power(2)][Actual Used Size(4)][Channel Count(2)][Channel Offsets(4*N)]...
+```
+
+### Actual Size 관리
+1. 초기 크기
+   - 14 bytes로 초기화 (size power + actual size 포함)
+   - Size Power (2 bytes)
+   - Actual Size (4 bytes)
+   - Channel Count (2 bytes)
+   - First Channel Offset (4 bytes)
+   - Axis Count (2 bytes)
+
+2. 장점
+   - 데이터 섹션의 마지막 오프셋 = actual size
+   - 별도의 계산 없이 데이터 범위 확인 가능
+   - 메모리 이동 크기 계산 단순화
+
+3. 크기 계산 예시
+   ```c
+   // 데이터 섹션의 마지막 오프셋
+   uint last_offset = *(uint*)(node + 2);  // actual size 직접 사용
+
+   // 이동해야 할 데이터 크기
+   uint move_size = last_offset - insert_position;
+   ```
+
+4. 효율성
+   - 오프셋 계산 오버헤드 감소
+   - 데이터 이동 연산 단순화
+   - 메모리 관리 용이
+
+[Rest of the document remains the same...]
 
 ```c
 uchar initValues[16] = {
@@ -88,12 +140,33 @@ uchar initValues[16] = {
         Core[index] = newNode;  // 생성된 node를 Core 배열의 해당 index 위치에 저장
     }
     void create_DB() {
-        printf("call create_DB()\n");
-        Core = (uchar**)malloc(256 * sizeof(uchar*));
+        printf("Creating new database...\n");
+        Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
+        CoreMap = (NodeMapping*)malloc(256 * sizeof(NodeMapping));
+        
+        // Initialize CoreMap with default values
         for (int i = 0; i < 256; ++i) {
-            create_new_node(i);  // index를 전달하여 node 생성 및 저장
-    }
-}
+            CoreMap[i].core_position = i;
+            CoreMap[i].is_loaded = 1;
+            CoreMap[i].file_offset = 4 + (16 * i);  // 각 노드는 16바이트, 헤더 4바이트
+        }
+        
+        // Read offsets from map.bin
+        FILE* map_file = fopen(MAP_FILE, "rb");
+        if (map_file) {
+            fseek(map_file, sizeof(uint), SEEK_SET);
+            for (int i = 0; i < 256; i++) {
+                fread(&CoreMap[i].file_offset, sizeof(long), 1, map_file);
+            }
+            fclose(map_file);
+        }
+        
+        // Create 256 nodes
+        for (int i = 0; i < 256; ++i) {
+            create_new_node(i);
+            CoreSize++;
+        }
+    }
 ```
 
 - Core 배열은 각각의 node에 대한 포인터를 저장하는 배열이다. 각 node의 index는 Core 배열의 index와 일치한다.

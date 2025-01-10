@@ -13,11 +13,12 @@
 
 // Initial node values
 static uchar initValues[16] = {
-    4,  0,     // data size (2^4 = 16 bytes)
+    4,  0,     // allocated size power (2^4 = 16 bytes)
+    14, 0, 0, 0,  // actual used size (14 bytes initially)
     1,  0,     // number of channels (1)
-    8,  0, 0, 0,   // offset for channel 0 (starts at byte 8)
+    12, 0, 0, 0,   // offset for channel 0 (starts at byte 12)
     0,  0,     // number of axes (0)
-    0,  0, 0, 0, 0, 0    // remaining bytes initialized to 0
+    0,  0      // remaining bytes initialized to 0
 };
 
 int initialize_database() {
@@ -60,12 +61,15 @@ void create_new_node(int index) {
 void create_DB() {
     printf("Creating new database...\n");
     Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
-    init_core_mapping();
+    CoreMap = (NodeMapping*)malloc(256 * sizeof(NodeMapping));
     
+    // Initialize CoreMap with default values
     for (int i = 0; i < 256; ++i) {
-        create_new_node(i);
         CoreMap[i].core_position = i;
         CoreMap[i].is_loaded = 1;
+        CoreMap[i].file_offset = 16 * i;  // Each node starts with 16 bytes, plus 4 bytes header
+        
+        create_new_node(i);
         CoreSize++;
     }
 }
@@ -130,11 +134,11 @@ void load_node_from_file(FILE* data_file, long offset, int index) {
 
 void load_DB() {
     Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
-    init_core_mapping();
     
     // Initially load first MaxCoreSize nodes
     for (int i = 0; i < MaxCoreSize && i < 256; i++) {
         load_node_to_core(i);
     }
+    init_core_mapping();
     printf("Database loaded successfully\n");
 } 

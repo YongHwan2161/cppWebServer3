@@ -2,7 +2,7 @@
 #include <string.h>
 
 ushort get_channel_count(uchar* node) {
-    return *(ushort*)(node + 2);  // Skip 2 bytes of size
+    return *(ushort*)(node + 6);  // Skip size power (2) and actual size (4)
 }
 
 uint get_channel_offset(uchar* node, int channel_index) {
@@ -10,9 +10,8 @@ uint get_channel_offset(uchar* node, int channel_index) {
     if (channel_index >= channel_count) {
         printf("Error: Invalid channel index %d (max: %d)\n", 
                channel_index, channel_count - 1);
-        // return 0;  // Return 0 to indicate an error
     }
-    return *(uint*)(node + 4 + (channel_index * 4));  // 4: size(2) + channels(2)
+    return *(uint*)(node + 8 + (channel_index * 4));  // 8: size_power(2) + actual_size(4) + channels(2)
 }
 
 ushort get_channel_size(uchar* node, int channel_index) {

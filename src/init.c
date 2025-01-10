@@ -1,6 +1,7 @@
 #include "init.h"
 #include "free_space.h"
 #include "database.h"
+#include "../CGDB.h"
 #include <sys/stat.h>
 #include <string.h>
 
@@ -37,6 +38,8 @@ void init_core_mapping() {
             fread(&CoreMap[i].file_offset, sizeof(long), 1, map_file);
         }
         fclose(map_file);
+    } else {
+        printf("Error: Failed to open map.bin\n");
     }
 }
 
