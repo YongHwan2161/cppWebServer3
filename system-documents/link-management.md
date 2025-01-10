@@ -465,4 +465,70 @@ if (failed > 0) {
     printf("%d tests failed\n", failed);
 }
 ```
+
+## Link Creation
+
+### Size Management
+1. Size Calculation
+   ```c
+   // Get current actual size
+   uint current_actual_size = *(uint*)(node + 2);
+   
+   // Calculate required size for new link
+   uint required_size = current_actual_size + 6;  // Add 6 bytes for new link
+   ```
+
+2. Memory Validation
+   ```c
+   ushort node_size_power = *(ushort*)node;
+   uint current_node_size = 1 << node_size_power;
+   
+   if (required_size > current_node_size) {
+       // Resize node
+   }
+   ```
+
+### Link Data Management
+1. Adding New Link
+   ```c
+   // Calculate link position
+   uint link_offset = channel_offset + axis_offset + 2 + (*link_count * 6);
+   
+   // Write link data
+   *(uint*)(node + link_offset) = dest_node;
+   *(ushort*)(node + link_offset + 4) = dest_ch;
+   ```
+
+2. Size Updates
+   ```c
+   // Update link count
+   (*link_count)++;
+   
+   // Update actual size
+   *(uint*)(node + 2) = required_size;
+   ```
+
+### Memory Layout Example
+Before adding link:
+```
+[Size Power(2)][Actual Size(20)][...][Link Count(2)][Existing Links...]
+```
+
+After adding link:
+```
+[Size Power(2)][Actual Size(26)][...][Link Count(2)][Existing Links][New Link(6)]
+```
+
+### Advantages
+1. Accurate Size Tracking
+   - Direct size management
+   - No need for complex calculations
+   - Immediate size updates
+
+2. Efficient Memory Management
+   - Precise space requirements
+   - Single resize operation when needed
+   - Maintains data integrity
+
+[Rest of the document remains the same...]
  

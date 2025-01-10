@@ -5,8 +5,8 @@
 #include <string.h>
 
 int create_link(uint source_node, ushort source_ch, 
-               uint dest_node, ushort dest_ch, 
-               ushort axis_number) {
+                uint dest_node, ushort dest_ch, 
+                ushort axis_number) {
     
     // Validate source node
     if (!Core[source_node]) {
@@ -16,33 +16,19 @@ int create_link(uint source_node, ushort source_ch,
     
     uchar* node = Core[source_node];
     uint channel_offset = get_channel_offset(node, source_ch);
-    
-    // Check if axis exists, create if it doesn't
-    if (!has_axis(node, channel_offset, axis_number)) {
-        int result = create_axis(source_node, source_ch, axis_number);
-        if (result != AXIS_SUCCESS) {
-            printf("Error: Failed to create required axis\n");
-            return LINK_ERROR;
-        }
-        
-        // Reload node pointer as it might have changed after axis creation
-        node = Core[source_node];
-    }
-    
-    // Get axis offset - this points to the link count
     uint axis_offset = get_axis_offset(node, source_ch, axis_number);
     
-    // Get current link count
-    // ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
-    ushort current_link_count = *(ushort*)(node + channel_offset + axis_offset);
+    // if (axis_offset == -1) return LINK_ERROR;
     
-    // Calculate required space for new link
-    uint current_node_size = 1 << (*(ushort*)node);
-    uint last_axis_offset = get_last_axis_offset(node, source_ch);  // Get offset of last axis
-    uint last_link_offset = channel_offset + last_axis_offset + 2 + (current_link_count * 6);  // Current end of link data
-    uint required_size = last_link_offset + 6;  // Add space for one new link (6 bytes)
+    // Get current link count and calculate new size
+    ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
+    uint current_actual_size = *(uint*)(node + 2);
+    uint required_size = current_actual_size + 6;  // Add 6 bytes for new link
     
-    // Check if we need more space
+    // Check if we need to resize
+    ushort node_size_power = *(ushort*)node;
+    uint current_node_size = 1 << node_size_power;
+    
     if (required_size > current_node_size) {
         uint new_size;
         node = resize_node_space(node, required_size, source_node, &new_size);
@@ -50,79 +36,33 @@ int create_link(uint source_node, ushort source_ch,
             printf("Error: Failed to resize node\n");
             return LINK_ERROR;
         }
-        
-        // Update Core pointer
         Core[source_node] = node;
-        // link_count = (ushort*)(node + channel_offset + axis_offset);
+        // Recalculate offsets as node pointer might have changed
+        channel_offset = get_channel_offset(node, source_ch);
+        axis_offset = get_axis_offset(node, source_ch, axis_number);
+        link_count = (ushort*)(node + channel_offset + axis_offset);
     }
     
-    // Create link data
-    Link link = {
-        .node = dest_node,
-        .channel = dest_ch
-    };
+    // Add new link at the end
+    uint link_offset = channel_offset + axis_offset + 2 + (*link_count * 6);
+    *(uint*)(node + link_offset) = dest_node;
+    *(ushort*)(node + link_offset + 4) = dest_ch;
     
-    // Calculate insert position for new link
-    uint link_insert_offset = channel_offset + axis_offset + 2 + (current_link_count * 6);
-    
-    // Check if this is not the last channel and not the last axis
-    ushort channel_count = *(ushort*)(node + 2);  // Get channel count
-    bool is_last_channel = (source_ch == channel_count - 1);
-    bool is_last_axis = (axis_offset == last_axis_offset);
-    
-    // Move data forward if this is not the last position
-    if (!is_last_channel || !is_last_axis) {
-        // Calculate amount of data to move
-        uint move_start = link_insert_offset;
-        uint move_size = required_size - move_start;  // Move all remaining data
-        
-        // Move existing data forward by 6 bytes
-        memmove(node + move_start + 6,
-                node + move_start,
-                move_size);
-        
-        // Update offsets in current channel
-        uint axis_data_offset = channel_offset + 2;
-        ushort axis_count = *(ushort*)(node + channel_offset);
-        
-        for (int i = 0; i < axis_count; i++) {
-            uint current_axis_offset = *(uint*)(node + axis_data_offset + (i * 6) + 2);
-            if (current_axis_offset > axis_offset) {
-                *(uint*)(node + axis_data_offset + (i * 6) + 2) += 6;
-            }
-        }
-        
-        // Update only channel offsets for subsequent channels
-        if (!is_last_channel) {
-            for (int ch = source_ch + 1; ch < channel_count; ch++) {
-                uint* channel_offset_ptr = (uint*)(node + 4 + (ch * 4));
-                *channel_offset_ptr += 6;
-            }
-        }
-    }
-    
-    // Write link data at insert position
-    memcpy(node + link_insert_offset, &link, sizeof(Link));
-    
-    // Update link count - recalculate pointer after possible node resize
-    // ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
-    (*(ushort*)(node + channel_offset + axis_offset))++;
+    // Update link count and actual size
+    (*link_count)++;
+    *(uint*)(node + 2) = required_size;
     
     // Save changes to data.bin
     FILE* data_file = fopen(DATA_FILE, "r+b");
     if (data_file) {
         fseek(data_file, CoreMap[source_node].file_offset, SEEK_SET);
-        fwrite(node, 1, 1 << (*(ushort*)node), data_file);
+        fwrite(node, 1, current_node_size, data_file);
         fclose(data_file);
+        return LINK_SUCCESS;
     }
     
-    // Save updated free space information
-    save_free_space();
-    
-    printf("Created link from node %d channel %d to node %d channel %d using axis %d\n",
-           source_node, source_ch, dest_node, dest_ch, axis_number);
-    
-    return LINK_SUCCESS;
+    printf("Error: Failed to update data.bin\n");
+    return LINK_ERROR;
 }
 
 int delete_link(uint source_node, ushort source_ch, 
