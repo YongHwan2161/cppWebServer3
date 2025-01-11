@@ -139,7 +139,7 @@ int test_axis_create_delete(int node_index, int channel_index, int max_axis) {
     // Verify all axes were created
     printf("\nVerifying created axes...\n");
     for (int i = 0; i <= max_axis; i++) {
-        if (!has_axis(Core[node_index], get_channel_offset(Core[node_index], channel_index), i)) {
+        if (!has_axis(Core[node_index], channel_index, i)) {
             printf("✗ Axis %d not found after creation\n", i);
             failed_tests++;
         }
@@ -158,7 +158,7 @@ int test_axis_create_delete(int node_index, int channel_index, int max_axis) {
     // Verify all axes were deleted
     printf("\nVerifying axis deletion...\n");
     for (int i = 0; i <= max_axis; i++) {
-        if (has_axis(Core[node_index], get_channel_offset(Core[node_index], channel_index), i)) {
+        if (has_axis(Core[node_index], channel_index, i)) {
             printf("✗ Axis %d still exists after deletion\n", i);
             failed_tests++;
         }

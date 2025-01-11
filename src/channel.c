@@ -5,7 +5,7 @@ ushort get_channel_count(uchar* node) {
     return *(ushort*)(node + 6);  // Skip size power (2) and actual size (4)
 }
 
-uint get_channel_offset(uchar* node, int channel_index) {
+uint get_channel_offset(uchar* node, ushort channel_index) {
     ushort channel_count = get_channel_count(node);
     if (channel_index >= channel_count) {
         printf("Error: Invalid channel index %d (max: %d)\n", 
@@ -14,17 +14,12 @@ uint get_channel_offset(uchar* node, int channel_index) {
     return *(uint*)(node + 8 + (channel_index * 4));  // 8: size_power(2) + actual_size(4) + channels(2)
 }
 
-ushort get_channel_size(uchar* node, int channel_index) {
-    uint offset;
-    
-    // This will exit if channel_index is invalid
-    offset = get_channel_offset(node, channel_index);
-    
-    // Channel size is stored in first 2 bytes of channel data
+ushort get_channel_size(uchar* node, ushort channel_index) {
+    uint offset = get_channel_offset(node, channel_index);
     return *(ushort*)(node + offset);
 }
 
-int create_channel(int node_index) {
+int create_channel(uint node_index) {
     if (node_index >= 256 || !Core[node_index]) {
         return CHANNEL_ERROR;
     }

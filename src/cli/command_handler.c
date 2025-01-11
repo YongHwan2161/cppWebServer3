@@ -5,6 +5,7 @@
 #include "../free_space.h"
 #include "../tests/axis_tests.h"
 #include "../tests/link_tests.h"
+#include "../node.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -85,11 +86,8 @@ int handle_check_axis(char* args) {
         return CMD_ERROR;
     }
     
-    // Get channel offset
-    uint channel_offset = get_channel_offset(Core[node_index], channel_index);
-    
     // Check if axis exists
-    bool exists = has_axis(Core[node_index], channel_offset, axis_number);
+    bool exists = has_axis(Core[node_index], channel_index, axis_number);
     printf("Axis %d %s in node %d, channel %d\n",
            axis_number,
            exists ? "exists" : "does not exist",
@@ -214,14 +212,16 @@ int handle_create_link(char* args) {
     }
     
     // Validate input
-    if (source_node < 0 || source_node >= 256 || 
-        dest_node < 0 || dest_node >= 256) {
-        printf("Error: Node indices must be between 0 and 255\n");
+    if (!validate_node(source_node) ||
+        !validate_node(dest_node)) {
         return CMD_ERROR;
     }
-    
+    int result = ensure_axis_exists(source_node, source_ch, axis_number);
+    if (result != AXIS_SUCCESS) {
+        return CMD_ERROR;
+    }
     // Create the link
-    int result = create_link(source_node, source_ch, 
+    result = create_link(source_node, source_ch, 
                            dest_node, dest_ch, 
                            axis_number);
     return (result == LINK_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
@@ -243,9 +243,13 @@ int handle_delete_link(char* args) {
     }
     
     // Validate input
-    if (source_node < 0 || source_node >= 256 || 
-        dest_node < 0 || dest_node >= 256) {
-        printf("Error: Node indices must be between 0 and 255\n");
+    if (!validate_node(source_node) ||
+        !validate_node(dest_node)) {
+        return CMD_ERROR;
+    }
+    if (!has_axis(Core[source_node], source_ch, axis_number)) {
+        printf("Error: Axis %d does not exist in node %d, channel %d\n",
+               axis_number, source_node, source_ch);
         return CMD_ERROR;
     }
     
@@ -277,7 +281,33 @@ int handle_print_node(char* args) {
         printf("Error: Node %d does not exist\n", node_index);
         return CMD_ERROR;
     }
+        // Print raw memory contents
+    printf("\nMemory Contents:\n");
+    printf("Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII\n");
+    printf("--------  -----------------------------------------------    ----------------\n");
     
+    ushort node_size = 1 << (*(ushort*)Core[node_index]);
+    for (int i = 0; i < node_size; i += 16) {
+        // Print offset
+        printf("%08X  ", i);
+        
+        // Print hex values
+        for (int j = 0; j < 16; j++) {
+            if (i + j < node_size) {
+                printf("%02X ", Core[node_index][i + j]);
+            } else {
+                printf("   ");
+            }
+        }
+        
+        // Print ASCII representation
+        printf("   ");
+        for (int j = 0; j < 16 && i + j < node_size; j++) {
+            char c = Core[node_index][i + j];
+            printf("%c", (c >= 32 && c <= 126) ? c : '.');
+        }
+        printf("\n");
+    }
     // Print node metadata
     printf("\nNode %d Information:\n", node_index);
     printf("Size: %d bytes\n", 1 << (*(ushort*)Core[node_index]));
@@ -323,6 +353,10 @@ int handle_print_node(char* args) {
             // Print link information
             for (int j = 0; j < link_count; j++) {
                 int link_offset = channel_offset + axis_offset + 2 + (j * 6);
+                if (link_offset >= 1 << (*(ushort*)Core[node_index])) {
+                    printf("    error: link offset %d is greater than node size %d\n", link_offset, 1 << (*(ushort*)Core[node_index]));
+                    break;
+                }
                 uint dest_node = *(uint*)(Core[node_index] + link_offset);
                 ushort dest_channel = *(ushort*)(Core[node_index] + link_offset + 4);
                 printf("    Link %d: Node %d, Channel %d\n", 
@@ -331,33 +365,6 @@ int handle_print_node(char* args) {
         }
     }
     
-    // Print raw memory contents
-    printf("\nMemory Contents:\n");
-    printf("Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII\n");
-    printf("--------  -----------------------------------------------    ----------------\n");
-    
-    ushort node_size = 1 << (*(ushort*)Core[node_index]);
-    for (int i = 0; i < node_size; i += 16) {
-        // Print offset
-        printf("%08X  ", i);
-        
-        // Print hex values
-        for (int j = 0; j < 16; j++) {
-            if (i + j < node_size) {
-                printf("%02X ", Core[node_index][i + j]);
-            } else {
-                printf("   ");
-            }
-        }
-        
-        // Print ASCII representation
-        printf("   ");
-        for (int j = 0; j < 16 && i + j < node_size; j++) {
-            char c = Core[node_index][i + j];
-            printf("%c", (c >= 32 && c <= 126) ? c : '.');
-        }
-        printf("\n");
-    }
     
     return CMD_SUCCESS;
 }

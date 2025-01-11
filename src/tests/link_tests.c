@@ -15,7 +15,7 @@ int test_multiple_link_creation(uint source_node, ushort source_ch, ushort axis_
     // Get initial link count
     uchar* node = Core[source_node];
     uint channel_offset = get_channel_offset(node, source_ch);
-    if (!has_axis(node, channel_offset, axis_number)) {
+    if (!has_axis_channel_offset(node, channel_offset, axis_number)) {
         printf("Node %d, Channel %d does not have axis %d\n", source_node, source_ch, axis_number);
         int result = create_axis(source_node, source_ch, axis_number);
         node = Core[source_node]; // Reload node pointer as it might have changed

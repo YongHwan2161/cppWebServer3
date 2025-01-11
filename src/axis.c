@@ -2,10 +2,11 @@
 #include "channel.h"
 #include "free_space.h"
 #include "link.h"
+#include "node.h"
 #include <string.h>
 #include <stdbool.h>
 
-int get_axis_count(uchar* node, ushort channel_index) {
+ushort get_axis_count(uchar* node, ushort channel_index) {
     uint offset = get_channel_offset(node, channel_index);
     return *(ushort*)(node + offset);  // First 2 bytes contain axis count
 }
@@ -27,12 +28,13 @@ uint get_axis_offset(uchar* node, ushort channel_index, ushort axis_number) {
     return 0;  // Axis not found
 }
 
-bool has_axis(uchar* node, uint channel_offset, ushort axis_number) {
+bool has_axis_channel_offset(uchar* node, uint channel_offset, ushort axis_number) {
     ushort axis_count = *(ushort*)(node + channel_offset);
-    int axis_data_offset = channel_offset + 2;  // Skip axis count
+    // printf("Axis count: %d\n", axis_count);
+    uint axis_data_offset = channel_offset + 2;  // Skip axis count
     
     // Search for the axis
-    for (int i = 0; i < axis_count; i++) {
+    for (ushort i = 0; i < axis_count; i++) {
         ushort current_axis = *(ushort*)(node + axis_data_offset + (i * 6));
         if (current_axis == axis_number) {
             return true;
@@ -40,6 +42,10 @@ bool has_axis(uchar* node, uint channel_offset, ushort axis_number) {
     }
     
     return false;
+}
+bool has_axis(uchar* node, ushort channel_index, ushort axis_number) {
+    uint channel_offset = get_channel_offset(node, channel_index);
+    return has_axis_channel_offset(node, channel_offset, axis_number);
 }
 
 int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
@@ -51,10 +57,15 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
     
     uchar* node = Core[node_index];
     uint channel_offset = get_channel_offset(node, channel_index);
-    
+        
+    // Check if axis already exists
+    if (has_axis_channel_offset(node, channel_offset, axis_number)) {
+        printf("Error: Axis %d already exists\n", axis_number);
+        return AXIS_ERROR;
+    }
     // Get current actual size and calculate new required size
     uint current_actual_size = *(uint*)(node + 2);
-    uint required_size = current_actual_size + 6;  // Add 6 bytes for new axis entry
+    uint required_size = current_actual_size + 8;  // 6 bytes for axis entry + 2 bytes for link count
     
     // Check if we need to resize the node
     ushort node_size_power = *(ushort*)node;
@@ -73,12 +84,7 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
     
     // Get current axis count
     ushort current_count = *(ushort*)(node + channel_offset);
-    
-    // Check if axis already exists
-    if (has_axis(node, channel_offset, axis_number)) {
-        printf("Error: Axis %d already exists\n", axis_number);
-        return AXIS_ERROR;
-    }
+
     
     // Move existing axis data forward
     if (current_count > 0) {
@@ -122,17 +128,10 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
     // Update actual size
     *(uint*)(node + 2) = required_size;
     
-    // Save changes to data.bin
-    FILE* data_file = fopen(DATA_FILE, "r+b");
-    if (data_file) {
-        fseek(data_file, CoreMap[node_index].file_offset, SEEK_SET);
-        fwrite(node, 1, 1 << (*(ushort*)node), data_file);
-        fclose(data_file);
-    } else {
-        printf("Error: Failed to update data.bin\n");
+    if (!save_node_to_file(node_index)) {
+        printf("Error: Failed to save node\n");
         return AXIS_ERROR;
     }
-    
     return AXIS_SUCCESS;
 }
 
@@ -223,4 +222,27 @@ uint get_last_axis_offset(uchar* node, ushort channel_index) {
     uint last_axis_offset = *(uint*)(node + axis_data_offset + ((axis_count - 1) * 6) + 2);
     
     return last_axis_offset;
+}
+
+/**
+ * Checks if an axis exists, creates it if it doesn't
+ * 
+ * @param node_index Source node index
+ * @param channel_index Channel index
+ * @param axis_number Axis number to check/create
+ * @return AXIS_SUCCESS if axis exists or was created successfully, AXIS_ERROR otherwise
+ */
+int ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number) {
+
+    uchar* node = Core[node_index];
+    // Check if axis exists
+    if (!has_axis(node, channel_index, axis_number)) {
+        int result = create_axis(node_index, channel_index, axis_number);
+        if (result != AXIS_SUCCESS) {
+            printf("Error: Failed to create required axis\n");
+            return AXIS_ERROR;
+        }
+    }
+
+    return AXIS_SUCCESS;
 } 

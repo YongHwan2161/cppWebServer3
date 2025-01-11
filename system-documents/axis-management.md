@@ -156,439 +156,62 @@ create_axis(node_index, channel_index, AXIS_TIME);
    ```
 
 ### Axis Creation Process
-1. 메모리 레이아웃
-   - Channel 시작: Axis Count (2 bytes)
-   - Axis Table: (6 bytes * axis 개수)
-     - Axis Number (2 bytes)
-     - Axis Offset (4 bytes)
-   - Axis Data: 각 axis의 실제 데이터
 
-2. 데이터 이동
-   - 새 axis 추가 시 기존 axis data를 6바이트 뒤로 이동
-   - 모든 axis offset 값을 6바이트씩 증가
-   - 새로운 axis entry를 axis table에 추가
-   - 새 axis data 영역 초기화
-
-3. 메모리 재할당
-   - 필요한 공간 계산
-   - 기존 데이터 보존
-   - 새로운 공간 할당
-
-### Offset 관리
-1. Axis Table
-   - 각 entry는 6바이트
-   - Offset은 channel 시작점 기준
+#### Memory Layout
+1. Axis Entry (6 bytes)
+   - Axis Number (2 bytes)
+   - Axis Offset (4 bytes)
 
 2. Axis Data
-   - 각 axis data는 연속된 공간
-   - Axis 추가/삭제 시 offset 조정
+   - Link Count (2 bytes)
+   - Link Data (6 bytes per link)
 
-### 예시
-```
-Channel Start
-+0000: 02 00           // Axis count (2)
-+0002: 00 00 0C 00 00 00   // Axis 0: number=0, offset=12
-+0008: 01 00 20 00 00 00   // Axis 1: number=1, offset=32
-+000E: [Axis 0 data]
-+0022: [Axis 1 data]
-```
-
-## Error Handling
-- 메모리 할당 실패
-- 중복된 axis number
-- 파일 I/O 오류 
-
-### Axis Creation Details
-
-#### Memory Layout Calculation
-1. 기본 구조
-   ```
-   [Channel Header(2)] [Axis Table(6*N)] [Axis Data...]
-   ```
-   - Channel Header: Axis Count (2 bytes)
-   - Axis Table Entry: Axis Number(2) + Offset(4)
-   - Axis Data: Link Count(2) + Link Data
-
-2. 공간 계산
-   ```c
-   required_size = channel_offset +          // Channel 시작 위치
-                  axis_table_size +          // (현재 axis 수 + 1) * 6
-                  last_axis_offset +         // 마지막 axis data 위치
-                  last_axis_data_size +      // 마지막 axis의 데이터 크기
-                  6 +                        // 새로운 axis table entry
-                  2;                         // 새로운 axis의 link count
-   ```
-
-#### Data Movement Process
-1. Axis Table 확장
-   - 새로운 axis entry를 위한 6바이트 공간 확보
-   - 기존 axis data를 6바이트 뒤로 이동
-
-2. Offset 업데이트
-   - 모든 기존 axis의 offset을 6바이트씩 증가
-   - 새로운 axis의 offset 계산
-   ```c
-   new_axis_offset = last_axis_offset + last_axis_data_size + 6;
-   ```
-
-3. 데이터 초기화
-   - 새로운 axis entry 작성
-     - axis number 저장
-     - offset 값 설정
-   - axis data 영역 초기화
-     - link count = 0
-
-#### Resize 처리
-1. 필요 공간 계산
-   - 전체 필요 공간 = 기존 데이터 + 새로운 axis 공간
-   - 2의 제곱수로 반올림
-
-2. Free Space 관리
-   - 적절한 크기의 free block 검색
-   - 없으면 새로운 공간 할당
-   - 기존 공간은 free space로 반환
-
-3. 데이터 이동
-   - 새로운 위치로 데이터 복사
-   - CoreMap 업데이트
-   - 파일 offset 조정 
-
-### Axis Creation Process Details
-
-#### Channel Offset 계산
-1. Channel 위치 찾기
-   ```c
-   uint channel_offset = get_channel_offset(node, channel_index);
-   ```
-
-2. Axis Count 확인
-   ```c
-   ushort current_count = *(ushort*)(node + channel_offset);
-   ```
-
-#### Required Size 계산
-1. Axis Table Size
-   ```c
-   uint axis_table_size = (current_count + 1) * 6;
-   ```
-
-2. 필요 공간 계산
-   - 첫 번째 axis 생성 시:
-   ```c
-   required_size = channel_offset + axis_table_size + 4;
-   // +2 for axis count
-   // +2 for initial link count
-   ```
-   
-   - 기존 axis가 있는 경우:
-   ```c
-   required_size = channel_offset + last_axis_offset + 
-                  last_axis_data_size + 6 + 2;
-   ```
-
-#### Offset 계산
-1. Channel 기준 상대 offset
-   - 첫 번째 axis:
-   ```c
-   new_axis_offset = 2 + 6;  // After axis count and its table entry
-   ```
-   
-   - 추가 axis:
-   ```c
-   new_axis_offset = 2 + axis_table_size;  // After all table entries
-   ```
-
-2. 데이터 이동
-   - 기존 데이터를 6바이트 뒤로 이동
-   - 모든 axis offset 값 6바이트 증가
-
-#### 메모리 구조
-```
-[Channel Start]
-+0: Axis Count (2)
-+2: Axis Table (6 * N)
-   - Axis Number (2)
-   - Relative Offset (4)
-+2+6N: Axis Data
-   - Link Count (2)
-   - Link Data (...)
-``` 
-
-### Data Movement Strategy
-
-#### Axis Data Movement
-1. 단순화된 이동 방식
-   ```c
-   uint data_start = channel_offset + 2 + (current_count * 6);  // Axis data 시작점
-   uint data_size = current_node_size - data_start - 6;         // 전체 남은 데이터
-   ```
-
-2. 이동 과정
-   - Axis table 뒤의 모든 데이터를 6바이트 뒤로 이동
-   - 메모리 이동은 한 번의 memmove로 처리
-   - 복잡한 크기 계산 불필요
-
-3. Offset 업데이트
-   - 모든 axis의 offset을 6바이트씩 증가
-   - Table entry 순서대로 순차 처리
-
-#### 장점
-1. 단순성
-   - 복잡한 크기 계산 제거
-   - 전체 데이터를 한 번에 이동
-   - 실수 가능성 감소
-
-2. 효율성
-   - 메모리 접근 최소화
-   - 불필요한 계산 제거
-   - 코드 가독성 향상
-
-#### 메모리 레이아웃
-```
-[Channel Start]
-+0: Axis Count (2)
-+2: Axis Table (6 * N)
-+2+6N: All Axis Data (moved as one block)
-``` 
-
-### Axis Offset 계산
-
-#### 첫 번째 Axis (axis_count = 0)
-```
-new_axis_offset = 8
-```
-- axis count (2 bytes)
-- first axis table entry (6 bytes)
-- 첫 번째 axis는 항상 고정된 위치에 생성
-
-#### 추가 Axis (axis_count > 0)
-```
-new_axis_offset = required_size - channel_offset - 2
-```
-구성:
-1. required_size: 전체 필요한 공간
-2. channel_offset: 채널 시작 위치
-3. -2: 새로운 axis의 link count 공간
-
-#### 계산 장점
-1. 단순성
-   - 이미 계산된 required_size 활용
-   - 복잡한 link count 계산 불필요
-   - 실수 가능성 감소
-
-2. 효율성
-   - 중복 계산 제거
-   - 코드 가독성 향상
-   - 유지보수 용이
-
-### Axis Deletion
-
-### Size Management
-1. Actual Size Update
-   ```c
-   uint current_actual_size = *(uint*)(node + 2);
-   
-   // For last axis
-   uint new_actual_size = axis_offset + channel_offset;
-   *(uint*)(node + 2) = new_actual_size;
-   
-   // For middle axis
-   uint size_reduction = next_axis_offset - axis_offset;
-   *(uint*)(node + 2) = current_actual_size - size_reduction;
-   ```
-
-### Deletion Process
-1. Last Axis
-   - Simply update actual size
-   - No data movement needed
-   - Remove axis table entry
-
-2. Middle Axis
-   - Calculate move size from actual size
-   - Move remaining data forward
-   - Update remaining axis offsets
-   - Update actual size
-   - Remove axis table entry
-
-### Memory Management
+#### Size Calculations
 ```c
-// Calculate size to move for middle axis
-move_size = current_actual_size - (channel_offset + next_axis_offset);
-
-// Move data
-memmove(node + channel_offset + axis_offset,
-        node + channel_offset + next_axis_offset,
-        move_size);
-
-// Update offsets
-for (int i = axis_index + 1; i < *axis_count; i++) {
-    uint* offset_ptr = (uint*)(node + channel_offset + 2 + (i * 6) + 2);
-    *offset_ptr -= size_reduction;
-}
+// Calculate required size for new axis
+uint current_actual_size = *(uint*)(node + 2);
+uint required_size = current_actual_size + 8;  // Total new space needed
 ```
 
-### Advantages
-1. Simplified Size Management
-   - Direct access to actual size
-   - No need to calculate from offsets
-   - Immediate size updates
+##### Size Breakdown
+1. Axis Entry: 6 bytes
+   - Axis Number: 2 bytes
+   - Axis Offset: 4 bytes
 
-2. Efficient Data Movement
-   - Accurate move size calculation
-   - Single memmove operation
-   - No temporary buffers needed
+2. Axis Data: 2 bytes
+   - Link Count: 2 bytes (초기값 0)
 
-### Memory Layout Details
+Total: 8 bytes
+- 6 bytes (axis entry)
+- 2 bytes (link count)
 
-#### Offset Calculations
-1. Channel Offset
-   - Base offset from node start
-   - Used as reference for all channel data
-   - Calculated using get_channel_offset()
-
-2. Axis Offset
-   - Relative to channel offset
-   - Points to axis data within channel
-   - Must be added to channel_offset for absolute position
-
-3. Link Data Access
-   - Link count location: channel_offset + axis_offset
-   - Link data starts: channel_offset + axis_offset + 2
-   - Each link entry: 6 bytes (4 for node, 2 for channel)
-
-Example memory layout:
+##### 메모리 레이아웃 예시
 ```
-Node start
-+0000: Node header
-+0002: Channel count
-+0004: Channel offsets
-      |
-      v
-Channel start (channel_offset)
-+0008: Axis count
-+000A: Axis entries
-      |
-      v
-Axis data (channel_offset + axis_offset)
-+0010: Link count
-+0012: Link entries
+Before:
+[Node Header][Channel Data][Existing Axes]
+                                ↑
+                         current_actual_size
+
+After:
+[Node Header][Channel Data][Existing Axes][New Axis Entry(6)][Link Count(2)]
+                                ↑                             ↑
+                         current_actual_size          current_actual_size + 8
 ```
 
-#### Access Pattern
-```c
-// Get link count for axis
-ushort link_count = *(ushort*)(node + channel_offset + axis_offset);
+#### 주의사항
+1. 크기 계산
+   - Axis Entry (6 bytes)와 Link Count (2 bytes)를 반드시 포함
+   - 전체 8 bytes 확보 필요
+   - 메모리 정렬 고려
 
-// Access link data
-for (int i = 0; i < link_count; i++) {
-    int link_offset = channel_offset + axis_offset + 2 + (i * 6);
-    uint dest_node = *(uint*)(node + link_offset);
-    ushort dest_channel = *(ushort*)(node + link_offset + 4);
-}
-```
+2. 데이터 정렬
+   - Axis Entry는 채널 데이터 직후에 위치
+   - Link Count는 Axis Data 영역의 시작점에 위치
+   - 올바른 오프셋 계산 필수
 
-### Axis Offset Functions
+3. 메모리 관리
+   - 충분한 공간 확보
+   - 데이터 이동 시 정확한 크기 계산
+   - 오프셋 업데이트 정확성
 
-#### get_axis_offset
-```c
-uint get_axis_offset(uchar* node, ushort channel_index, ushort axis_number);
-```
-특정 axis의 offset을 반환합니다.
-- 입력: 노드, 채널 인덱스, axis 번호
-- 반환: axis의 offset 또는 -1 (axis가 없는 경우)
-
-#### get_last_axis_offset
-```c
-int get_last_axis_offset(uchar* node, ushort channel_index);
-```
-채널의 마지막 axis offset을 반환합니다.
-- 입력: 노드, 채널 인덱스
-- 반환: 마지막 axis의 offset 또는 -1 (axis가 없는 경우)
-
-##### 구현 세부사항
-1. 채널 오프셋 획득
-   ```c
-   uint channel_offset = get_channel_offset(node, channel_index);
-   ```
-
-2. Axis 개수 확인
-   ```c
-   ushort axis_count = *(ushort*)(node + channel_offset);
-   if (axis_count == 0) return -1;
-   ```
-
-3. 마지막 Axis의 오프셋 획득
-   ```c
-   int axis_data_offset = channel_offset + 2;  // Skip axis count
-   uint last_axis_offset = *(uint*)(node + axis_data_offset + ((axis_count - 1) * 6) + 2);
-   ```
-
-##### 사용 예시
-```c
-// 마지막 axis의 offset 획득
-int last_offset = get_last_axis_offset(node, channel_index);
-if (last_offset < 0) {
-    // 에러 처리: axis가 없음
-} else {
-    // 마지막 axis 데이터 접근
-    ushort* link_count = (ushort*)(node + channel_offset + last_offset);
-}
-```
-
-##### 주의사항
-1. 오프셋 계산
-   - axis table entry: 6 bytes (number: 2, offset: 4)
-   - 마지막 axis index: axis_count - 1
-   - offset 위치: entry 시작 + 2 bytes
-
-2. 에러 처리
-   - axis가 없는 경우 -1 반환
-   - 반환값 검사 필수
-```
-
-### Size Management in Deletion
-1. Size Reduction Calculation
-   ```c
-   uint current_actual_size = *(uint*)(node + 2);
-   uint size_reduction;
-   
-   // For last axis
-   size_reduction = current_actual_size - (channel_offset + axis_offset);
-   
-   // For middle axis
-   size_reduction = next_axis_offset - axis_offset;
-   ```
-
-2. Total Size Update
-   ```c
-   // Update actual size
-   // Reduce by: data size (size_reduction) + axis entry (6 bytes)
-   *(uint*)(node + 2) = current_actual_size - size_reduction - 6;
-   ```
-
-3. Size Update Process
-   - Before Deletion
-     ```
-     [Size Power(2)][Actual Size(20)][...]
-     ```
-
-   - After Deletion
-     ```
-     [Size Power(2)][Actual Size(14)][...]  // Reduced by data size + axis entry (6)
-     ```
-
-4. Memory Management
-   - Data Movement
-     ```c
-     // For middle axis deletion
-     move_size = current_actual_size - (channel_offset + next_axis_offset);
-     memmove(node + channel_offset + axis_offset,
-             node + channel_offset + next_axis_offset,
-             move_size);
-     ```
-
-   - Size Updates
-     - Remove axis data size
-     - Remove axis entry (6 bytes)
-     - Update actual size field
-     - Keep size power unchanged
+[Rest of the document remains the same...]

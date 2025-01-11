@@ -1,5 +1,6 @@
 #include "database.h"
 #include "init.h"
+#include "node.h"
 #include <string.h>
 
 #ifdef _WIN32
@@ -74,20 +75,6 @@ void create_DB() {
     }
 }
 
-void save_node_to_file(FILE* data_file, FILE* map_file, int index) {
-    uchar* node = Core[index];
-    long offset = ftell(data_file);
-    
-    fwrite(&offset, sizeof(long), 1, map_file);
-    
-    // Read size as power of 2 (first 2 bytes)
-    ushort size_power = *(ushort*)node;
-    uint actual_size = 1 << size_power;  // 2^size_power
-    
-    // Write the entire node data
-    fwrite(node, sizeof(uchar), actual_size, data_file);
-}
-
 void save_DB() {
     // Create directory if it doesn't exist
     MKDIR(DATA_DIR);  // Using the macro instead of direct mkdir calls
@@ -104,7 +91,7 @@ void save_DB() {
     fwrite(&num_nodes, sizeof(uint), 1, map_file);
     
     for (int i = 0; i < 256; i++) {
-        save_node_to_file(data_file, map_file, i);
+        save_node_to_file2(data_file, map_file, i);
     }
     
     fclose(data_file);
@@ -112,7 +99,7 @@ void save_DB() {
     printf("Database saved successfully\n");
 }
 
-void load_node_from_file(FILE* data_file, long offset, int index) {
+void load_node_from_file(FILE* data_file, long offset, uint index) {
     fseek(data_file, offset, SEEK_SET);
     
     // Read size power first (2 bytes)

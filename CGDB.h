@@ -32,10 +32,8 @@ void unload_node_from_core(int node_index);
 // Existing function declarations
 void create_new_node(int index);
 void create_DB();
-void save_node_to_file(FILE* data_file, FILE* map_file, int index);
 void save_DB();
 // int check_and_init_DB();
-void load_node_from_file(FILE* data_file, long offset, int index);
 void load_DB();
 
 #endif 
