@@ -216,12 +216,11 @@ int handle_create_link(char* args) {
         !validate_node(dest_node)) {
         return CMD_ERROR;
     }
-    int result = ensure_axis_exists(source_node, source_ch, axis_number);
-    if (result != AXIS_SUCCESS) {
+    if (!ensure_axis_exists(source_node, source_ch, axis_number)) {
         return CMD_ERROR;
     }
     // Create the link
-    result = create_link(source_node, source_ch, 
+    int result = create_link(source_node, source_ch, 
                            dest_node, dest_ch, 
                            axis_number);
     return (result == LINK_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
@@ -492,6 +491,27 @@ int handle_test_multiple_link_creation(char* args) {
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
+int handle_test_create_delete_links(char* args) {
+    int node_index, channel_index, axis_number;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &axis_number);
+    if (parsed != 3) {
+        print_argument_error("test-create-delete-links", 
+            "<node_index> <channel_index> <axis_number>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: Node index must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+    
+    int failed = test_create_delete_links(node_index, channel_index, axis_number);
+    return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
+}
+
 void print_help() {
     printf("\nAvailable commands:\n");
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
@@ -507,6 +527,7 @@ void print_help() {
     printf("  test-axis-create-delete <node> <ch> <max>  Test axis creation/deletion\n");
     printf("  test-free-offsets                    Test free block offset uniqueness\n");
     printf("  test-multiple-link <node> <ch> <axis>  Test multiple link creation\n");
+    printf("  test-create-delete-links <node> <ch> <axis>  Test link creation/deletion cycle\n");
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
     printf("\nAxis types:\n");
@@ -606,6 +627,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "test-multiple-link") == 0) {
         return handle_test_multiple_link_creation(args);
+    }
+    else if (strcmp(cmd, "test-create-delete-links") == 0) {
+        return handle_test_create_delete_links(args);
     }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");

@@ -18,7 +18,7 @@ ushort get_axis_count(uchar* node, ushort channel_index);
 uint get_axis_offset(uchar* node, ushort channel_index, ushort axis_number);
 bool has_axis(uchar* node, ushort channel_index, ushort axis_number);
 bool has_axis_channel_offset(uchar* node, uint channel_offset, ushort axis_number);
-int ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number);
+bool ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number);
 int create_axis(uint node_index, ushort channel_index, ushort axis_number);
 int delete_axis(uint node_index, ushort channel_index, ushort axis_number);
 uint get_last_axis_offset(uchar* node, ushort channel_index);

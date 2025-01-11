@@ -403,132 +403,63 @@ create_link(1, 0,    // source node/channel
 
 ## Testing
 
-### Multiple Link Creation Test
+### Create and Delete Links Test
 ```c
-int test_multiple_link_creation(uint source_node, ushort source_ch, ushort axis_number);
+int test_create_delete_links(uint source_node, ushort source_ch, ushort axis_number);
 ```
 
+#### Purpose
+특정 node, channel, axis에서 다른 node, channel로 link를 100개 순차적으로 생성하고, 생성한 link를 다시 모두 제거한 다음 처음 상태로 올바르게 돌아오는지 확인합니다.
+
 #### Test Process
-1. 초기 상태 확인
-   - 현재 link count 저장
+1. 초기 상태 저장
+   - 현재 link count 기록
    - node, channel, axis 유효성 검증
 
-2. 100개 링크 생성
-   - 무작위 대상 노드/채널 선택
+2. 100개 링크 순차 생성
+   - 순차적인 대상 노드/채널 선택
    - 링크 생성 실행
-   - 매 생성 후 검증
+   - 매 생성 후 link count 검증
+   - 생성된 링크 정보 저장
 
-3. 검증 항목
-   - Link Count 검증
-     * 매 링크 생성마다 1씩 증가
-     * 예상 값과 실제 값 비교
-   
-   - Link Data 검증
-     * 마지막 생성된 링크 데이터 확인
-     * 대상 노드/채널 정보 일치 여부
+3. 링크 삭제 (역순)
+   - 저장된 링크 정보 사용
+   - 마지막부터 첫 번째까지 삭제
+   - 매 삭제 후 link count 검증
 
-4. 오류 처리
-   - 링크 생성 실패 감지
-   - Count 불일치 감지
-   - 데이터 불일치 감지
+4. 최종 상태 검증
+   - 최종 link count 확인
+   - 초기 상태와 비교
 
-#### 구현 세부사항
-1. 포인터 관리
-   ```c
-   node = Core[source_node];  // 매 검증 시 포인터 재로드
-   channel_offset = get_channel_offset(node, source_ch);
-   axis_offset = get_axis_offset(node, source_ch, axis_number);
-   ```
+#### 검증 항목
+1. Link Creation
+   - 각 링크 생성 성공 여부
+   - Link count 순차적 증가
+   - 예상 값과 실제 값 일치
 
-2. Count 검증
-   ```c
-   ushort current_link_count = *(ushort*)(node + channel_offset + axis_offset);
-   if (current_link_count != expected_count) {
-       // 오류 처리
-   }
-   ```
+2. Link Deletion
+   - 각 링크 삭제 성공 여부
+   - Link count 순차적 감소
+   - 예상 값과 실제 값 일치
 
-3. Data 검증
-   ```c
-   Link* last_link = (Link*)(node + channel_offset + axis_offset + 2 + 
-                            (current_link_count - 1) * sizeof(Link));
-   if (last_link->node != dest_node || last_link->channel != dest_ch) {
-       // 오류 처리
-   }
-   ```
+3. Final State
+   - 초기 상태로 복원 여부
+   - Link count 일치 여부
 
 #### 사용 예시
 ```c
 // 노드 0의 채널 0에 있는 axis 0에 대해 테스트
-int failed = test_multiple_link_creation(0, 0, 0);
+int failed = test_create_delete_links(0, 0, 0);
 if (failed > 0) {
     printf("%d tests failed\n", failed);
 }
 ```
 
-## Link Creation
-
-### Size Management
-1. Size Calculation
-   ```c
-   // Get current actual size
-   uint current_actual_size = *(uint*)(node + 2);
-   
-   // Calculate required size for new link
-   uint required_size = current_actual_size + 6;  // Add 6 bytes for new link
-   ```
-
-2. Memory Validation
-   ```c
-   ushort node_size_power = *(ushort*)node;
-   uint current_node_size = 1 << node_size_power;
-   
-   if (required_size > current_node_size) {
-       // Resize node
-   }
-   ```
-
-### Link Data Management
-1. Adding New Link
-   ```c
-   // Calculate link position
-   uint link_offset = channel_offset + axis_offset + 2 + (*link_count * 6);
-   
-   // Write link data
-   *(uint*)(node + link_offset) = dest_node;
-   *(ushort*)(node + link_offset + 4) = dest_ch;
-   ```
-
-2. Size Updates
-   ```c
-   // Update link count
-   (*link_count)++;
-   
-   // Update actual size
-   *(uint*)(node + 2) = required_size;
-   ```
-
-### Memory Layout Example
-Before adding link:
-```
-[Size Power(2)][Actual Size(20)][...][Link Count(2)][Existing Links...]
-```
-
-After adding link:
-```
-[Size Power(2)][Actual Size(26)][...][Link Count(2)][Existing Links][New Link(6)]
-```
-
-### Advantages
-1. Accurate Size Tracking
-   - Direct size management
-   - No need for complex calculations
-   - Immediate size updates
-
-2. Efficient Memory Management
-   - Precise space requirements
-   - Single resize operation when needed
-   - Maintains data integrity
+#### 오류 처리
+- 링크 생성 실패 감지
+- 링크 삭제 실패 감지
+- Count 불일치 감지
+- 각 단계별 실패 카운트 누적
 
 [Rest of the document remains the same...]
  

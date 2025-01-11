@@ -232,7 +232,7 @@ uint get_last_axis_offset(uchar* node, ushort channel_index) {
  * @param axis_number Axis number to check/create
  * @return AXIS_SUCCESS if axis exists or was created successfully, AXIS_ERROR otherwise
  */
-int ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number) {
+bool ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number) {
 
     uchar* node = Core[node_index];
     // Check if axis exists
@@ -240,9 +240,9 @@ int ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number
         int result = create_axis(node_index, channel_index, axis_number);
         if (result != AXIS_SUCCESS) {
             printf("Error: Failed to create required axis\n");
-            return AXIS_ERROR;
+            return false;
         }
     }
 
-    return AXIS_SUCCESS;
+    return true;
 } 
