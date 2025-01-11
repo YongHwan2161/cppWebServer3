@@ -1,5 +1,5 @@
 #include "node.h"
-#include "../CGDB.h"
+#include "../../CGDB.h"
 #include <stdio.h>
 #include "link.h"  // For Core array access
 

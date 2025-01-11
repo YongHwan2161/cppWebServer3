@@ -1,6 +1,6 @@
 #include "link.h"
 #include "channel.h"
-#include "free_space.h"
+#include "../free_space.h"
 #include "node.h"
 #include <stdio.h>
 #include <string.h>

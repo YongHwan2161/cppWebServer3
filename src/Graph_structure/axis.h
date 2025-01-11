@@ -1,7 +1,7 @@
 #ifndef AXIS_H
 #define AXIS_H
 
-#include "../CGDB.h"
+#include "../../CGDB.h"
 #include <stdbool.h>
 
 // Axis operation results

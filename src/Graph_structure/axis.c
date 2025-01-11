@@ -1,9 +1,9 @@
 #include "axis.h"
 #include "channel.h"
-#include "free_space.h"
+#include "../free_space.h"
 #include "link.h"
 #include "node.h"
-#include "memory.h"
+#include "../memory.h"
 #include <string.h>
 #include <stdbool.h>
 

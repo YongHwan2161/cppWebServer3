@@ -1,5 +1,5 @@
 #include "channel.h"
-#include "free_space.h"
+#include "../free_space.h"
 #include "node.h"
 #include <string.h>
 

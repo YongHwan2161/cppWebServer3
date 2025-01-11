@@ -1,7 +1,7 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
-#include "../CGDB.h"
+#include "../../CGDB.h"
 
 // Channel status codes
 #define CHANNEL_SUCCESS 0

@@ -1,7 +1,7 @@
 #ifndef LINK_H
 #define LINK_H
 
-#include "../CGDB.h"
+#include "../../CGDB.h"
 #include "axis.h"
 
 // Link operation results
