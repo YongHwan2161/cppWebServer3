@@ -403,63 +403,80 @@ create_link(1, 0,    // source node/channel
 
 ## Testing
 
-### Create and Delete Links Test
+### Multi-Channel Link Test
 ```c
-int test_create_delete_links(uint source_node, ushort source_ch, ushort axis_number);
+int test_multi_channel_links(uint node_index);
 ```
 
 #### Purpose
-특정 node, channel, axis에서 다른 node, channel로 link를 100개 순차적으로 생성하고, 생성한 link를 다시 모두 제거한 다음 처음 상태로 올바르게 돌아오는지 확인합니다.
+여러 채널이 있는 상태에서 링크 생성과 삭제를 테스트합니다. 두 개의 채널에 각각 100개의 링크를 생성하고 삭제하여 메모리 관리와 데이터 일관성을 검증합니다.
 
 #### Test Process
-1. 초기 상태 저장
-   - 현재 link count 기록
-   - node, channel, axis 유효성 검증
+1. 초기 설정
+   - 두 번째 채널 생성 (채널 1)
+   - 각 채널에 axis 0 생성
+   - 초기 link count 저장
 
-2. 100개 링크 순차 생성
-   - 순차적인 대상 노드/채널 선택
-   - 링크 생성 실행
-   - 매 생성 후 link count 검증
+2. 링크 생성 (각 채널 100개)
+   - 채널 0에 순차적 링크 생성
+   - 채널 1에 순차적 링크 생성
+   - 각 단계마다 link count 검증
    - 생성된 링크 정보 저장
 
 3. 링크 삭제 (역순)
-   - 저장된 링크 정보 사용
-   - 마지막부터 첫 번째까지 삭제
-   - 매 삭제 후 link count 검증
+   - 채널 1부터 역순으로 삭제
+   - 채널 0 링크 역순 삭제
+   - 각 단계마다 link count 검증
 
 4. 최종 상태 검증
-   - 최종 link count 확인
+   - 각 채널의 최종 link count 확인
    - 초기 상태와 비교
 
 #### 검증 항목
-1. Link Creation
-   - 각 링크 생성 성공 여부
+1. Channel Management
+   - 채널 생성 성공
+   - 채널 오프셋 정확성
+   - 채널 간 독립성
+
+2. Link Creation
+   - 각 채널별 링크 생성 성공
    - Link count 순차적 증가
-   - 예상 값과 실제 값 일치
+   - 채널 간 간섭 없음
 
-2. Link Deletion
-   - 각 링크 삭제 성공 여부
+3. Link Deletion
+   - 각 채널별 링크 삭제 성공
    - Link count 순차적 감소
-   - 예상 값과 실제 값 일치
+   - 채널 간 간섭 없음
 
-3. Final State
-   - 초기 상태로 복원 여부
-   - Link count 일치 여부
+4. Memory Management
+   - 노드 크기 조정 정확성
+   - 오프셋 업데이트 정확성
+   - 메모리 누수 없음
 
 #### 사용 예시
 ```c
-// 노드 0의 채널 0에 있는 axis 0에 대해 테스트
-int failed = test_create_delete_links(0, 0, 0);
+// 노드 0에서 멀티채널 링크 테스트 실행
+int failed = test_multi_channel_links(0);
 if (failed > 0) {
     printf("%d tests failed\n", failed);
 }
 ```
 
-#### 오류 처리
-- 링크 생성 실패 감지
-- 링크 삭제 실패 감지
-- Count 불일치 감지
-- 각 단계별 실패 카운트 누적
+#### 주의사항
+1. 채널 생성
+   - 채널 0은 기본 존재
+   - 채널 1 생성 실패 시 테스트 중단
+   - 채널 간 독립성 보장
+
+2. 메모리 관리
+   - 노드 포인터 재로드 필수
+   - 오프셋 재계산 필요
+   - 크기 변경 추적
+
+3. 에러 처리
+   - 채널 생성 실패
+   - 링크 생성/삭제 실패
+   - count 불일치
 
 [Rest of the document remains the same...]
  

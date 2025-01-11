@@ -57,7 +57,8 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "channel.h": "c"
     },
     "makefile.launchConfigurations": [
         {

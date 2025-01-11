@@ -1,11 +1,12 @@
-#include "command_handler.h"
-#include "../axis.h"
-#include "../channel.h"
-#include "../link.h"
+#include "../Graph_structure/axis.h"
+#include "../Graph_structure/channel.h"
+#include "../Graph_structure/link.h"
 #include "../free_space.h"
 #include "../tests/axis_tests.h"
 #include "../tests/link_tests.h"
-#include "../node.h"
+#include "../tests/channel_tests.h"
+#include "../Graph_structure/node.h"
+#include "command_handler.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -539,6 +540,46 @@ int handle_create_channel(char* args) {
     }
 }
 
+int handle_test_multi_channel_links(char* args) {
+    int node_index;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d", &node_index);
+    if (parsed != 1) {
+        print_argument_error("test-multi-channel-links", "<node_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: Node index must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+    
+    int failed = test_multi_channel_links(node_index);
+    return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
+}
+
+int handle_test_channel_creation(char* args) {
+    int node_index;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d", &node_index);
+    if (parsed != 1) {
+        print_argument_error("test-channel-creation", "<node_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: Node index must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+    
+    int failed = test_sequential_channel_creation(node_index);
+    return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
+}
+
 void print_help() {
     printf("\nAvailable commands:\n");
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
@@ -559,6 +600,8 @@ void print_help() {
     printf("  test-free-offsets                    Test free block offset uniqueness\n");
     printf("  test-multiple-link <node> <ch> <axis>  Test multiple link creation\n");
     printf("  test-create-delete-links <node> <ch> <axis>  Test link creation/deletion cycle\n");
+    printf("  test-multi-channel-links <node>      Test link creation/deletion across multiple channels\n");
+    printf("  test-channel-creation <node>         Test sequential channel creation\n");
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
     printf("\nAxis types:\n");
@@ -625,6 +668,12 @@ int handle_command(char* command) {
         else if (strcmp(cmd, "create-channel") == 0) {
             print_argument_error(cmd, "<node_index>", true);
         }
+        else if (strcmp(cmd, "test-multi-channel-links") == 0) {
+            print_argument_error(cmd, "<node_index>", true);
+        }
+        else if (strcmp(cmd, "test-channel-creation") == 0) {
+            print_argument_error(cmd, "<node_index>", true);
+        }
         else {
             printf("Unknown command. Type 'help' for available commands.\n");
         }
@@ -667,6 +716,12 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "create-channel") == 0) {
         return handle_create_channel(args);
+    }
+    else if (strcmp(cmd, "test-multi-channel-links") == 0) {
+        return handle_test_multi_channel_links(args);
+    }
+    else if (strcmp(cmd, "test-channel-creation") == 0) {
+        return handle_test_channel_creation(args);
     }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");

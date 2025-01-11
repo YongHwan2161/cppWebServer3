@@ -257,4 +257,91 @@ Final state (actual_size = N + 6):
    - 채널 엔트리는 기존 엔트리들 사이에 삽입
    - 모든 오프셋 정확성 유지
 
+## Testing
+
+### Sequential Channel Creation Test
+```c
+int test_sequential_channel_creation(uint node_index);
+```
+
+#### Purpose
+노드 내에서 채널을 순차적으로 생성하는 기능을 테스트합니다. 채널의 생성, 초기화, 메모리 관리가 올바르게 동작하는지 검증합니다.
+
+#### Test Process
+1. 초기 상태 저장
+   - 현재 채널 수 기록
+   - 노드 상태 확인
+
+2. 순차적 채널 생성
+   - 최대 10개 채널까지 테스트
+   - 각 채널 생성 후 검증
+   - 실패 시 중단
+
+3. 채널별 검증
+   - 채널 카운트 확인
+   - 채널 오프셋 유효성
+   - axis count 초기화 확인
+
+4. 최종 상태 검증
+   - 전체 채널 수 확인
+   - 메모리 구조 검증
+
+#### 검증 항목
+1. Channel Count
+   - 순차적 증가
+   - 정확한 카운트 유지
+   - 최대값 제한 준수
+
+2. Channel Offset
+   - 유효한 오프셋 값
+   - 순차적 배치
+   - 메모리 정렬
+
+3. Initialization
+   - axis count 0으로 초기화
+   - 메모리 초기화
+   - 구조 일관성
+
+4. Memory Management
+   - 적절한 공간 할당
+   - 노드 크기 조정
+   - 메모리 누수 방지
+
+#### 사용 예시
+```shell
+> test-channel-creation 0
+Testing sequential channel creation...
+Target Node: 0
+Creating channels sequentially...
+Final channel count: 10
+Channel creation test completed successfully
+```
+
+#### 실패 케이스
+```shell
+> test-channel-creation 0
+Testing sequential channel creation...
+Target Node: 0
+Failed to create channel 5
+Channel count mismatch after creation 5: expected 6, got 5
+Invalid channel offset for channel 5
+Channel creation test completed with 3 failures
+```
+
+#### 주의사항
+1. 채널 생성
+   - 순차적 번호 부여
+   - 중간 번호 건너뛰기 불가
+   - 최대 개수 제한
+
+2. 메모리 관리
+   - 노드 크기 확인
+   - 공간 부족 시 확장
+   - 포인터 재로드
+
+3. 에러 처리
+   - 생성 실패 감지
+   - 카운트 불일치
+   - 오프셋 오류
+
 [Rest of the document remains the same...] 

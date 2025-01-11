@@ -1,6 +1,6 @@
 #include "link_tests.h"
-#include "../link.h"
-#include "../channel.h"
+#include "../Graph_structure/link.h"
+#include "../Graph_structure/channel.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -154,5 +154,149 @@ int test_create_delete_links(uint source_node, ushort source_ch, ushort axis_num
     }
     
     printf("Link creation/deletion test completed: %d failures\n", failed);
+    return failed;
+} 
+
+int test_multi_channel_links(uint node_index) {
+    int failed = 0;
+    printf("Testing link creation/deletion across multiple channels...\n");
+    printf("Target Node: %d\n", node_index);
+    
+    // Create second channel (channel 0 exists by default)
+    if (create_channel(node_index) != CHANNEL_SUCCESS) {
+        printf("Failed to create channel 1\n");
+        return -1;
+    }
+    
+    // Store initial state
+    uchar* node = Core[node_index];
+    uint ch0_offset = get_channel_offset(node, 0);
+    uint ch1_offset = get_channel_offset(node, 1);
+    
+    // Ensure axis 0 exists in both channels
+    if (!ensure_axis_exists(node_index, 0, 0) || 
+        !ensure_axis_exists(node_index, 1, 0)) {
+        printf("Failed to ensure axis exists in channels\n");
+        return -1;
+    }
+    
+    // Get initial link counts
+    uint axis0_offset = get_axis_offset(node, 0, 0);
+    uint axis1_offset = get_axis_offset(node, 1, 0);
+    ushort initial_count_ch0 = *(ushort*)(node + ch0_offset + axis0_offset);
+    ushort initial_count_ch1 = *(ushort*)(node + ch1_offset + axis1_offset);
+    
+    // Store link destinations for later deletion
+    struct {
+        uint node;
+        ushort channel;
+    } links_ch0[100], links_ch1[100];
+    
+    // Create 100 links in each channel
+    printf("Creating 100 links in each channel...\n");
+    for (int i = 0; i < 100; i++) {
+        // Create link in channel 0
+        uint dest_node = (node_index + i + 1) % 256;
+        ushort dest_ch = i % 5;
+        links_ch0[i].node = dest_node;
+        links_ch0[i].channel = dest_ch;
+        
+        if (create_link(node_index, 0, dest_node, dest_ch, 0) != LINK_SUCCESS) {
+            printf("Failed to create link %d in channel 0\n", i);
+            failed++;
+        }
+        
+        // Create link in channel 1 (different destinations)
+        dest_node = (node_index + i + 2) % 256;
+        dest_ch = (i + 1) % 5;
+        links_ch1[i].node = dest_node;
+        links_ch1[i].channel = dest_ch;
+        
+        if (create_link(node_index, 1, dest_node, dest_ch, 0) != LINK_SUCCESS) {
+            printf("Failed to create link %d in channel 1\n", i);
+            failed++;
+        }
+        
+        // Verify link counts
+        node = Core[node_index];  // Reload node pointer as it might have changed
+        ch0_offset = get_channel_offset(node, 0);
+        ch1_offset = get_channel_offset(node, 1);
+        axis0_offset = get_axis_offset(node, 0, 0);
+        axis1_offset = get_axis_offset(node, 1, 0);
+        
+        ushort count_ch0 = *(ushort*)(node + ch0_offset + axis0_offset);
+        ushort count_ch1 = *(ushort*)(node + ch1_offset + axis1_offset);
+        
+        if (count_ch0 != initial_count_ch0 + i + 1) {
+            printf("Link count mismatch in ch0 after link %d: expected %d, got %d\n",
+                   i, initial_count_ch0 + i + 1, count_ch0);
+            failed++;
+        }
+        if (count_ch1 != initial_count_ch1 + i + 1) {
+            printf("Link count mismatch in ch1 after link %d: expected %d, got %d\n",
+                   i, initial_count_ch1 + i + 1, count_ch1);
+            failed++;
+        }
+    }
+    
+    // Delete all links in reverse order
+    printf("Deleting all links...\n");
+    for (int i = 99; i >= 0; i--) {
+        // Delete from channel 1 first
+        if (delete_link(node_index, 1, links_ch1[i].node, links_ch1[i].channel, 0) != LINK_SUCCESS) {
+            printf("Failed to delete link %d from channel 1\n", i);
+            failed++;
+        }
+        
+        // Then delete from channel 0
+        if (delete_link(node_index, 0, links_ch0[i].node, links_ch0[i].channel, 0) != LINK_SUCCESS) {
+            printf("Failed to delete link %d from channel 0\n", i);
+            failed++;
+        }
+        
+        // Verify link counts
+        node = Core[node_index];
+        ch0_offset = get_channel_offset(node, 0);
+        ch1_offset = get_channel_offset(node, 1);
+        axis0_offset = get_axis_offset(node, 0, 0);
+        axis1_offset = get_axis_offset(node, 1, 0);
+        
+        ushort count_ch0 = *(ushort*)(node + ch0_offset + axis0_offset);
+        ushort count_ch1 = *(ushort*)(node + ch1_offset + axis1_offset);
+        
+        if (count_ch0 != initial_count_ch0 + i) {
+            printf("Link count mismatch in ch0 after deletion %d: expected %d, got %d\n",
+                   i, initial_count_ch0 + i, count_ch0);
+            failed++;
+        }
+        if (count_ch1 != initial_count_ch1 + i) {
+            printf("Link count mismatch in ch1 after deletion %d: expected %d, got %d\n",
+                   i, initial_count_ch1 + i, count_ch1);
+            failed++;
+        }
+    }
+    
+    // Verify final state
+    node = Core[node_index];
+    ch0_offset = get_channel_offset(node, 0);
+    ch1_offset = get_channel_offset(node, 1);
+    axis0_offset = get_axis_offset(node, 0, 0);
+    axis1_offset = get_axis_offset(node, 1, 0);
+    
+    ushort final_count_ch0 = *(ushort*)(node + ch0_offset + axis0_offset);
+    ushort final_count_ch1 = *(ushort*)(node + ch1_offset + axis1_offset);
+    
+    if (final_count_ch0 != initial_count_ch0) {
+        printf("Final link count mismatch in ch0: expected %d, got %d\n",
+               initial_count_ch0, final_count_ch0);
+        failed++;
+    }
+    if (final_count_ch1 != initial_count_ch1) {
+        printf("Final link count mismatch in ch1: expected %d, got %d\n",
+               initial_count_ch1, final_count_ch1);
+        failed++;
+    }
+    
+    printf("Multi-channel link test completed: %d failures\n", failed);
     return failed;
 } 

@@ -368,3 +368,84 @@ After:  [78 56 34 12 AA BB CC DD EE]
    - 정렬 경계 고려
    - 플랫폼별 최적화
    - 접근 효율성 확보 
+
+### Link Entry Insertion
+```c
+int insert_link(unsigned char* dest, unsigned int insert_pos,
+               unsigned int node_index, unsigned short channel_index,
+               unsigned int move_size);
+```
+
+#### 기능
+- Link entry (node index + channel)를 메모리에 삽입
+- 6바이트 크기의 link entry 구조 처리
+- 기존 데이터 자동 이동
+
+#### Parameters
+- dest: 대상 버퍼
+- insert_pos: 삽입 위치
+- node_index: 대상 노드 인덱스 (4 bytes)
+- channel_index: 대상 채널 인덱스 (2 bytes)
+- move_size: 이동해야 할 데이터 크기
+
+#### Data Format
+```
+[Node Index(4)] [Channel Index(2)]
+```
+
+#### Process
+1. 매개변수 검증
+   - NULL 포인터 체크
+
+2. 데이터 이동
+   - memmove로 기존 데이터를 6바이트 뒤로 이동
+   - link entry를 위한 공간 확보
+
+3. 데이터 삽입
+   - 구조체를 통한 단일 연산으로 데이터 삽입
+   - 패킹된 구조체로 메모리 정렬 보장
+
+#### Return Values
+- 1: 성공
+- 0: 실패 (잘못된 매개변수)
+
+#### Usage Example
+```c
+unsigned char buffer[100];
+unsigned int node = 1;
+unsigned short channel = 2;
+
+// Insert link entry at position 0
+int result = insert_link(buffer, 0, node, channel, 10);
+// Result: buffer now contains link entry at start
+```
+
+#### Memory Layout
+Link entry는 다음과 같은 메모리 레이아웃을 가집니다:
+```
+Offset    Content          Description
+0000      01 00 00 00     Node index (4 bytes)
+0004      02 00           Channel index (2 bytes)
+```
+
+#### Implementation Notes
+1. 구조체 패킹
+   ```c
+   struct {
+       unsigned int node;
+       unsigned short channel;
+   } __attribute__((packed)) link_data;
+   ```
+   - 메모리 정렬 최적화
+   - 단일 memcpy 연산
+   - 바이트 패딩 제거
+
+2. 데이터 정렬
+   - 4바이트 node index
+   - 2바이트 channel index
+   - 총 6바이트 크기
+
+3. 성능 최적화
+   - 구조체를 통한 단일 연산
+   - 인라인 함수 활용
+   - 최소 메모리 접근 

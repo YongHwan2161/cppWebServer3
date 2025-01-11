@@ -23,7 +23,7 @@ extern FreeSpace* free_space;
 #define FREE_SPACE_SUCCESS 0
 #define FREE_SPACE_NEW 1
 #define FREE_SPACE_ERROR -1
-
+#define FREE_SPACE_RESIZED 2
 // Function declarations
 int init_free_space(void);
 void save_free_space(void);
@@ -34,5 +34,17 @@ int get_free_index(void);
 void add_free_index(uint index);
 void release_node_space(int node_index);
 uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uint* new_size);
+
+/**
+ * Checks if node needs resizing and resizes if necessary
+ * 
+ * @param node_ptr Pointer to node pointer (may be updated if resized)
+ * @param required_size Required size for the node
+ * @param node_index Index of the node
+ * @return FREE_SPACE_SUCCESS if no resize needed, 
+ *         FREE_SPACE_RESIZED if resized successfully,
+ *         FREE_SPACE_ERROR if resize failed
+ */
+int check_and_resize_node(uchar* node, uint required_size, uint node_index);
 
 #endif 

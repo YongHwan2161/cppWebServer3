@@ -76,4 +76,27 @@ int insert_uint(unsigned char* dest, unsigned int insert_pos,
     memcpy(dest + insert_pos, &value, sizeof(value));
     
     return 1;
+}
+
+int insert_link(unsigned char* dest, unsigned int insert_pos,
+               unsigned int node_index, unsigned short channel_index,
+               unsigned int move_size) {
+    
+    // Validate parameters
+    if (!dest) return 0;
+    
+    // Move and insert data
+    if (move_size > 0) {
+        move_data_forward(dest, insert_pos, 6, move_size);
+    }
+    
+    // Insert link data in one operation using a struct
+    struct {
+        unsigned int node;
+        unsigned short channel;
+    } __attribute__((packed)) link_data = {node_index, channel_index};
+    
+    memcpy(dest + insert_pos, &link_data, sizeof(link_data));
+    
+    return 1;
 } 

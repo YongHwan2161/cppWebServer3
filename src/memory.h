@@ -57,4 +57,18 @@ int insert_ushort(unsigned char* dest, unsigned int insert_pos,
 int insert_uint(unsigned char* dest, unsigned int insert_pos,
                unsigned int value, unsigned int move_size);
 
+/**
+ * Inserts a link entry (node index and channel) into a buffer
+ * 
+ * @param dest Destination buffer
+ * @param insert_pos Position to insert at
+ * @param node_index Node index for the link
+ * @param channel_index Channel index for the link
+ * @param move_size Size of data to move
+ * @return 1 if successful, 0 if failed
+ */
+int insert_link(unsigned char* dest, unsigned int insert_pos,
+               unsigned int node_index, unsigned short channel_index,
+               unsigned int move_size);
+
 #endif // MEMORY_H 

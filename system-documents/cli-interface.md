@@ -470,6 +470,105 @@ The command will:
 3. Initialize the channel with 0 axes
 4. Report success or failure
 
+### Test Commands
+
+#### Multi-Channel Link Test
+```
+test-multi-channel-links <node_index>
+```
+
+Tests link creation and deletion across multiple channels in a node.
+
+Parameters:
+- node_index: Target node index (0-255)
+
+Process:
+1. Creates a second channel in the target node
+2. Creates 100 links in each channel
+3. Deletes all links in reverse order
+4. Verifies data consistency throughout
+
+Example:
+```shell
+> test-multi-channel-links 0
+Testing link creation/deletion across multiple channels...
+Target Node: 0
+Creating 100 links in each channel...
+Deleting all links...
+Multi-channel link test completed: 0 failures
+```
+
+Error Cases:
+```shell
+> test-multi-channel-links
+Error: Missing arguments
+Usage: test-multi-channel-links <node_index>
+Example: test-multi-channel-links 0
+
+> test-multi-channel-links 256
+Error: Node index must be between 0 and 255
+```
+
+#### Test Results
+The command reports:
+1. Channel creation status
+2. Link creation progress
+3. Link deletion progress
+4. Final test results with failure count
+
+##### Success Output
+```
+Testing link creation/deletion across multiple channels...
+Target Node: 0
+Creating 100 links in each channel...
+Deleting all links...
+Multi-channel link test completed: 0 failures
+```
+
+##### Failure Output
+```
+Testing link creation/deletion across multiple channels...
+Target Node: 0
+Failed to create channel 1
+```
+
+### Channel Creation Test
+```
+test-channel-creation <node_index>
+```
+
+Tests sequential channel creation in a node.
+
+Parameters:
+- node_index: Target node index (0-255)
+
+Process:
+1. Creates channels sequentially
+2. Verifies each channel's structure
+3. Checks memory management
+4. Reports success or failures
+
+Example:
+```shell
+> test-channel-creation 0
+Testing sequential channel creation...
+Target Node: 0
+Creating channels sequentially...
+Final channel count: 10
+Channel creation test completed successfully
+```
+
+Error Cases:
+```shell
+> test-channel-creation
+Error: Missing arguments
+Usage: test-channel-creation <node_index>
+Example: test-channel-creation 0
+
+> test-channel-creation 256
+Error: Node index must be between 0 and 255
+```
+
 ## Error Handling
 
 ### Missing Arguments

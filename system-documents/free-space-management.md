@@ -298,4 +298,89 @@ This ensures the integrity of the free space management system by preventing:
 - Corruption of free block boundaries
 - Invalid memory access
 
+### Node Size Management
+
+#### Check and Resize Node
+```c
+int check_and_resize_node(uchar** node_ptr, uint required_size, uint node_index);
+```
+
+##### 기능
+- 노드의 크기가 충분한지 검사
+- 필요시 자동으로 크기 조정
+- 노드 포인터 업데이트
+
+##### Parameters
+- node_ptr: 노드 포인터의 포인터 (resize 시 업데이트됨)
+- required_size: 필요한 최소 크기
+- node_index: 노드 인덱스
+
+##### Return Values
+- FREE_SPACE_SUCCESS: 크기 조정 불필요
+- FREE_SPACE_RESIZED: 크기 조정 성공
+- FREE_SPACE_ERROR: 크기 조정 실패
+
+##### Process
+1. 크기 검사
+   - 현재 노드 크기 확인
+   - 필요 크기와 비교
+   - 충분하면 즉시 반환
+
+2. 크기 조정
+   - resize_node_space 호출
+   - 새로운 메모리 할당
+   - 데이터 복사
+
+3. 포인터 업데이트
+   - 노드 포인터 갱신
+   - Core 배열 업데이트
+   - 호출자에게 새 포인터 전달
+
+##### Usage Example
+```c
+uchar* node = Core[node_index];
+uint required_size = current_size + new_data_size;
+
+int result = check_and_resize_node(&node, required_size, node_index);
+if (result == FREE_SPACE_ERROR) {
+    // Handle error
+    return ERROR_CODE;
+}
+
+// node pointer may have been updated if resized
+// Continue with operation...
+```
+
+##### 장점
+1. 코드 재사용
+   - 공통 크기 조정 로직 중앙화
+   - 중복 코드 제거
+   - 유지보수성 향상
+
+2. 에러 처리 통합
+   - 일관된 에러 처리
+   - 명확한 상태 코드
+   - 디버깅 용이성
+
+3. 포인터 관리
+   - 안전한 포인터 업데이트
+   - 일관된 메모리 관리
+   - 메모리 누수 방지
+
+##### 주의사항
+1. 포인터 전달
+   - 이중 포인터 사용
+   - resize 후 포인터 업데이트
+   - NULL 체크 필수
+
+2. 크기 계산
+   - 2의 제곱수 고려
+   - 오버플로우 방지
+   - 최소 크기 보장
+
+3. 에러 처리
+   - 메모리 할당 실패
+   - 파일 I/O 오류
+   - 상태 일관성 유지
+
 [Rest of the document remains unchanged...] 
