@@ -435,6 +435,41 @@ The command will:
 3. Verify link data correctness
 4. Report any failures encountered
 
+### Create Channel
+```
+create-channel <node_index>
+```
+Creates a new channel in the specified node.
+
+Parameters:
+- node_index: Target node (0-255)
+
+Example:
+```
+> create-channel 0
+Successfully created new channel in node 0
+
+> create-channel 1
+Successfully created new channel in node 1
+```
+
+Error handling:
+```
+> create-channel
+Error: Missing arguments
+Usage: create-channel <node_index>
+Example: create-channel 0
+
+> create-channel 256
+Error: Node index must be between 0 and 255
+```
+
+The command will:
+1. Validate the node index
+2. Create a new channel sequentially
+3. Initialize the channel with 0 axes
+4. Report success or failure
+
 ## Error Handling
 
 ### Missing Arguments

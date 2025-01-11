@@ -512,14 +512,45 @@ int handle_test_create_delete_links(char* args) {
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
+int handle_create_channel(char* args) {
+    int node_index;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d", &node_index);
+    if (parsed != 1) {
+        print_argument_error("create-channel", "<node_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (!validate_node(node_index)) {
+        printf("Error: Node %d does not exist\n", node_index);
+        return CMD_ERROR;
+    }
+    
+    // Create the channel
+    int result = create_channel(node_index);
+    if (result == CHANNEL_SUCCESS) {
+        printf("Successfully created new channel in node %d\n", node_index);
+        return CMD_SUCCESS;
+    } else {
+        printf("Failed to create channel in node %d\n", node_index);
+        return CMD_ERROR;
+    }
+}
+
 void print_help() {
     printf("\nAvailable commands:\n");
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
     printf("  check-axis <node> <channel> <axis>   Check if specific axis exists\n");
     printf("  list-axes <node> <channel>           List all axes in channel\n");
     printf("  delete-axis <node> <channel> <axis>  Delete an existing axis\n");
+
     printf("  create-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>  Create a link\n");
     printf("  delete-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>  Delete a link\n");
+
+    printf("  create-channel <node>               Create a new channel in node\n");
+    
     printf("  print-node <node_index>               Print node data in hexadecimal format\n");
     printf("  print-free-space                     Print free space information\n");
     printf("  run-tests                           Run all test cases\n");
@@ -591,6 +622,9 @@ int handle_command(char* command) {
                 "<source_node> <source_ch> <dest_node> <dest_ch> <axis_number>", 
                 true);
         }
+        else if (strcmp(cmd, "create-channel") == 0) {
+            print_argument_error(cmd, "<node_index>", true);
+        }
         else {
             printf("Unknown command. Type 'help' for available commands.\n");
         }
@@ -630,6 +664,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "test-create-delete-links") == 0) {
         return handle_test_create_delete_links(args);
+    }
+    else if (strcmp(cmd, "create-channel") == 0) {
+        return handle_create_channel(args);
     }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");

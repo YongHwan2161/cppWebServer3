@@ -16,7 +16,11 @@ int handle_create_axis(char* args);
 int handle_check_axis(char* args);
 int handle_list_axes(char* args);
 int handle_delete_axis(char* args);
+
 int handle_create_link(char* args);
+
+int handle_create_channel(char* args);
+
 int handle_print_node(char* args);
 int handle_print_free_space(char* args);
 int handle_delete_link(char* args);

@@ -1,4 +1,6 @@
 #include "channel.h"
+#include "free_space.h"
+#include "node.h"
 #include <string.h>
 
 ushort get_channel_count(uchar* node) {
@@ -20,52 +22,55 @@ ushort get_channel_size(uchar* node, ushort channel_index) {
 }
 
 int create_channel(uint node_index) {
-    if (node_index >= 256 || !Core[node_index]) {
-        return CHANNEL_ERROR;
-    }
-    
     uchar* node = Core[node_index];
-    ushort* channel_count = (ushort*)(node + 2);
+    ushort* channel_count = (ushort*)(node + 6);  // Skip size power(2) and actual size(4)
+    printf("channel_count: %d\n", *channel_count);
+    // Get current actual size and calculate required size
+    uint current_actual_size = *(uint*)(node + 2);
+    uint required_size = current_actual_size + 6;  // channel entry(4) + axis count(2)
     
-    // Calculate new channel offset
-    int new_channel_offset = 4 + (*channel_count * 4);  // 4: size(2) + channels(2)
-    
-    // Initial channel size is 2 bytes (for axis count)
-    int channel_size = 2;
-    
-    // Check if we need to resize the node
+    // Check if resize needed
     ushort node_size_power = *(ushort*)node;
     uint current_node_size = 1 << node_size_power;
-    uint required_size = new_channel_offset + 4 + channel_size;  // +4 for new channel offset
     
-    // If required size is larger than current size, resize node
     if (required_size > current_node_size) {
-        // Find next power of 2
-        uint new_size = current_node_size;
-        while (new_size < required_size) {
-            new_size *= 2;
-            node_size_power++;
+        uint new_size;
+        node = resize_node_space(node, required_size, node_index, &new_size);
+        if (!node) {
+            printf("Error: Failed to resize node\n");
+            return CHANNEL_ERROR;
         }
-        
-        // Allocate new space
-        uchar* new_node = (uchar*)malloc(new_size);
-        memcpy(new_node, node, current_node_size);
-        free(node);
-        node = new_node;
-        Core[node_index] = new_node;
-        
-        // Update node size
-        *(ushort*)node = node_size_power;
+        Core[node_index] = node;
+        channel_count = (ushort*)(node + 6);
     }
+    // Calculate offsets
+    uint current_offset = 8 + ((uint)*channel_count * 4);  // Header + existing channel offsets
+    uint channel_data_offset = current_actual_size + 4;  // New channel data goes at the end
+    // Move existing data 4 bytes forward to make space for new channel entry
+        memmove(node + current_offset + 4,          // destination (4 bytes forward)
+                node + current_offset,               // source
+                current_actual_size - current_offset // size of data to move
+        );
     
+    //update the channel offset
+    for (ushort i = 0; i < *channel_count; i++) {
+        *(uint*)(node + 8 + (i * 4)) += 4;
+    }
     // Add new channel offset
-    *(uint*)(node + new_channel_offset) = new_channel_offset + 4;
+    *(uint*)(node + current_offset) = channel_data_offset;
     
-    // Initialize channel with 0 axes
-    *(ushort*)(node + new_channel_offset + 4) = 0;
+    // Initialize axis count to 0 at the end
+    *(ushort*)(node + channel_data_offset) = 0;
     
-    // Update channel count
+    // Update actual size
+    *(uint*)(node + 2) = required_size;
+    
+    // Increment channel count
     (*channel_count)++;
-    
+
+    if (!save_node_to_file(node_index)) {
+        printf("Error: Failed to update data.bin\n");
+        return CHANNEL_ERROR;
+    }
     return CHANNEL_SUCCESS;
-} 
+}

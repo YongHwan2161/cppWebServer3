@@ -3,6 +3,67 @@
 ## Overview
 Channel은 노드의 채널 간 연결을 나타내는 메커니즘입니다.
 
+## Channel Creation
+
+### 기본 원칙
+1. 순차적 생성
+   - Channel 0은 노드 생성 시 자동으로 생성
+   - 새로운 채널은 순차적으로 번호 부여
+   - 중간 번호 건너뛰기 불가
+
+2. 초기 구조
+   - Channel entry (4 bytes): 채널 데이터 오프셋
+   - Channel data (2 bytes): axis count 초기화 (0)
+
+### Creation Process
+```c
+int create_sequential_channel(uint node_index);
+```
+
+#### 프로세스
+1. 노드 검증
+   - 유효한 노드 인덱스 확인
+   - Core 배열 존재 여부 확인
+
+2. 공간 계산
+   - Channel entry (4 bytes)
+   - Channel data (2 bytes)
+   - 총 필요 공간: 6 bytes
+
+3. 메모리 관리
+   - 필요시 노드 크기 확장
+   - 새로운 공간 할당
+   - 데이터 복사
+
+4. 데이터 초기화
+   - Channel offset 설정
+   - Axis count 0으로 초기화
+   - Channel count 증가
+
+#### 메모리 레이아웃
+```
+Before:
+[Size Power(2)][Actual Size(4)][Channel Count(2)][Channel 0 Offset(4)][...]
+
+After:
+[Size Power(2)][Actual Size(4)][Channel Count(2)][Channel 0 Offset(4)][Channel 1 Offset(4)][...]
+                                                 [Channel 1 Data: Axis Count(2)]
+```
+
+### Error Handling
+- 유효하지 않은 노드 인덱스
+- 메모리 할당 실패
+- 노드 크기 초과
+
+### Usage Example
+```c
+// Create new channel in node 0
+int result = create_sequential_channel(0);
+if (result == CHANNEL_SUCCESS) {
+    printf("New channel created\n");
+}
+```
+
 ## Memory Layout
 
 ### Node Header Structure
@@ -105,4 +166,95 @@ int result = create_channel(node_index);
 if (result == CHANNEL_SUCCESS) {
     printf("New channel created\n");
 }
-``` 
+```
+
+## Command Line Interface
+
+### Channel Creation Command
+```
+create-channel <node_index>
+```
+
+#### Usage
+- 노드 인덱스만 지정하면 자동으로 다음 채널 생성
+- Channel 0은 노드 생성 시 자동 생성되므로 별도 생성 불필요
+- 채널은 순차적으로만 생성 가능
+
+#### Example
+```bash
+# Create channel 1 in node 0
+> create-channel 0
+Successfully created new channel in node 0
+
+# Create channel 2 in node 0
+> create-channel 0
+Successfully created new channel in node 0
+```
+
+#### Error Cases
+1. 유효하지 않은 노드 인덱스
+   ```bash
+   > create-channel 256
+   Error: Node index must be between 0 and 255
+   ```
+
+2. 메모리 할당 실패
+   ```bash
+   > create-channel 0
+   Failed to create channel in node 0
+   ``` 
+
+### Channel Creation Process
+
+#### 데이터 구조 변경
+1. Channel Entry 추가
+   - 새로운 채널의 offset 정보 저장 (4 bytes)
+   - 기존 데이터를 4바이트 뒤로 이동
+   ```c
+   memmove(node + current_offset + 4,          // destination (4 bytes forward)
+           node + current_offset,               // source
+           current_actual_size - current_offset // size of data to move
+   );
+   ```
+
+2. Channel Data 추가
+   - 노드의 마지막에 axis count 추가 (2 bytes)
+   - 초기값 0으로 설정
+
+#### 메모리 레이아웃 변경 예시
+```
+Initial state (actual_size = N):
+[Header(8)][Ch Count(2)][Ch0 Offset(4)][Ch0 Data][Ch1 Data]...
+
+After moving data (actual_size = N + 4):
+[Header(8)][Ch Count(2)][Ch0 Offset(4)][New Ch Offset(4)][Ch0 Data][Ch1 Data]...
+
+Final state (actual_size = N + 6):
+[Header(8)][Ch Count(2)][Ch0 Offset(4)][New Ch Offset(4)][Ch0 Data][Ch1 Data][New Ch Data(2)]
+```
+
+#### 크기 계산 과정
+1. 현재 크기 확인
+   ```c
+   uint current_actual_size = *(uint*)(node + 2);
+   uint required_size = current_actual_size + 6;  // channel entry(4) + axis count(2)
+   ```
+
+2. 오프셋 계산
+   ```c
+   uint current_offset = 8 + (*channel_count * 4);  // Header + existing channel offsets
+   uint channel_data_offset = current_actual_size;  // New channel data goes at the end
+   ```
+
+#### 주의사항
+1. 데이터 이동
+   - memmove 사용 (메모리 영역 중첩 가능성)
+   - 정확한 이동 크기 계산
+   - 이동 후 새 데이터 추가
+
+2. 오프셋 관리
+   - 새 채널 데이터는 항상 마지막에 추가
+   - 채널 엔트리는 기존 엔트리들 사이에 삽입
+   - 모든 오프셋 정확성 유지
+
+[Rest of the document remains the same...] 
