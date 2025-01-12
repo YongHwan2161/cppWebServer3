@@ -1,6 +1,7 @@
 #include "database.h"
 #include "init.h"
 #include "Graph_structure/node.h"
+#include "memory.h"
 #include <string.h>
 
 #ifdef _WIN32
@@ -42,7 +43,9 @@ int initialize_database() {
     
     // Load initial set of nodes
     Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
+
     for (int i = 0; i < MaxCoreSize && i < 256; i++) {
+        Core[i] = NULL;
         load_node_to_core(i);
     }
     
@@ -97,26 +100,6 @@ void save_DB() {
     fclose(data_file);
     fclose(map_file);
     printf("Database saved successfully\n");
-}
-
-void load_node_from_file(FILE* data_file, long offset, uint index) {
-    fseek(data_file, offset, SEEK_SET);
-    
-    // Read size power first (2 bytes)
-    ushort size_power;
-    fread(&size_power, sizeof(ushort), 1, data_file);
-    
-    // Calculate actual size
-    uint actual_size = 1 << size_power;
-    
-    // Allocate memory for the node
-    uchar* newNode = (uchar*)malloc(actual_size * sizeof(uchar));
-    
-    // Move back 2 bytes instead of seeking from start
-    fseek(data_file, -2, SEEK_CUR);
-    fread(newNode, sizeof(uchar), actual_size, data_file);
-    
-    Core[index] = newNode;
 }
 
 void load_DB() {

@@ -24,15 +24,11 @@ extern const char* DATA_DIR;
 extern const char* DATA_FILE;
 extern const char* MAP_FILE;
 
-// Add new function declarations
-int get_core_position(int node_index);
-int load_node_to_core(int node_index);
-
 // Existing function declarations
-void create_new_node(int index);
-void create_DB();
-void save_DB();
-// int check_and_init_DB();
-void load_DB();
+// void create_new_node(int index);
+// void create_DB();
+// void save_DB();
+// // int check_and_init_DB();
+// void load_DB();
 
 #endif 

@@ -2,7 +2,7 @@
 #define MEMORY_H
 
 #include <string.h>
-
+#include <stdio.h>
 /**
  * Inserts data into a memory buffer at a specified position
  * 
@@ -70,5 +70,24 @@ int insert_uint(unsigned char* dest, unsigned int insert_pos,
 int insert_link(unsigned char* dest, unsigned int insert_pos,
                unsigned int node_index, unsigned short channel_index,
                unsigned int move_size);
+
+/**
+ * Unloads node data from memory
+ * 
+ * @param node_index Index of the node to unload
+ * @return 1 if successful, 0 if failed
+ */
+int unload_node_data(unsigned int node_index);
+
+/**
+ * Loads node data from file into memory
+ * 
+ * @param data_file File pointer to the data file
+ * @param offset Offset in the file to read from
+ * @param index Index of the node to load
+ */
+void load_node_from_file(FILE* data_file, long offset, unsigned int index);
+
+int load_node_to_core(unsigned int node_index);
 
 #endif // MEMORY_H 

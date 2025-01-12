@@ -538,3 +538,179 @@ if (unload_node_data(5)) {
    - 잘못된 인덱스
    - 이중 해제 방지
    - 상태 검증 
+
+### Node Unloading Command
+
+#### Command Interface
+```shell
+unload-node <node_index>
+```
+
+##### 기능
+- 메모리에서 노드 데이터 해제
+- CoreMap 상태 업데이트
+- Core 배열 정리
+
+##### 프로세스
+1. 입력 검증
+   - 노드 인덱스 범위 확인
+   - 로드 상태 확인
+   - 매개변수 유효성 검사
+
+2. 메모리 해제
+   - Core 배열 포인터 해제
+   - NULL로 포인터 설정
+   - CoreSize 감소
+
+3. 상태 업데이트
+   - CoreMap is_loaded 플래그 갱신
+   - core_position 재설정
+   - 메모리 관리 정보 갱신
+
+##### 사용 예시
+```shell
+# 정상 케이스
+> unload-node 5
+Successfully unloaded node 5 from memory
+
+# 에러 케이스
+> unload-node 256
+Error: Node index must be between 0 and 255
+
+> unload-node 5
+Error: Node 5 is not loaded in memory
+```
+
+##### 주의사항
+1. 데이터 접근
+   - 언로드 후 직접 접근 불가
+   - 필요시 재로드 필요
+   - Core 배열 인덱스 변경 가능
+
+2. 메모리 관리
+   - 자동 재로드 고려
+   - 메모리 단편화 관리
+   - 효율적인 메모리 사용
+
+3. 상태 추적
+   - CoreMap 상태 확인
+   - 로드/언로드 이력 관리
+   - 메모리 사용량 모니터링 
+
+### Node Loading Command
+
+#### Command Interface
+```shell
+load-node <node_index>
+```
+
+##### 기능
+- 파일에서 노드 데이터 로드
+- Core 배열에 메모리 할당
+- CoreMap 상태 업데이트
+
+##### 프로세스
+1. 입력 검증
+   - 노드 인덱스 범위 확인
+   - 이미 로드된 상태 확인
+   - 매개변수 유효성 검사
+
+2. 메모리 관리
+   - CoreSize 확인
+   - 필요시 다른 노드 언로드
+   - 새 메모리 할당
+
+3. 데이터 로드
+   - 파일에서 데이터 읽기
+   - Core 배열에 저장
+   - CoreMap 업데이트
+
+##### 사용 예시
+```shell
+# 정상 케이스
+> load-node 5
+Successfully loaded node 5 to Core position 3
+
+# 에러 케이스
+> load-node 256
+Error: Node index must be between 0 and 255
+
+> load-node 5
+Node 5 is already loaded at Core position 3
+```
+
+##### 주의사항
+1. 메모리 관리
+   - MaxCoreSize 제한 확인
+   - 자동 언로드 처리
+   - 메모리 할당 실패 처리
+
+2. 파일 접근
+   - 파일 열기/닫기 관리
+   - 오프셋 정확성 확인
+   - I/O 에러 처리
+
+3. 상태 동기화
+   - CoreMap 상태 일관성
+   - Core 배열 정확성
+   - 로드 상태 추적 
+
+### Core Size Monitoring
+
+#### Command Interface
+```shell
+check-core-size
+```
+
+##### 기능
+- Core 메모리 상태 확인
+- 사용량 통계 표시
+- 가용 공간 모니터링
+
+##### 출력 정보
+1. 크기 정보
+   - Current Core Size: 현재 로드된 노드 수
+   - Maximum Core Size: 최대 로드 가능 개수
+   - Available Slots: 잔여 슬롯 수
+
+2. 사용률 정보
+   - Memory Utilization: 메모리 사용 비율
+   - 백분율로 표시
+   - 소수점 첫째 자리까지 표시
+
+##### 사용 예시
+```shell
+> check-core-size
+Core Memory Status:
+Current Core Size: 3
+Maximum Core Size: 16
+Available Slots: 13
+Memory Utilization: 18.8%
+```
+
+##### 활용 방안
+1. 메모리 관리
+   - 로드 전 가용 공간 확인
+   - 언로드 필요성 판단
+   - 최적화 시점 결정
+
+2. 성능 모니터링
+   - 메모리 부족 예방
+   - 시스템 부하 관리
+   - 리소스 계획 수립
+
+3. 운영 최적화
+   - 적정 사용률 유지
+   - 불필요한 로드 방지
+   - 효율적 메모리 관리
+
+##### 주의사항
+1. 사용률 관리
+   - 높은 사용률 주의
+   - 여유 공간 확보
+   - 주기적 모니터링
+
+2. 메모리 계획
+   - 피크 사용량 예측
+   - 버퍼 공간 유지
+   - 적절한 언로드 정책 

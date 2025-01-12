@@ -83,4 +83,15 @@ void init_map(void) {
         CoreMap[i].is_loaded = 0;
         CoreMap[i].file_offset = 0;
     }
+}
+
+int get_node_position(unsigned int node_index) {
+    
+    // Check if node is loaded
+    if (!CoreMap[node_index].is_loaded) {
+        printf("Error: Node %d is not loaded in memory\n", node_index);
+        return -1;
+    }
+    
+    return CoreMap[node_index].core_position;
 } 

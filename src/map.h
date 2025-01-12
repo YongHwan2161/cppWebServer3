@@ -12,5 +12,5 @@ int save_map(uint node_index);
 int save_map_all(void);
 int load_map(void);
 void init_map(void);
-
+int get_node_position(uint node_index);
 #endif // MAP_H 

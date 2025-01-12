@@ -1,6 +1,7 @@
 #include "memory.h"
 #include "Graph_structure/node.h"
 #include "../CGDB.h"
+#include "map.h"
 
 static inline void move_data_forward(unsigned char* dest, unsigned int pos, 
                                    unsigned int size, unsigned int move_size) {
@@ -103,22 +104,22 @@ int insert_link(unsigned char* dest, unsigned int insert_pos,
     return 1;
 }
 
-int unload_node_data(uint node_index) {
+int unload_node_data(unsigned int node_index) {
     // Validate node index
     if (node_index >= 256) {
         printf("Error: Invalid node index %d\n", node_index);
         return 0;
     }
     
-    // Check if node is loaded
-    if (!Core[node_index] || !CoreMap[node_index].is_loaded) {
-        printf("Error: Node %d is not loaded\n", node_index);
-        return 0;
+    // Get node position
+    int position = get_node_position(node_index);
+    if (position < 0) {
+        return 0;  // Error already printed by get_node_position
     }
     
     // Free the node memory
-    free(Core[node_index]);
-    Core[node_index] = NULL;
+    free(Core[position]);
+    Core[position] = NULL;
     
     // Update CoreMap
     CoreMap[node_index].is_loaded = 0;
@@ -129,3 +130,43 @@ int unload_node_data(uint node_index) {
     
     return 1;
 } 
+void load_node_from_file(FILE* data_file, long offset, unsigned int index) {
+    fseek(data_file, offset, SEEK_SET);
+    
+    // Read size power first (2 bytes)
+    unsigned short size_power;
+    fread(&size_power, sizeof(unsigned short), 1, data_file);
+    
+    // Calculate actual size
+    unsigned int actual_size = 1 << size_power;
+    
+    // Allocate memory for the node
+    uchar* newNode = (uchar*)malloc(actual_size * sizeof(uchar));
+    
+    // Move back 2 bytes instead of seeking from start
+    fseek(data_file, -2, SEEK_CUR);
+    fread(newNode, sizeof(uchar), actual_size, data_file);
+    
+    Core[index] = newNode;
+}
+int load_node_to_core(unsigned int node_index) {
+
+    FILE* data_file = fopen(DATA_FILE, "rb");
+    if (!data_file) return -1;
+    
+    // Use stored offset directly
+    long offset = CoreMap[node_index].file_offset;
+    
+    // Load the node
+    for (int i = 0; i < MaxCoreSize; i++) {
+        if (Core[i] == NULL) {
+            CoreMap[node_index].core_position = i;
+            CoreMap[node_index].is_loaded = 1;
+            load_node_from_file(data_file, offset, i);
+            break;
+        }
+    }
+    
+    fclose(data_file);
+    return CoreMap[node_index].core_position;
+}

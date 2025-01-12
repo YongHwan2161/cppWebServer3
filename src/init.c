@@ -18,10 +18,10 @@ int check_and_create_directory() {
     return 0;
 }
 void init_core_mapping() {
-    CoreMap = (NodeMapping*)malloc(256 * sizeof(NodeMapping));
+    CoreMap = (NodeMapping*)malloc(MaxCoreSize * sizeof(NodeMapping));
     
     // Initialize with default values
-    for (int i = 0; i < 256; i++) {
+    for (int i = 0; i < MaxCoreSize; i++) {
         CoreMap[i].core_position = -1;
         CoreMap[i].is_loaded = 0;
         CoreMap[i].file_offset = 0;
@@ -31,10 +31,11 @@ void init_core_mapping() {
     FILE* map_file = fopen(MAP_FILE, "rb");
     if (map_file) {
         // Skip number of nodes
+        fread(&CoreSize, sizeof(uint), 1, map_file);
         fseek(map_file, sizeof(uint), SEEK_SET);
         
         // Read all offsets
-        for (int i = 0; i < 256; i++) {
+        for (int i = 0; i < CoreSize; i++) {
             fread(&CoreMap[i].file_offset, sizeof(long), 1, map_file);
         }
         fclose(map_file);

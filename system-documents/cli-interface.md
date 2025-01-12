@@ -615,6 +615,236 @@ The command will:
 4. Update file storage
 5. Report operation result
 
+### Get Node Position
+```
+get-node-position <node_index>
+```
+Shows the actual position of a node in the Core array and its memory address.
+
+Parameters:
+- node_index: Target node (0-255)
+
+Example:
+```
+> get-node-position 0
+Node 0 is at Core position 0
+Memory address: 0x7f8b4c003a00
+
+> get-node-position 5
+Node 5 is at Core position 3
+Memory address: 0x7f8b4c003c80
+```
+
+Error handling:
+```
+> get-node-position
+Error: Missing arguments
+Usage: get-node-position <node_index>
+Example: get-node-position 0
+
+> get-node-position 256
+Error: Invalid node index 256
+
+> get-node-position 5
+Error: Node 5 is not loaded in memory
+```
+
+#### Purpose
+- Core 배열에서 노드의 실제 위치 확인
+- 메모리 주소 표시
+- 노드 로드 상태 검증
+
+#### Notes
+1. Core Position
+   - 노드 인덱스와 다를 수 있음
+   - 메모리 관리 상태 반영
+   - 동적으로 변경될 수 있음
+
+2. Memory Address
+   - 실제 메모리상의 위치
+   - 디버깅에 유용
+   - 포인터 추적 가능
+
+### Memory Management Commands
+
+#### Unload Node
+```
+unload-node <node_index>
+```
+Unloads a node from memory. The node data remains in the binary file and can be reloaded when needed.
+
+Parameters:
+- node_index: Target node (0-255)
+
+Example:
+```
+> unload-node 5
+Successfully unloaded node 5 from memory
+```
+
+Error handling:
+```
+> unload-node
+Error: Missing arguments
+Usage: unload-node <node_index>
+Example: unload-node 0
+
+> unload-node 256
+Error: Node index must be between 0 and 255
+
+> unload-node 5
+Error: Node 5 is not loaded in memory
+```
+
+#### Purpose
+- 메모리에서 노드 데이터 해제
+- 메모리 사용량 최적화
+- 필요시 재로드 가능
+
+#### Notes
+1. Data Persistence
+   - 파일의 데이터는 유지됨
+   - 메모리만 해제
+   - 필요시 자동 재로드
+
+2. Memory Management
+   - CoreMap 상태 업데이트
+   - Core 배열 포인터 정리
+   - 메모리 누수 방지
+
+#### Load Node
+```
+load-node <node_index>
+```
+Loads a node from the binary file into memory.
+
+Parameters:
+- node_index: Target node (0-255)
+
+Example:
+```
+> load-node 5
+Successfully loaded node 5 to Core position 3
+```
+
+Error handling:
+```
+> load-node
+Error: Missing arguments
+Usage: load-node <node_index>
+Example: load-node 0
+
+> load-node 256
+Error: Node index must be between 0 and 255
+
+> load-node 5
+Node 5 is already loaded at Core position 3
+```
+
+#### Purpose
+- 파일에서 노드 데이터 로드
+- Core 배열에 할당
+- CoreMap 상태 업데이트
+
+#### Notes
+1. Memory Management
+   - CoreSize 확인
+   - 필요시 다른 노드 언로드
+   - 메모리 효율적 사용
+
+2. Data Loading
+   - 파일에서 데이터 읽기
+   - 메모리 할당
+   - 상태 정보 갱신
+
+### Print CoreMap Status
+```
+print-coremap [node_index]
+```
+Displays the current status of CoreMap. If a node index is provided, shows information for that specific node. Otherwise, shows all loaded nodes.
+
+Parameters:
+- node_index: (optional) Target node (0-255)
+
+Example:
+```
+> print-coremap
+CoreMap Status:
+Total Loaded Nodes: 3
+
+Node     Core Position   Is Loaded      File Offset
+--------------------------------------------------------
+0        0              Yes            0x00000000
+5        1              Yes            0x00000050
+10       2              Yes            0x000000A0
+
+> print-coremap 5
+CoreMap Status for Node 5:
+Node     Core Position   Is Loaded      File Offset
+--------------------------------------------------------
+5        1              Yes            0x00000050
+```
+
+Error handling:
+```
+> print-coremap 256
+Error: Node index must be between 0 and 255
+
+> print-coremap abc
+Error: Invalid arguments
+Usage: print-coremap <node_index>
+Example: print-coremap 0
+```
+
+#### Purpose
+- CoreMap 상태 모니터링
+- 특정 노드 정보 조회
+- 메모리 사용 현황 파악
+
+#### Notes
+1. Display Information
+   - Node index
+   - Position in Core array
+   - Load status
+   - File offset in data.bin
+
+2. View Options
+   - No argument: Show all loaded nodes
+   - Node index: Show specific node info
+
+### Check Core Size
+```
+check-core-size
+```
+Shows current Core memory usage statistics and capacity information.
+
+Example:
+```
+> check-core-size
+Core Memory Status:
+Current Core Size: 3
+Maximum Core Size: 16
+Available Slots: 13
+Memory Utilization: 18.8%
+```
+
+#### Purpose
+- Core 메모리 사용량 모니터링
+- 가용 슬롯 확인
+- 메모리 활용도 분석
+
+#### Notes
+1. Display Information
+   - Current Core Size: 현재 로드된 노드 수
+   - Maximum Core Size: 최대 로드 가능 노드 수
+   - Available Slots: 남은 슬롯 수
+   - Memory Utilization: 메모리 사용률
+
+2. Usage Monitoring
+   - 메모리 부족 예방
+   - 로드 가능 여부 확인
+   - 최적화 필요성 판단
+
 ## Error Handling
 
 ### Missing Arguments

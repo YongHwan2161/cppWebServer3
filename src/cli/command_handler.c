@@ -6,6 +6,8 @@
 #include "../tests/link_tests.h"
 #include "../tests/channel_tests.h"
 #include "../Graph_structure/node.h"
+#include "../map.h"
+#include "../memory.h"
 #include "command_handler.h"
 #include "test_command_handler.h"
 #include <stdio.h>
@@ -270,15 +272,14 @@ int handle_print_node(char* args) {
         print_argument_error("print-node", "<node_index>", false);
         return CMD_ERROR;
     }
-    
-    // Validate input
-    if (node_index < 0 || node_index >= 256) {
-        printf("Error: Node index must be between 0 and 255\n");
+    if (!CoreMap[node_index].is_loaded) {
+        printf("Error: Node %d is not loaded in memory\n", node_index);
         return CMD_ERROR;
     }
-    
+    uint node_position = get_node_position(node_index);
+    printf("Node %d is at Core position %d\n", node_index, node_position);
     // Check if node exists
-    if (!Core[node_index]) {
+    if (!Core[node_position]) {
         printf("Error: Node %d does not exist\n", node_index);
         return CMD_ERROR;
     }
@@ -287,7 +288,8 @@ int handle_print_node(char* args) {
     printf("Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII\n");
     printf("--------  -----------------------------------------------    ----------------\n");
     
-    ushort node_size = 1 << (*(ushort*)Core[node_index]);
+    ushort node_size = 1 << (*(ushort*)Core[node_position]);
+    printf("node_size: %d\n", node_size);
     for (int i = 0; i < node_size; i += 16) {
         // Print offset
         printf("%08X  ", i);
@@ -295,7 +297,7 @@ int handle_print_node(char* args) {
         // Print hex values
         for (int j = 0; j < 16; j++) {
             if (i + j < node_size) {
-                printf("%02X ", Core[node_index][i + j]);
+                printf("%02X ", Core[node_position][i + j]);
             } else {
                 printf("   ");
             }
@@ -311,31 +313,31 @@ int handle_print_node(char* args) {
     }
     // Print node metadata
     printf("\nNode %d Information:\n", node_index);
-    printf("Size: %d bytes\n", 1 << (*(ushort*)Core[node_index]));
-    printf("Actual Size: %d bytes\n", *(uint*)(Core[node_index] + 2));
+    printf("Size: %d bytes\n", 1 << (*(ushort*)Core[node_position]));
+    printf("Actual Size: %d bytes\n", *(uint*)(Core[node_position] + 2));
     printf("Core Position: %d\n", CoreMap[node_index].core_position);
     printf("File Offset: 0x%08lX\n", CoreMap[node_index].file_offset);
     printf("Load Status: %s\n", CoreMap[node_index].is_loaded ? "Loaded" : "Not loaded");
     
     // Get channel count
-    ushort channel_count = get_channel_count(Core[node_index]);
+    ushort channel_count = get_channel_count(Core[node_position]);
     printf("\nChannel Count: %d\n", channel_count);
-    
+
     // Print channel information
     for (int ch = 0; ch < channel_count; ch++) {
-        uint channel_offset = get_channel_offset(Core[node_index], ch);
+        uint channel_offset = get_channel_offset(Core[node_position], ch);
         printf("\nChannel %d (offset: 0x%04X):\n", ch, channel_offset);
         
         // Get axis count for this channel
-        ushort axis_count = *(ushort*)(Core[node_index] + channel_offset);
+        ushort axis_count = *(ushort*)(Core[node_position] + channel_offset);
         printf("  Axis Count: %d\n", axis_count);
         
         // Print axis information
         for (int i = 0; i < axis_count; i++) {
             // Get axis entry
             int axis_entry_offset = channel_offset + 2 + (i * 6);
-            ushort axis_number = *(ushort*)(Core[node_index] + axis_entry_offset);
-            uint axis_offset = *(uint*)(Core[node_index] + axis_entry_offset + 2);
+            ushort axis_number = *(ushort*)(Core[node_position] + axis_entry_offset);
+            uint axis_offset = *(uint*)(Core[node_position] + axis_entry_offset + 2);
             
             // Get axis type label
             const char* axis_type = "";
@@ -348,18 +350,18 @@ int handle_print_node(char* args) {
             printf("  Axis %d %s (offset: 0x%04X):\n", axis_number, axis_type, axis_offset);
             
             // Get link count for this axis
-            ushort link_count = *(ushort*)(Core[node_index] + channel_offset + axis_offset);
+            ushort link_count = *(ushort*)(Core[node_position] + channel_offset + axis_offset);
             printf("    Link Count: %d\n", link_count);
             
             // Print link information
             for (int j = 0; j < link_count; j++) {
                 int link_offset = channel_offset + axis_offset + 2 + (j * 6);
-                if (link_offset >= 1 << (*(ushort*)Core[node_index])) {
-                    printf("    error: link offset %d is greater than node size %d\n", link_offset, 1 << (*(ushort*)Core[node_index]));
+                if (link_offset >= 1 << (*(ushort*)Core[node_position])) {
+                    printf("    error: link offset %d is greater than node size %d\n", link_offset, 1 << (*(ushort*)Core[node_position]));
                     break;
                 }
-                uint dest_node = *(uint*)(Core[node_index] + link_offset);
-                ushort dest_channel = *(ushort*)(Core[node_index] + link_offset + 4);
+                uint dest_node = *(uint*)(Core[node_position] + link_offset);
+                ushort dest_channel = *(ushort*)(Core[node_position] + link_offset + 4);
                 printf("    Link %d: Node %d, Channel %d\n", 
                        j, dest_node, dest_channel);
             }
@@ -491,6 +493,148 @@ int handle_get_channel_offset(char* args) {
     return CMD_SUCCESS;
 }
 
+int handle_get_node_position(char* args) {
+    int node_index;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d", &node_index);
+    if (parsed != 1) {
+        print_argument_error("get-node-position", "<node_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Get node position
+    int position = get_node_position(node_index);
+    if (position >= 0) {
+        printf("Node %d is at Core position %d\n", node_index, position);
+        printf("Memory address: %p\n", (void*)Core[position]);
+        return CMD_SUCCESS;
+    }
+    
+    return CMD_ERROR;
+}
+
+int handle_unload_node(char* args) {
+    int node_index;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d", &node_index);
+    if (parsed != 1) {
+        print_argument_error("unload-node", "<node_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: Node index must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+    
+    // Unload the node
+    if (unload_node_data(node_index)) {
+        printf("Successfully unloaded node %d from memory\n", node_index);
+        return CMD_SUCCESS;
+    }
+    
+    return CMD_ERROR;
+}
+
+int handle_load_node(char* args) {
+    int node_index;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d", &node_index);
+    if (parsed != 1) {
+        print_argument_error("load-node", "<node_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (node_index < 0) {
+        printf("Error: Node index must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+    
+    // Check if already loaded
+    if (CoreMap[node_index].is_loaded) {
+        printf("Node %d is already loaded at Core position %d\n", 
+               node_index, CoreMap[node_index].core_position);
+        return CMD_ERROR;
+    }
+    
+    // Load the node
+    int position = load_node_to_core(node_index);
+    if (position >= 0) {
+        printf("Successfully loaded node %d to Core position %d\n", 
+               node_index, position);
+        return CMD_SUCCESS;
+    }
+    
+    printf("Failed to load node %d\n", node_index);
+    return CMD_ERROR;
+}
+
+int handle_print_coremap(char* args) {
+    int node_index = -1;
+    
+    if (args) {
+        // Parse node index
+        if (sscanf(args, "%d", &node_index) != 1) {
+            print_argument_error("print-coremap", "<node_index>", false);
+            return CMD_ERROR;
+        }
+        
+        // Validate node index
+        if (node_index < 0 ) {
+            printf("Error: Node index must be between 0 and 255\n");
+            return CMD_ERROR;
+        }
+        
+        // Print single node info
+        printf("\nCoreMap Status for Node %d:\n", node_index);
+        printf("%-8s %-15s %-15s %-15s\n", 
+               "Node", "Core Position", "Is Loaded", "File Offset");
+        printf("--------------------------------------------------------\n");
+        printf("%-8d %-15d %-15s 0x%08lX\n", 
+               node_index,
+               CoreMap[node_index].core_position,
+               CoreMap[node_index].is_loaded ? "Yes" : "No",
+               CoreMap[node_index].file_offset);
+    } else {
+        // Print summary of loaded nodes
+        printf("\nCoreMap Status:\n");
+        printf("Total Loaded Nodes: %d\n\n", CoreSize);
+        printf("%-8s %-15s %-15s %-15s\n", 
+               "Node", "Core Position", "Is Loaded", "File Offset");
+        printf("--------------------------------------------------------\n");
+        
+        for (int i = 0; i < 256; i++) {
+            if (CoreMap[i].is_loaded) {
+                printf("%-8d %-15d %-15s 0x%08lX\n", 
+                       i,
+                       CoreMap[i].core_position,
+                       "Yes",
+                       CoreMap[i].file_offset);
+            }
+        }
+    }
+    printf("\n");
+    return CMD_SUCCESS;
+}
+
+int handle_check_core_size() {
+    printf("\nCore Memory Status:\n");
+    printf("Current Core Size: %d\n", CoreSize);
+    printf("Maximum Core Size: %d\n", MaxCoreSize);
+    printf("Available Slots: %d\n", MaxCoreSize - CoreSize);
+    
+    // Show utilization percentage
+    float utilization = ((float)CoreSize / MaxCoreSize) * 100;
+    printf("Memory Utilization: %.1f%%\n\n", utilization);
+    
+    return CMD_SUCCESS;
+}
+
 void print_help() {
     printf("\nAvailable commands:\n");
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
@@ -515,6 +659,11 @@ void print_help() {
     printf("  test-channel-creation <node>         Test sequential channel creation\n");
     printf("  clear-channel <node> <channel>        Clear all data in a channel\n");
     printf("  get-channel-offset <node> <channel>    Get channel offset\n");
+    printf("  get-node-position <node>             Get node's position in Core array\n");
+    printf("  unload-node <node>                  Unload node from memory\n");
+    printf("  load-node <node>                    Load node into memory\n");
+    printf("  print-coremap [node_index]          Print CoreMap status (with optional node index)\n");
+    printf("  check-core-size                    Show Core memory usage statistics\n");
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
     printf("\nAxis types:\n");
@@ -596,6 +745,21 @@ int handle_command(char* command) {
         else if (strcmp(cmd, "get-channel-offset") == 0) {
             print_argument_error(cmd, "<node_index> <channel_index>", true);
         }
+        else if (strcmp(cmd, "get-node-position") == 0) {
+            print_argument_error(cmd, "<node_index>", true);
+        }
+        else if (strcmp(cmd, "unload-node") == 0) {
+            print_argument_error(cmd, "<node_index>", true);
+        }
+        else if (strcmp(cmd, "load-node") == 0) {
+            print_argument_error(cmd, "<node_index>", true);
+        }
+        else if (strcmp(cmd, "print-coremap") == 0) {
+            return handle_print_coremap(args);
+        }
+        else if (strcmp(cmd, "check-core-size") == 0) {
+            return handle_check_core_size(args);
+        }
         else {
             printf("Unknown command. Type 'help' for available commands.\n");
         }
@@ -650,6 +814,21 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "get-channel-offset") == 0) {
         return handle_get_channel_offset(args);
+    }
+    else if (strcmp(cmd, "get-node-position") == 0) {
+        return handle_get_node_position(args);
+    }
+    else if (strcmp(cmd, "unload-node") == 0) {
+        return handle_unload_node(args);
+    }
+    else if (strcmp(cmd, "load-node") == 0) {
+        return handle_load_node(args);
+    }
+    else if (strcmp(cmd, "print-coremap") == 0) {
+        return handle_print_coremap(args);
+    }
+    else if (strcmp(cmd, "check-core-size") == 0) {
+        return handle_check_core_size(args);
     }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");
