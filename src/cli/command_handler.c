@@ -434,6 +434,63 @@ int handle_create_channel(char* args) {
     }
 }
 
+int handle_clear_channel(char* args) {
+    int node_index, channel_index;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d %d", &node_index, &channel_index);
+    if (parsed != 2) {
+        print_argument_error("clear-channel", "<node_index> <channel_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (!validate_node(node_index)) {
+        printf("Error: Node %d does not exist\n", node_index);
+        return CMD_ERROR;
+    }
+    
+    // Clear the channel
+    int result = clear_channel(node_index, channel_index);
+    if (result == CHANNEL_SUCCESS) {
+        printf("Successfully cleared channel %d in node %d\n", channel_index, node_index);
+        return CMD_SUCCESS;
+    } else {
+        printf("Failed to clear channel %d in node %d\n", channel_index, node_index);
+        return CMD_ERROR;
+    }
+}
+
+int handle_get_channel_offset(char* args) {
+    int node_index, channel_index;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d %d", &node_index, &channel_index);
+    if (parsed != 2) {
+        print_argument_error("get-channel-offset", "<node_index> <channel_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: Node index must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+    
+    // Get node and check if it exists
+    if (!Core[node_index]) {
+        printf("Error: Node %d does not exist\n", node_index);
+        return CMD_ERROR;
+    }
+    
+    // Get channel offset
+    uint channel_offset = get_channel_offset(Core[node_index], channel_index);
+    printf("Channel %d offset in node %d: 0x%04X\n", 
+           channel_index, node_index, channel_offset);
+           
+    return CMD_SUCCESS;
+}
+
 void print_help() {
     printf("\nAvailable commands:\n");
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
@@ -456,6 +513,8 @@ void print_help() {
     printf("  test-create-delete-links <node> <ch> <axis>  Test link creation/deletion cycle\n");
     printf("  test-multi-channel-links <node>      Test link creation/deletion across multiple channels\n");
     printf("  test-channel-creation <node>         Test sequential channel creation\n");
+    printf("  clear-channel <node> <channel>        Clear all data in a channel\n");
+    printf("  get-channel-offset <node> <channel>    Get channel offset\n");
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
     printf("\nAxis types:\n");
@@ -531,6 +590,12 @@ int handle_command(char* command) {
         else if (strcmp(cmd, "test-axis-create-delete") == 0) {
             print_argument_error(cmd, "<node_index> <channel_index> <max_axis>", true);
         }
+        else if (strcmp(cmd, "clear-channel") == 0) {
+            print_argument_error(cmd, "<node_index> <channel_index>", true);
+        }
+        else if (strcmp(cmd, "get-channel-offset") == 0) {
+            print_argument_error(cmd, "<node_index> <channel_index>", true);
+        }
         else {
             printf("Unknown command. Type 'help' for available commands.\n");
         }
@@ -579,6 +644,12 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "test-channel-creation") == 0) {
         return handle_test_channel_creation(args);
+    }
+    else if (strcmp(cmd, "clear-channel") == 0) {
+        return handle_clear_channel(args);
+    }
+    else if (strcmp(cmd, "get-channel-offset") == 0) {
+        return handle_get_channel_offset(args);
     }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");

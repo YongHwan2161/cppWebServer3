@@ -19,6 +19,7 @@ uint get_axis_index(uchar* node, ushort channel_index, ushort axis_number) {
             return i;
         }
     }
+    return 0;
 }
 uint get_axis_offset_by_index(uchar* node, ushort channel_index, ushort axis_index) {
     uint channel_offset = get_channel_offset(node, channel_index);
@@ -86,15 +87,15 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
     
     if (required_size > current_node_size) {
         uint new_size;
-        node = resize_node_space(node, required_size, node_index, &new_size);
-        if (!node) {
+        uchar* new_node = resize_node_space(node, required_size, node_index, &new_size);
+        if (!new_node) {
             printf("Error: Failed to resize node\n");
             return AXIS_ERROR;
         }
-        Core[node_index] = node;
+        Core[node_index] = new_node;
         // channel_offset remains the same, no need to recalculate
     }
-    
+    node = Core[node_index];
     // Get current axis count
     ushort current_count = *(ushort*)(node + channel_offset);
     uint insert_pos = channel_offset + 2 + (current_count * 6);

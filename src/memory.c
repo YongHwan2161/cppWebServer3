@@ -1,4 +1,6 @@
 #include "memory.h"
+#include "Graph_structure/node.h"
+#include "../CGDB.h"
 
 static inline void move_data_forward(unsigned char* dest, unsigned int pos, 
                                    unsigned int size, unsigned int move_size) {
@@ -97,6 +99,33 @@ int insert_link(unsigned char* dest, unsigned int insert_pos,
     } __attribute__((packed)) link_data = {node_index, channel_index};
     
     memcpy(dest + insert_pos, &link_data, sizeof(link_data));
+    
+    return 1;
+}
+
+int unload_node_data(uint node_index) {
+    // Validate node index
+    if (node_index >= 256) {
+        printf("Error: Invalid node index %d\n", node_index);
+        return 0;
+    }
+    
+    // Check if node is loaded
+    if (!Core[node_index] || !CoreMap[node_index].is_loaded) {
+        printf("Error: Node %d is not loaded\n", node_index);
+        return 0;
+    }
+    
+    // Free the node memory
+    free(Core[node_index]);
+    Core[node_index] = NULL;
+    
+    // Update CoreMap
+    CoreMap[node_index].is_loaded = 0;
+    CoreMap[node_index].core_position = -1;
+    
+    // Decrement core size
+    CoreSize--;
     
     return 1;
 } 

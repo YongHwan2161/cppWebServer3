@@ -12,6 +12,7 @@ int create_link(uint source_node, ushort source_ch,
     
     uchar* node = Core[source_node];
     uint channel_offset = get_channel_offset(node, source_ch);
+    printf("channel_offset: %d\n", channel_offset);
     uint axis_offset = get_axis_offset(node, source_ch, axis_number);
 
     uint current_actual_size = *(uint*)(node + 2);
@@ -22,6 +23,7 @@ int create_link(uint source_node, ushort source_ch,
         printf("Error: Failed to resize node\n");
         return LINK_ERROR;
     }
+    node = Core[source_node];
     
     ushort channel_count = get_channel_count(node);  // Get channel count
     ushort* current_link_count = (ushort*)(node + channel_offset + axis_offset);

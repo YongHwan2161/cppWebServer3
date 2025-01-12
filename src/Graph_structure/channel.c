@@ -16,7 +16,16 @@ uint get_channel_offset(uchar* node, ushort channel_index) {
     }
     return *(uint*)(node + 8 + (channel_index * 4));  // 8: size_power(2) + actual_size(4) + channels(2)
 }
-
+uint get_channel_end_offset(uchar* node, ushort channel_index) {
+    ushort channel_count = get_channel_count(node);
+    if (channel_index + 1 < channel_count) {
+        uint next_channel_offset = get_channel_offset(node, channel_index + 1);
+        return next_channel_offset;
+    } else if (channel_index == channel_count - 1) {
+        return *(uint*)(node + 2);
+    }
+    return 0; // This should never happen
+}
 int create_channel(uint node_index) {
     uchar* node = Core[node_index];
     // Get current actual size and calculate required size
@@ -52,5 +61,35 @@ int create_channel(uint node_index) {
         printf("Error: Failed to update data.bin\n");
         return CHANNEL_ERROR;
     }
+    return CHANNEL_SUCCESS;
+}
+int clear_channel(uint node_index, ushort channel_index) {
+    uchar* node = Core[node_index];
+    uint channel_offset = get_channel_offset(node, channel_index);
+    uint channel_end_offset = get_channel_end_offset(node, channel_index);
+    uint move_dest = channel_end_offset + 2;
+    uint actual_size = *(uint*)(node + 2);
+    uint move_size = actual_size - channel_end_offset;
+    memmove(node + move_dest, node + channel_end_offset, move_size);
+
+    // Update actual size
+    *(uint*)(node + 2) = actual_size - (channel_end_offset - channel_offset);
+    *(ushort*)(node + channel_offset) = 0;
+
+    // Update channel offsets
+    ushort channel_count = get_channel_count(node);
+    uint delete_size = channel_end_offset - channel_offset - 2;
+    printf("delete_size: %d\n", delete_size);
+    printf("channel_end_offset: %d\n", channel_end_offset);
+    printf("channel_offset: %d\n", channel_offset);
+    for (ushort i = channel_index + 1; i < channel_count; i++) {
+        *(uint*)(node + 8 + (i * 4)) -= delete_size;
+    }
+
+    if (!save_node_to_file(node_index)) {
+        printf("Error: Failed to update data.bin\n");
+        return CHANNEL_ERROR;
+    }
+
     return CHANNEL_SUCCESS;
 }

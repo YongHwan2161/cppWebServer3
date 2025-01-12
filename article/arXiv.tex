@@ -1,0 +1,232 @@
+% !TEX TS-program = xelatex
+
+% This is the LaTeX template
+% for "Constructions", a very simple
+% modification of the standard 
+% LaTeX article class. The 
+% main.tex file of this template
+% as well as localstuff.tex
+% can be used without attribution
+% under the public domain CC-0 license.
+% The bibliography style unified.bst
+% is used under the LaTeX Project 
+% Public License v1.3c.
+
+% Note that the file has to be compiled
+% in XeLaTeX! If you work in Overleaf,
+% XeLaTeX should already be selected 
+% (you can check this by taking a look at
+% Menu > Compiler). Some LaTeX editors
+% will also recognize the correct
+% compiler automatically because of
+% the "magic command" at the beginning
+% of this script.
+
+% to keep the present file readable,
+% packages & commands have been relocated
+% to localstuff.tex:
+\input{localstuff}
+
+
+% For the **running head**, please enter a 
+% short title of the paper as well as 
+% the name/s of the author/s here (for
+% papers with more than 2 authors,
+% use First Author et al.). The full
+% title and the full list of authors and
+% affiliations is to be entered below (see
+% "Insert title and author/s").
+
+\fancyhead[LO]{Author Name}
+\fancyhead[RE]{Channel Graph Theory}
+\fancyhead[RO, LE]{\thepage}
+
+% Please enter the corresponding author(s) here:
+\newcommand{\correspondingauthor}[1]{Author Name, Your University, your.email@university.edu}
+
+
+% if you want to customize the
+% hyphenation of individual words,
+% you can do so here. This can be
+% particularly helpful if you get
+% the notorious "overfull hbox"
+% error.
+
+\hyphenation{
+    hy-phe-na-tion
+    num-bered
+}
+
+
+\raggedbottom
+\begin{document}
+
+
+% make sure that first page doesn't
+% have running heads:
+\thispagestyle{plain}
+
+% first page header:
+% DOI and Creative Commons license
+\newcolumntype{Y}{>{\raggedleft\arraybackslash}X}
+
+\noindent
+\begin{tabularx}{\textwidth}{XY}
+\multirow{2}{*}{\doclicenseImage[imagewidth=0.5\linewidth]} & \small{\textit{Constructions} \volume \  (\the\year)} \\
+& \small{doi{10.24338/cons-xxx}} \\
+\end{tabularx}
+
+\vspace{30pt}
+\begin{center}
+    \LARGE\headingfont{\textbf{Channel Graph Theory: A Novel Approach to Graph-Based Database Management}}
+\end{center}
+
+\begin{center}
+\vspace{4pt}
+\large
+    Author Name\textsuperscript{1}
+    
+\small
+   \textsuperscript{1} Your University
+
+\end{center}
+
+
+
+\begin{small}
+\begin{center}
+\vspace{9pt}
+\textbf{Abstract}    
+\end{center}
+
+\begin{adjustwidth}{20pt}{20pt}
+\small \noindent 
+This paper introduces Channel Graph Theory, a novel approach to graph database management that introduces the concept of channels as independent connection pathways within nodes. We present a theoretical framework and practical implementation of a graph database system where nodes can maintain multiple independent sets of connections through distinct channels. The system incorporates axis-based link management, allowing for structured relationship categorization and efficient memory management. We demonstrate the effectiveness of this approach through a detailed analysis of its memory layout, data persistence strategies, and operational characteristics.
+\end{adjustwidth}
+
+
+\end{small}
+
+
+
+
+\vspace{10pt}
+\section{Introduction}\label{Sec:Introduction}
+Graph databases have become increasingly important in managing complex interconnected data structures. Traditional graph databases typically represent relationships through direct edges between nodes. However, this approach can become limiting when dealing with multiple independent connection patterns between the same nodes. We present Channel Graph Theory, which introduces an additional layer of abstraction through the concept of channels, allowing nodes to maintain multiple independent sets of connections.
+
+\section{Channel Graph Theory}\label{Sec:Theory}
+\subsection{Core Concepts}
+Channel Graph Theory is built upon three fundamental concepts:
+\begin{itemize}
+    \item \textbf{Nodes}: Basic units of data storage, each with a unique index (0-255)
+    \item \textbf{Channels}: Independent connection pathways within nodes, allowing multiple relationship sets
+    \item \textbf{Axes}: Connection properties that define the nature of links between channels
+\end{itemize}
+
+\subsection{Database Structure}
+The system maintains data through two critical files:
+\begin{itemize}
+    \item data.bin: Contains actual node data with structured memory layout
+    \item map.bin: Stores node mapping information and file offsets
+\end{itemize}
+
+\section{Memory Management}\label{Sec:Memory}
+\subsection{Node Structure}
+Each node follows a structured memory layout:
+\begin{itemize}
+    \item Allocated Size Power (2 bytes): Size expressed as a power of 2
+    \item Actual Used Size (4 bytes): Current data utilization
+    \item Channel Count (2 bytes): Number of active channels
+    \item Channel Offsets Table: Array of 4-byte offsets per channel
+\end{itemize}
+
+\subsection{Free Space Management}
+The system implements a sophisticated free space management system:
+\begin{equation}
+    FreeBlock = \{size: uint, offset: long\}
+\end{equation}
+
+This structure enables efficient space reuse and minimizes fragmentation through:
+\begin{itemize}
+    \item Power-of-2 sizing strategy
+    \item Free block tracking and reuse
+    \item Dynamic space allocation
+\end{itemize}
+
+\section{Link Management}\label{Sec:Links}
+\subsection{Axis-Based Connection System}
+The system defines three primary axis types:
+\begin{itemize}
+    \item Forward Links (Axis 0): Primary connection direction
+    \item Backward Links (Axis 1): Reverse connection tracking
+    \item Time-based Links (Axis 3): Temporal relationship management
+\end{itemize}
+
+\subsection{Link Data Structure}
+Each link entry uses a compact 6-byte structure:
+\begin{itemize}
+    \item Node Index (4 bytes): Target node identifier
+    \item Channel Index (2 bytes): Target channel identifier
+\end{itemize}
+
+\section{Core Memory Management}\label{Sec:CoreMemory}
+The system utilizes a CoreMap structure for efficient node management:
+\begin{equation}
+    CoreMap = \{core\_position: int, is\_loaded: int, file\_offset: long\}
+\end{equation}
+
+This enables:
+\begin{itemize}
+    \item Dynamic node loading/unloading
+    \item Efficient memory utilization
+    \item Quick node access and modification
+\end{itemize}
+
+\section{Performance Analysis}\label{Sec:Performance}
+\subsection{Memory Efficiency}
+Our implementation achieves significant efficiency through:
+\begin{itemize}
+    \item Optimized node structure
+    \item Efficient free space management
+    \item Minimal memory overhead
+\end{itemize}
+
+\subsection{Operation Complexity}
+Key operations demonstrate optimal complexity:
+\begin{itemize}
+    \item Node Creation: O(1)
+    \item Link Creation: O(log n)
+    \item Channel Addition: O(1)
+    \item Axis Management: O(1)
+\end{itemize}
+
+\section{Use Cases}\label{Sec:UseCases}
+The system excels in scenarios requiring:
+\begin{itemize}
+    \item Multiple independent relationship sets
+    \item Temporal relationship tracking
+    \item Bidirectional relationship management
+    \item Complex graph traversal patterns
+\end{itemize}
+
+\section{Future Work}\label{Sec:Future}
+Future research directions include:
+\begin{itemize}
+    \item Distributed system implementation
+    \item Advanced caching strategies
+    \item Compression techniques
+    \item Query optimization frameworks
+\end{itemize}
+
+\section{Conclusion}\label{Sec:Conclusion}
+Channel Graph Theory provides a novel approach to graph database management that addresses the limitations of traditional systems. Through its channel-based architecture and axis-based link management, it offers both theoretical elegance and practical efficiency. The implementation demonstrates the viability of this approach, while performance analysis confirms its effectiveness in real-world scenarios.
+
+\section*{Conflict of interest statement}
+The authors declare no competing interests.
+
+\section*{Data availability statement}
+The implementation code and test data are available at [GitHub Repository URL].
+
+\bibliography{bibliography}
+
+\end{document}

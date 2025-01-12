@@ -449,3 +449,92 @@ Offset    Content          Description
    - 구조체를 통한 단일 연산
    - 인라인 함수 활용
    - 최소 메모리 접근 
+
+## Node Data Management
+
+### Node Unloading
+```c
+int unload_node_data(uint node_index);
+```
+
+#### Purpose
+메모리에서 자주 사용되지 않는 노드 데이터를 해제합니다. 데이터는 binary file에 저장되어 있으므로, 필요할 때 다시 로드할 수 있습니다.
+
+#### Parameters
+- node_index: 언로드할 노드의 인덱스 (0-255)
+
+#### Returns
+- 1: 성공
+- 0: 실패 (잘못된 인덱스 또는 이미 언로드됨)
+
+#### Process
+1. 유효성 검사
+   - 노드 인덱스 범위 확인 (0-255)
+   - 노드가 메모리에 로드되어 있는지 확인
+
+2. 메모리 해제
+   - Core[node_index]의 메모리 해제
+   - Core[node_index]를 NULL로 설정
+
+3. CoreMap 업데이트
+   - is_loaded 플래그를 0으로 설정
+   - core_position을 -1로 설정
+   - CoreSize 감소
+
+#### Usage Example
+```c
+// Unload node 5 from memory
+if (unload_node_data(5)) {
+    printf("Successfully unloaded node 5\n");
+} else {
+    printf("Failed to unload node 5\n");
+}
+```
+
+#### Error Cases
+1. 잘못된 노드 인덱스
+   ```c
+   if (unload_node_data(256)) {  // Invalid index
+       // This will fail
+   }
+   ```
+
+2. 이미 언로드된 노드
+   ```c
+   unload_node_data(5);  // First unload
+   if (unload_node_data(5)) {  // Second unload
+       // This will fail
+   }
+   ```
+
+### Memory Management Strategy
+
+#### Unload Criteria
+노드 언로드 결정 시 고려사항:
+1. 사용 빈도
+   - 최근 접근 시간
+   - 접근 횟수
+
+2. 메모리 압박
+   - 전체 로드된 노드 수
+   - 사용 가능한 메모리
+
+3. 데이터 상태
+   - 수정된 데이터 여부
+   - 저장 필요성
+
+#### Implementation Notes
+1. 메모리 관리
+   - 포인터 정리
+   - 메모리 누수 방지
+   - NULL 체크
+
+2. CoreMap 동기화
+   - 상태 플래그 업데이트
+   - 위치 정보 관리
+   - 일관성 유지
+
+3. 에러 처리
+   - 잘못된 인덱스
+   - 이중 해제 방지
+   - 상태 검증 

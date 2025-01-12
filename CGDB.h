@@ -27,7 +27,6 @@ extern const char* MAP_FILE;
 // Add new function declarations
 int get_core_position(int node_index);
 int load_node_to_core(int node_index);
-void unload_node_from_core(int node_index);
 
 // Existing function declarations
 void create_new_node(int index);

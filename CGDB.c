@@ -2,7 +2,7 @@
 #include "src/init.h"
 #include "src/database.h"
 #include "src/free_space.h"
-#include "src/axis.h"
+#include "src/Graph_structure/axis.h"
 #include "src/cli/command_handler.h"
 #include <sys/stat.h>
 #include <string.h>
@@ -46,30 +46,6 @@ int load_node_to_core(int node_index) {
     CoreSize++;
     fclose(data_file);
     return CoreMap[node_index].core_position;
-}
-
-void unload_node_from_core(int node_index) {
-    int pos = CoreMap[node_index].core_position;
-    if (pos < 0 || !CoreMap[node_index].is_loaded) return;
-    
-    // Free the node memory
-    free(Core[pos]);
-    
-    // Shift remaining nodes
-    for (int i = pos; i < CoreSize - 1; i++) {
-        Core[i] = Core[i + 1];
-    }
-    
-    // Update mapping for shifted nodes
-    for (int i = 0; i < 256; i++) {
-        if (CoreMap[i].core_position > pos) {
-            CoreMap[i].core_position--;
-        }
-    }
-    
-    CoreMap[node_index].core_position = -1;
-    CoreMap[node_index].is_loaded = 0;
-    CoreSize--;
 }
 
 int main() {

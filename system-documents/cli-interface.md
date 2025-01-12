@@ -569,6 +569,52 @@ Example: test-channel-creation 0
 Error: Node index must be between 0 and 255
 ```
 
+### Channel Management Commands
+
+#### Clear Channel
+```
+clear-channel <node_index> <channel_index>
+```
+
+Clears all data in a specified channel, resetting it to initial state.
+
+Parameters:
+- node_index: Target node (0-255)
+- channel_index: Target channel in the node
+
+Process:
+1. Removes all axes and links
+2. Resets channel to empty state
+3. Updates node size and offsets
+4. Preserves channel structure
+
+Example:
+```shell
+> clear-channel 0 1
+Successfully cleared channel 1 in node 0
+```
+
+Error Cases:
+```shell
+> clear-channel
+Error: Missing arguments
+Usage: clear-channel <node_index> <channel_index>
+Example: clear-channel 0 1
+
+> clear-channel 256 0
+Error: Node index must be between 0 and 255
+
+> clear-channel 0 1
+Failed to clear channel 1 in node 0
+```
+
+The command will:
+1. Validate input parameters
+2. Check node and channel existence
+3. Clear all channel data
+4. Update file storage
+5. Report operation result
+
 ## Error Handling
 
 ### Missing Arguments

@@ -1,6 +1,6 @@
 #include "database.h"
 #include "init.h"
-#include "node.h"
+#include "Graph_structure/node.h"
 #include <string.h>
 
 #ifdef _WIN32

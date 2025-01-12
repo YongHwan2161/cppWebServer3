@@ -344,4 +344,133 @@ Channel creation test completed with 3 failures
    - 카운트 불일치
    - 오프셋 오류
 
+## Channel Operations
+
+### Channel Clearing
+```c
+int clear_channel(uint node_index, ushort channel_index);
+```
+
+#### Purpose
+채널의 모든 데이터를 제거하고 초기 상태로 되돌립니다.
+
+#### Process
+1. 오프셋 계산
+   ```c
+   uint channel_offset = get_channel_offset(node, channel_index);
+   uint channel_end_offset = get_channel_end_offset(node, channel_index);
+   ```
+   - 현재 채널의 시작과 끝 위치 확인
+   - 채널 데이터 크기 계산
+
+2. 데이터 이동
+   ```c
+   uint move_dest = channel_end_offset + 2;
+   uint move_size = actual_size - channel_end_offset;
+   memmove(node + move_dest, node + channel_end_offset, move_size);
+   ```
+   - 다음 채널의 데이터를 앞으로 이동
+   - 채널 간 간격 유지
+   - 메모리 정렬 보장
+
+3. 크기 업데이트
+   ```c
+   *(uint*)(node + 2) = actual_size - (channel_end_offset - channel_offset);
+   *(ushort*)(node + channel_offset) = 0;
+   ```
+   - 노드의 실제 크기 감소
+   - 채널의 axis count 초기화
+
+4. 오프셋 조정
+   ```c
+   for (ushort i = channel_index + 1; i < channel_count; i++) {
+       *(uint*)(node + 8 + (i * 4)) -= delete_size;
+   }
+   ```
+   - 후속 채널들의 오프셋 업데이트
+   - 삭제된 공간만큼 감소
+   - 채널 데이터 일관성 유지
+
+#### Return Values
+- CHANNEL_SUCCESS: 채널 초기화 성공
+- CHANNEL_ERROR: 채널 초기화 실패
+
+#### 주의사항
+1. 메모리 관리
+   - 데이터 이동 시 오버랩 주의
+   - 정확한 크기 계산 필요
+   - 메모리 정렬 유지
+
+2. 오프셋 관리
+   - 채널 오프셋 정확성 확인
+   - 후속 채널 오프셋 업데이트
+   - 데이터 일관성 유지
+
+3. 에러 처리
+   - 파일 저장 실패 감지
+   - 잘못된 채널 인덱스 검증
+   - 메모리 접근 오류 방지
+
+#### 사용 예시
+```c
+// 노드 0의 채널 1 초기화
+int result = clear_channel(0, 1);
+if (result == CHANNEL_SUCCESS) {
+    printf("Channel cleared successfully\n");
+} else {
+    printf("Failed to clear channel\n");
+}
+```
+
+### Command Line Interface
+
+#### Clear Channel Command
+```shell
+clear-channel <node_index> <channel_index>
+```
+
+##### 기능
+- 지정된 채널의 모든 데이터 제거
+- 채널 구조 유지
+- 메모리 재구성
+- 파일 동기화
+
+##### 사용법
+```shell
+# 노드 0의 채널 1 초기화
+> clear-channel 0 1
+Successfully cleared channel 1 in node 0
+
+# 잘못된 노드 인덱스
+> clear-channel 256 0
+Error: Node index must be between 0 and 255
+```
+
+##### 프로세스
+1. 입력 검증
+   - 노드 인덱스 범위 확인
+   - 채널 존재 여부 확인
+   - 매개변수 유효성 검사
+
+2. 채널 초기화
+   - 모든 데이터 제거
+   - axis count 0으로 설정
+   - 메모리 재구성
+
+3. 파일 동기화
+   - 변경사항 저장
+   - 오프셋 업데이트
+   - 에러 처리
+
+##### 주의사항
+1. 데이터 손실
+   - 작업 취소 불가
+   - 모든 데이터 영구 삭제
+   - 신중한 사용 필요
+
+2. 메모리 관리
+   - 정확한 크기 계산
+   - 오프셋 재조정
+   - 메모리 정렬 유지
+
 [Rest of the document remains the same...] 
