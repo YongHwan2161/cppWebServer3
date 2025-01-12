@@ -10,7 +10,6 @@
 
 // Function declarations
 int initialize_database(void);
-void create_new_node(int index);
 void create_DB(void);
 void save_DB(void);
 void load_DB(void);

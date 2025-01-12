@@ -624,6 +624,7 @@ int handle_print_coremap(char* args) {
 
 int handle_check_core_size() {
     printf("\nCore Memory Status:\n");
+    printf("Current Node Count: %d\n", CurrentNodeCount);
     printf("Current Core Size: %d\n", CoreSize);
     printf("Maximum Core Size: %d\n", MaxCoreSize);
     printf("Available Slots: %d\n", MaxCoreSize - CoreSize);
@@ -632,6 +633,25 @@ int handle_check_core_size() {
     float utilization = ((float)CoreSize / MaxCoreSize) * 100;
     printf("Memory Utilization: %.1f%%\n\n", utilization);
     
+    return CMD_SUCCESS;
+}
+
+int handle_create_node(char* args) {
+    // No arguments needed, but check if any were provided
+    if (args && *args != '\0') {
+        print_argument_error("create-node", "", false);
+        return CMD_ERROR;
+    }
+    
+    // Check if we've reached the maximum number of nodes
+    if (CurrentNodeCount >= MaxCoreSize) {
+        printf("Error: Maximum number of nodes (%d) reached\n", MaxCoreSize);
+        return CMD_ERROR;
+    }
+    
+    // Create new node
+    create_new_node();
+    printf("Successfully created new node at index %d\n", CurrentNodeCount - 1);
     return CMD_SUCCESS;
 }
 
@@ -664,6 +684,7 @@ void print_help() {
     printf("  load-node <node>                    Load node into memory\n");
     printf("  print-coremap [node_index]          Print CoreMap status (with optional node index)\n");
     printf("  check-core-size                    Show Core memory usage statistics\n");
+    printf("  create-node                        Create a new node\n");
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
     printf("\nAxis types:\n");
@@ -681,7 +702,8 @@ int handle_command(char* command) {
     // Common argument validation
     if (strcmp(cmd, "help") == 0 || strcmp(cmd, "exit") == 0 || 
         strcmp(cmd, "print-free-space") == 0 || strcmp(cmd, "run-tests") == 0 ||
-        strcmp(cmd, "test-resize") == 0 || strcmp(cmd, "test-free-offsets") == 0) {
+        strcmp(cmd, "test-resize") == 0 || strcmp(cmd, "test-free-offsets") == 0 ||
+        strcmp(cmd, "create-node") == 0) {
         // These commands don't need arguments
         if (strcmp(cmd, "help") == 0) {
             print_help();
@@ -698,7 +720,9 @@ int handle_command(char* command) {
         }
         else if (strcmp(cmd, "test-free-offsets") == 0) {
             return handle_test_free_offsets(args);
-        }
+        }    else if (strcmp(cmd, "create-node") == 0) {
+        return handle_create_node(args);
+    }
         return CMD_EXIT;
     }
     
@@ -829,6 +853,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "check-core-size") == 0) {
         return handle_check_core_size(args);
+    }
+    else if (strcmp(cmd, "create-node") == 0) {
+        return handle_create_node(args);
     }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");

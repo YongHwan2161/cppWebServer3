@@ -96,3 +96,83 @@ The build system automatically creates:
 - Incremental builds are faster due to object file reuse
 - Clean builds create all directories and files fresh
 - Directory structure ensures proper organization 
+
+## Code Organization
+
+### Header Files
+- Header files (.h) declare interfaces
+- Source files (.c) implement interfaces
+- Never include .c files directly
+- Use include guards in headers
+
+### Include Best Practices
+1. Direct includes
+   ```c
+   // Good
+   #include "header.h"
+   
+   // Bad - never include .c files
+   #include "source.c"
+   ```
+
+2. Include Guards
+   ```c
+   // In header files
+   #ifndef HEADER_H
+   #define HEADER_H
+   
+   // Declarations here
+   
+   #endif
+   ```
+
+3. Include Order
+   - System headers first
+   - Library headers next
+   - Project headers last
+   ```c
+   #include <stdio.h>      // System
+   #include <stdlib.h>     // System
+   #include "lib/util.h"   // Library
+   #include "myheader.h"   // Project
+   ```
+
+### Common Issues
+1. Multiple Definition Errors
+   - Caused by including .c files
+   - Caused by missing include guards
+   - Fix by including only headers
+
+2. Include Cycles
+   - A includes B includes A
+   - Use forward declarations
+   - Split headers if needed
+
+3. Header Dependencies
+   - Keep minimal includes in headers
+   - Use forward declarations when possible
+   - Include implementation dependencies in .c files
+
+## Build Process
+
+### Compilation Steps
+1. Preprocessing
+   - Processes include directives
+   - Expands macros
+   - Removes comments
+
+2. Compilation
+   - Generates object files
+   - One object file per source file
+   - Independent compilation
+
+3. Linking
+   - Combines object files
+   - Resolves symbols
+   - Creates executable
+
+### Object Files
+- Generated in obj/ directory
+- Mirror source directory structure
+- Only recompiled when needed
+- Linked together for final executable 

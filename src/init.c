@@ -31,11 +31,11 @@ void init_core_mapping() {
     FILE* map_file = fopen(MAP_FILE, "rb");
     if (map_file) {
         // Skip number of nodes
-        fread(&CoreSize, sizeof(uint), 1, map_file);
+        fread(&CurrentNodeCount, sizeof(uint), 1, map_file);
         fseek(map_file, sizeof(uint), SEEK_SET);
         
         // Read all offsets
-        for (int i = 0; i < CoreSize; i++) {
+        for (uint i = 0; i < CurrentNodeCount; i++) {
             fread(&CoreMap[i].file_offset, sizeof(long), 1, map_file);
         }
         fclose(map_file);

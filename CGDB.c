@@ -11,7 +11,8 @@
 uchar** Core;
 NodeMapping* CoreMap;
 int CoreSize = 0;
-const int MaxCoreSize = 1024;  // Maximum nodes in RAM at once
+const unsigned int MaxCoreSize = 1024;  // Maximum nodes in RAM at once
+unsigned int CurrentNodeCount = 0;
 
 const char* DATA_DIR = "binary-data";
 const char* DATA_FILE = "binary-data/data.bin";

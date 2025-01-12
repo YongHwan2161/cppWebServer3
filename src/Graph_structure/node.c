@@ -3,6 +3,16 @@
 #include <stdio.h>
 #include "link.h"  // For Core array access
 
+// Initial node values
+static uchar initValues[16] = {
+    4,  0,     // allocated size power (2^4 = 16 bytes)
+    14, 0, 0, 0,  // actual used size (14 bytes initially)
+    1,  0,     // number of channels (1)
+    12, 0, 0, 0,   // offset for channel 0 (starts at byte 12)
+    0,  0,     // number of axes (0)
+    0,  0      // remaining bytes initialized to 0
+};
+
 /**
  * Validates if a node index is valid and the node exists in Core
  * 
@@ -10,12 +20,6 @@
  * @return true if valid, false if invalid
  */
 bool validate_node(unsigned int node_index) {
-    // Check if node index is within valid range (0-255)
-    if (node_index > 255) {
-        printf("Error: Node index must be between 0 and 255\n");
-        return false;
-    }
-
     // Check if node exists in Core
     if (!Core[node_index]) {
         printf("Error: Invalid node index %u\n", node_index);
@@ -97,4 +101,22 @@ bool save_node_to_file2(FILE* data_file, FILE* map_file, unsigned int index) {
     // Write the entire node data
     fwrite(node, sizeof(uchar), actual_size, data_file);
     return true;
+}
+void create_new_node() {
+    uchar* newNode = (uchar*)malloc(16 * sizeof(uchar));  // Always allocate 16 bytes initially
+    printf("Creating new node at index %d\n", CurrentNodeCount);
+    for (int i = 0; i < 16; ++i) {
+        newNode[i] = initValues[i];
+    }
+    CurrentNodeCount++;
+    Core[CurrentNodeCount - 1] = newNode;
+    CoreSize++;
+    CoreMap[CurrentNodeCount - 1].core_position = CurrentNodeCount - 1;
+    CoreMap[CurrentNodeCount - 1].is_loaded = 1;
+    uint last_node_size = 1 << (*(ushort*)Core[CurrentNodeCount - 1]);
+    printf("Last node size: %d\n", last_node_size);
+    uint file_offset = CoreMap[CurrentNodeCount - 1].file_offset + last_node_size;
+    CoreMap[CurrentNodeCount - 1].file_offset = file_offset;
+    save_node_to_file(CurrentNodeCount - 1);
+    printf("Node created at index %d\n", CurrentNodeCount - 1);
 }

@@ -18,17 +18,11 @@ typedef struct {
 extern uchar** Core;
 extern NodeMapping* CoreMap;
 extern int CoreSize;        // Current number of nodes loaded in Core
-extern const int MaxCoreSize;  // Maximum number of nodes that can be in RAM
+extern const unsigned int MaxCoreSize;  // Maximum number of nodes that can be in RAM
+extern unsigned int CurrentNodeCount;
 
 extern const char* DATA_DIR;
 extern const char* DATA_FILE;
 extern const char* MAP_FILE;
-
-// Existing function declarations
-// void create_new_node(int index);
-// void create_DB();
-// void save_DB();
-// // int check_and_init_DB();
-// void load_DB();
 
 #endif 

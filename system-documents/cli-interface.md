@@ -950,4 +950,45 @@ Test commands follow standard error handling:
 3. Consistent error messages
 4. Resource cleanup
 
+### Node Management Commands
+
+#### Create Node
+```
+create-node
+```
+Creates a new node with default initialization.
+
+Example:
+```
+> create-node
+Successfully created new node at index 5
+```
+
+Error handling:
+```
+> create-node extra_args
+Error: Invalid arguments
+Usage: create-node
+Example: create-node
+
+> create-node
+Error: Maximum number of nodes (256) reached
+```
+
+#### Purpose
+- 새로운 노드 생성
+- 기본 초기화 수행
+- 자동 인덱스 할당
+
+#### Notes
+1. Node Structure
+   - 16 bytes 초기 할당
+   - 1개의 기본 채널
+   - 빈 axis 리스트
+
+2. Memory Management
+   - Core 배열에 추가
+   - CoreMap 업데이트
+   - 파일 저장 자동화
+
 [Rest of the document remains the same...] 

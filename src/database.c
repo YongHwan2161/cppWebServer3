@@ -13,16 +13,6 @@
     #define MKDIR(dir) mkdir(dir, 0777)
 #endif
 
-// Initial node values
-static uchar initValues[16] = {
-    4,  0,     // allocated size power (2^4 = 16 bytes)
-    14, 0, 0, 0,  // actual used size (14 bytes initially)
-    1,  0,     // number of channels (1)
-    12, 0, 0, 0,   // offset for channel 0 (starts at byte 12)
-    0,  0,     // number of axes (0)
-    0,  0      // remaining bytes initialized to 0
-};
-
 int initialize_database() {
     // Check if map.bin exists
     FILE* map_file = fopen(MAP_FILE, "rb");
@@ -52,14 +42,6 @@ int initialize_database() {
     fclose(map_file);
     fclose(data_file);
     return DB_SUCCESS;
-}
-
-void create_new_node(int index) {
-    uchar* newNode = (uchar*)malloc(16 * sizeof(uchar));  // Always allocate 16 bytes initially
-    for (int i = 0; i < 16; ++i) {
-        newNode[i] = initValues[i];
-    }
-    Core[index] = newNode;
 }
 
 void create_DB() {

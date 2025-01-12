@@ -105,3 +105,69 @@ if (!save_node_to_file(node_index)) {
    // map.bin에서 노드의 offset 위치
    long map_offset = sizeof(uint) + (node_index * sizeof(long));
    ``` 
+
+### Node Creation
+
+#### Command Interface
+```shell
+create-node
+```
+
+##### 기능
+- 새로운 노드 생성
+- 기본 구조 초기화
+- 시스템 상태 업데이트
+
+##### 프로세스
+1. 초기화
+   - 16 bytes 메모리 할당
+   - 기본값으로 초기화
+   - 기본 채널 설정
+
+2. 시스템 업데이트
+   - CurrentNodeCount 증가
+   - Core 배열 업데이트
+   - CoreMap 정보 설정
+
+3. 파일 동기화
+   - 노드 데이터 저장
+   - 매핑 정보 업데이트
+   - 오프셋 계산
+
+##### 초기 구조
+```
+Offset  Content     Description
+0-1     04 00      Size Power (2^4 = 16 bytes)
+2-5     0E 00 00 00 Actual Size (14 bytes)
+6-7     01 00      Channel Count (1)
+8-11    0C 00 00 00 Channel 0 Offset (12)
+12-13   00 00      Axis Count (0)
+14-15   00 00      Reserved
+```
+
+##### 사용 예시
+```shell
+# 새 노드 생성
+> create-node
+Successfully created new node at index 5
+
+# 최대 개수 초과 시
+> create-node
+Error: Maximum number of nodes (256) reached
+```
+
+##### 주의사항
+1. 노드 제한
+   - 최대 256개 노드
+   - 인덱스 0-255
+   - 제한 초과 시 에러
+
+2. 메모리 관리
+   - 적절한 메모리 할당
+   - 리소스 정리
+   - 메모리 누수 방지
+
+3. 파일 동기화
+   - 즉시 저장
+   - 오프셋 계산
+   - 매핑 정보 유지 
