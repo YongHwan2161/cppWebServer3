@@ -19,6 +19,7 @@ extern uchar** Core;
 extern NodeMapping* CoreMap;
 extern int CoreSize;        // Current number of nodes loaded in Core
 extern const unsigned int MaxCoreSize;  // Maximum number of nodes that can be in RAM
+extern const unsigned int GarbageNodeIndex;
 extern unsigned int CurrentNodeCount;
 
 extern const char* DATA_DIR;

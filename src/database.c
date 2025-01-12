@@ -2,6 +2,7 @@
 #include "init.h"
 #include "Graph_structure/node.h"
 #include "memory.h"
+#include "Graph_structure/link.h"
 #include <string.h>
 
 #ifdef _WIN32
@@ -34,7 +35,7 @@ int initialize_database() {
     // Load initial set of nodes
     Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
 
-    for (int i = 0; i < MaxCoreSize && i < 256; i++) {
+    for (uint i = 0; i < MaxCoreSize && i < CurrentNodeCount; i++) {
         Core[i] = NULL;
         load_node_to_core(i);
     }
@@ -47,16 +48,14 @@ int initialize_database() {
 void create_DB() {
     printf("Creating new database...\n");
     Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
-    CoreMap = (NodeMapping*)malloc(256 * sizeof(NodeMapping));
+    CoreMap = (NodeMapping*)malloc(257 * sizeof(NodeMapping));
     
     // Initialize CoreMap with default values
-    for (int i = 0; i < 256; ++i) {
+    for (int i = 0; i < 257; ++i) {
         CoreMap[i].core_position = i;
         CoreMap[i].is_loaded = 1;
-        CoreMap[i].file_offset = 16 * i;  // Each node starts with 16 bytes, plus 4 bytes header
-        
-        create_new_node(i);
-        CoreSize++;
+        CoreMap[i].file_offset = 16 * i;  // Each node starts with 16 bytes, plus 4 bytes header        
+        create_new_node();
     }
 }
 
@@ -72,10 +71,10 @@ void save_DB() {
         return;
     }
     
-    uint num_nodes = 256;
+    uint num_nodes = CurrentNodeCount;
     fwrite(&num_nodes, sizeof(uint), 1, map_file);
     
-    for (int i = 0; i < 256; i++) {
+    for (uint i = 0; i < CurrentNodeCount; i++) {
         save_node_to_file2(data_file, map_file, i);
     }
     
@@ -83,14 +82,3 @@ void save_DB() {
     fclose(map_file);
     printf("Database saved successfully\n");
 }
-
-void load_DB() {
-    Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
-    
-    // Initially load first MaxCoreSize nodes
-    for (int i = 0; i < MaxCoreSize && i < 256; i++) {
-        load_node_to_core(i);
-    }
-    init_core_mapping();
-    printf("Database loaded successfully\n");
-} 

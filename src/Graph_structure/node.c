@@ -39,14 +39,17 @@ bool save_node_to_file(unsigned int node_index) {
     if (!validate_node(node_index)) {
         return false;
     }
-
     uchar* node = Core[node_index];
-    
-    // Open data file
+    // Try to open data file, create if doesn't exist
     FILE* data_file = fopen(DATA_FILE, "r+b");
     if (!data_file) {
-        printf("Error: Failed to open data.bin\n");
-        return false;
+        data_file = fopen(DATA_FILE, "wb");
+        if (!data_file) {
+            printf("Error: Failed to create data.bin\n");
+            return false;
+        }
+        fclose(data_file);
+        data_file = fopen(DATA_FILE, "r+b");
     }
 
     // Write node data
@@ -64,11 +67,24 @@ bool save_node_to_file(unsigned int node_index) {
     }
     fclose(data_file);
 
-    // Open map file
+    // Try to open map file, create if doesn't exist
     FILE* map_file = fopen(MAP_FILE, "r+b");
     if (!map_file) {
-        printf("Error: Failed to open map.bin\n");
-        return false;
+        map_file = fopen(MAP_FILE, "wb");
+        if (!map_file) {
+            printf("Error: Failed to create map.bin\n");
+            return false;
+        }
+        // // Write initial node count
+        // uint initial_count = 256;
+        // fwrite(&initial_count, sizeof(uint), 1, map_file);
+        // // Initialize all offsets to 0
+        // long zero_offset = 0;
+        // for (int i = 0; i < 256; i++) {
+        //     fwrite(&zero_offset, sizeof(long), 1, map_file);
+        // }
+        fclose(map_file);
+        map_file = fopen(MAP_FILE, "r+b");
     }
 
     // Update map entry
@@ -102,19 +118,30 @@ bool save_node_to_file2(FILE* data_file, FILE* map_file, unsigned int index) {
     fwrite(node, sizeof(uchar), actual_size, data_file);
     return true;
 }
+bool save_current_node_count() {
+    FILE* map_file = fopen(MAP_FILE, "r+b");
+    if (!map_file) {
+        printf("Error: Failed to open map.bin\n");
+        return false;
+    }
+    fwrite(&CurrentNodeCount, sizeof(uint), 1, map_file);
+    fclose(map_file);
+    return true;
+}
 void create_new_node() {
     uchar* newNode = (uchar*)malloc(16 * sizeof(uchar));  // Always allocate 16 bytes initially
-    printf("Creating new node at index %d\n", CurrentNodeCount);
+    // printf("Creating new node at index %d\n", CurrentNodeCount);
     for (int i = 0; i < 16; ++i) {
         newNode[i] = initValues[i];
     }
     CurrentNodeCount++;
+    save_current_node_count();
     Core[CurrentNodeCount - 1] = newNode;
     CoreSize++;
     CoreMap[CurrentNodeCount - 1].core_position = CurrentNodeCount - 1;
     CoreMap[CurrentNodeCount - 1].is_loaded = 1;
     uint last_node_size = 1 << (*(ushort*)Core[CurrentNodeCount - 1]);
-    printf("Last node size: %d\n", last_node_size);
+    // printf("Last node size: %d\n", last_node_size);
     uint file_offset = CoreMap[CurrentNodeCount - 1].file_offset + last_node_size;
     CoreMap[CurrentNodeCount - 1].file_offset = file_offset;
     save_node_to_file(CurrentNodeCount - 1);

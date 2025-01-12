@@ -12,6 +12,4 @@
 int initialize_database(void);
 void create_DB(void);
 void save_DB(void);
-void load_DB(void);
-
 #endif 

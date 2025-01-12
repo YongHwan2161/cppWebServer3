@@ -158,7 +158,7 @@ int load_node_to_core(unsigned int node_index) {
     long offset = CoreMap[node_index].file_offset;
     
     // Load the node
-    for (int i = 0; i < MaxCoreSize; i++) {
+    for (uint i = 0; i < MaxCoreSize; i++) {
         if (Core[i] == NULL) {
             CoreMap[node_index].core_position = i;
             CoreMap[node_index].is_loaded = 1;
@@ -166,6 +166,7 @@ int load_node_to_core(unsigned int node_index) {
             break;
         }
     }
+    CoreSize++;
     
     fclose(data_file);
     return CoreMap[node_index].core_position;

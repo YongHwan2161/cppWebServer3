@@ -214,22 +214,29 @@ int handle_create_link(char* args) {
             false);
         return CMD_ERROR;
     }
-    
-    // Validate input
-    if (!validate_node(source_node) ||
-        !validate_node(dest_node)) {
-        return CMD_ERROR;
-    }
-    if (!ensure_axis_exists(source_node, source_ch, axis_number)) {
-        return CMD_ERROR;
-    }
+
     // Create the link
     int result = create_link(source_node, source_ch, 
                            dest_node, dest_ch, 
                            axis_number);
     return (result == LINK_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
 }
-
+int handle_create_loop(char* args) {
+    int node_index, channel_index, axis_number;
+    int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &axis_number);
+    if (parsed != 3) {
+        print_argument_error("create-loop", "<node_index> <channel_index> <axis_number>", false);
+        return CMD_ERROR;
+    }    
+    // Validate input
+    if (!validate_node(node_index)) {
+        return CMD_ERROR;
+    }
+    if (!ensure_axis_exists(node_index, channel_index, axis_number)) {
+        return CMD_ERROR;
+    }
+    return create_loop(node_index, channel_index, axis_number);
+}
 int handle_delete_link(char* args) {
     int source_node, source_ch, dest_node, dest_ch, axis_number;
     
@@ -657,18 +664,30 @@ int handle_create_node(char* args) {
 
 void print_help() {
     printf("\nAvailable commands:\n");
+
+    printf("  unload-node <node>                  Unload node from memory\n");
+    printf("  load-node <node>                    Load node into memory\n");
+    printf("  create-node                        Create a new node\n");
+
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
     printf("  check-axis <node> <channel> <axis>   Check if specific axis exists\n");
     printf("  list-axes <node> <channel>           List all axes in channel\n");
     printf("  delete-axis <node> <channel> <axis>  Delete an existing axis\n");
 
     printf("  create-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>  Create a link\n");
+    printf("  create-loop <node> <ch> <axis>      Create a loop\n");
     printf("  delete-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>  Delete a link\n");
 
     printf("  create-channel <node>               Create a new channel in node\n");
-    
+    printf("  clear-channel <node> <channel>        Clear all data in a channel\n");
+
     printf("  print-node <node_index>               Print node data in hexadecimal format\n");
     printf("  print-free-space                     Print free space information\n");
+    printf("  get-channel-offset <node> <channel>    Get channel offset\n");
+    printf("  get-node-position <node>             Get node's position in Core array\n");
+    printf("  print-coremap [node_index]          Print CoreMap status (with optional node index)\n");
+    printf("  check-core-size                    Show Core memory usage statistics\n");
+
     printf("  run-tests                           Run all test cases\n");
     printf("  test-resize                         Run resize node space tests\n");
     printf("  test-axis-create-delete <node> <ch> <max>  Test axis creation/deletion\n");
@@ -677,14 +696,7 @@ void print_help() {
     printf("  test-create-delete-links <node> <ch> <axis>  Test link creation/deletion cycle\n");
     printf("  test-multi-channel-links <node>      Test link creation/deletion across multiple channels\n");
     printf("  test-channel-creation <node>         Test sequential channel creation\n");
-    printf("  clear-channel <node> <channel>        Clear all data in a channel\n");
-    printf("  get-channel-offset <node> <channel>    Get channel offset\n");
-    printf("  get-node-position <node>             Get node's position in Core array\n");
-    printf("  unload-node <node>                  Unload node from memory\n");
-    printf("  load-node <node>                    Load node into memory\n");
-    printf("  print-coremap [node_index]          Print CoreMap status (with optional node index)\n");
-    printf("  check-core-size                    Show Core memory usage statistics\n");
-    printf("  create-node                        Create a new node\n");
+    
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
     printf("\nAxis types:\n");
@@ -742,6 +754,9 @@ int handle_command(char* command) {
         }
         else if (strcmp(cmd, "create-link") == 0) {
             print_argument_error(cmd, "<source_node> <source_ch> <dest_node> <dest_ch> <axis_number>", true);
+        }
+        else if (strcmp(cmd, "create-loop") == 0) {
+            print_argument_error(cmd, "<node_index> <channel_index> <axis_number>", true);
         }
         else if (strcmp(cmd, "print-node") == 0) {
             print_argument_error(cmd, "<node_index>", true);
@@ -805,6 +820,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "create-link") == 0) {
         return handle_create_link(args);
+    }
+    else if (strcmp(cmd, "create-loop") == 0) {
+        return handle_create_loop(args);
     }
     else if (strcmp(cmd, "print-node") == 0) {
         return handle_print_node(args);

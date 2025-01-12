@@ -260,13 +260,13 @@ int check_and_resize_node(uchar* node, uint required_size, uint node_index) {
     if (required_size > current_node_size) {
         uint new_size;
         uchar* new_node = resize_node_space(node, required_size, node_index, &new_size);
-        printf("new_node: %p\n", new_node);
+        // printf("new_node: %p\n", new_node);
         if (!new_node) {
             printf("Error: Failed to resize node\n");
             return FREE_SPACE_ERROR;
         }
         Core[node_index] = new_node;
-        printf("Core[node_index]: %p\n", Core[node_index]);
+        // printf("Core[node_index]: %p\n", Core[node_index]);
         return FREE_SPACE_RESIZED;
     }
     

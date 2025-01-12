@@ -12,7 +12,7 @@ int create_link(uint source_node, ushort source_ch,
     
     uchar* node = Core[source_node];
     uint channel_offset = get_channel_offset(node, source_ch);
-    printf("channel_offset: %d\n", channel_offset);
+    // printf("channel_offset: %d\n", channel_offset);
     uint axis_offset = get_axis_offset(node, source_ch, axis_number);
 
     uint current_actual_size = *(uint*)(node + 2);
@@ -60,7 +60,10 @@ int create_link(uint source_node, ushort source_ch,
     }
     return LINK_SUCCESS;
 }
-
+int create_loop(uint source_node, ushort source_ch, ushort axis_number) {
+    create_link(source_node, source_ch, source_node, source_ch, axis_number);
+    return LINK_SUCCESS;
+}
 int delete_link(uint source_node, ushort source_ch, 
                uint dest_node, ushort dest_ch, 
                ushort axis_number) {

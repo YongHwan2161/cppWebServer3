@@ -2,6 +2,7 @@
 #include "free_space.h"
 #include "database.h"
 #include "../CGDB.h"
+#include "Graph_structure/link.h"
 #include <sys/stat.h>
 #include <string.h>
 
@@ -21,7 +22,7 @@ void init_core_mapping() {
     CoreMap = (NodeMapping*)malloc(MaxCoreSize * sizeof(NodeMapping));
     
     // Initialize with default values
-    for (int i = 0; i < MaxCoreSize; i++) {
+    for (uint i = 0; i < MaxCoreSize; i++) {
         CoreMap[i].core_position = -1;
         CoreMap[i].is_loaded = 0;
         CoreMap[i].file_offset = 0;
@@ -65,6 +66,7 @@ int initialize_system() {
         return INIT_ERROR;
     }
     
+     create_loop(GarbageNodeIndex, 0, 0); // Create a loop to the garbage node
     // Return NEW if either database or free space was newly created
     if (db_status == DB_NEW || fs_status == FREE_SPACE_NEW) {
         return DB_NEW;

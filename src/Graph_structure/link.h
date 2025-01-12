@@ -16,6 +16,7 @@ typedef struct {
 
 // Function declarations
 int create_link(uint source_node, ushort source_ch, uint dest_node, ushort dest_ch, ushort axis_number);
+int create_loop(uint source_node, ushort source_ch, ushort axis_number);
 int delete_link(uint source_node, ushort source_ch, uint dest_node, ushort dest_ch, ushort axis_number);
 
 #endif // LINK_H 

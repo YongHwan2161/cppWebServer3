@@ -13,6 +13,7 @@ NodeMapping* CoreMap;
 int CoreSize = 0;
 const unsigned int MaxCoreSize = 1024;  // Maximum nodes in RAM at once
 unsigned int CurrentNodeCount = 0;
+const unsigned int GarbageNodeIndex = 256;
 
 const char* DATA_DIR = "binary-data";
 const char* DATA_FILE = "binary-data/data.bin";
