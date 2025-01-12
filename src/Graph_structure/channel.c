@@ -17,11 +17,6 @@ uint get_channel_offset(uchar* node, ushort channel_index) {
     return *(uint*)(node + 8 + (channel_index * 4));  // 8: size_power(2) + actual_size(4) + channels(2)
 }
 
-ushort get_channel_size(uchar* node, ushort channel_index) {
-    uint offset = get_channel_offset(node, channel_index);
-    return *(ushort*)(node + offset);
-}
-
 int create_channel(uint node_index) {
     uchar* node = Core[node_index];
     // Get current actual size and calculate required size

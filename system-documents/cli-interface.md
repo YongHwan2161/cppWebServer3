@@ -622,57 +622,56 @@ All axis numbers:
 
 ## Implementation Details
 
-### Error Handling Utilities
+### Command Handler Organization
 
-#### Common Functions
-```c
-void print_command_usage(const char* command, const char* args_desc);
-void print_argument_error(const char* command, const char* args_desc, bool is_missing);
-```
+#### Test Command Handlers
+Test-related commands are handled by dedicated functions in `test_command_handler.c`:
 
-These utility functions provide consistent error handling across all commands:
+1. Structure
+   ```c
+   src/cli/
+   ├── command_handler.c    // Main command handling
+   ├── command_handler.h
+   ├── test_command_handler.c  // Test-specific handlers
+   └── test_command_handler.h
+   ```
 
-1. `print_command_usage`: Displays standard usage format for commands
-   - command: The command name (e.g., "create-axis")
-   - args_desc: Description of required arguments
+2. Benefits
+   - Better code organization
+   - Separation of concerns
+   - Easier maintenance
+   - Reduced file size
+   - Focused functionality
 
-2. `print_argument_error`: Handles missing or invalid arguments
-   - command: The command name
-   - args_desc: Description of required arguments
-   - is_missing: true for missing arguments, false for invalid ones
+3. Test Commands
+   - test-multiple-link
+   - test-create-delete-links
+   - test-multi-channel-links
+   - test-channel-creation
+   - test-axis-create-delete
 
-### Error Messages Format
-All error messages follow a consistent format:
-```
-Error: [Missing|Invalid] arguments
-Usage: <command> <arguments>
-Example: <command> <example_values>
-```
+4. Implementation Pattern
+   ```c
+   int handle_test_command(char* args) {
+       // 1. Parse arguments
+       // 2. Validate input
+       // 3. Call test function
+       // 4. Return result
+   }
+   ```
 
-### Command Implementation
-Each command handler follows a standard structure:
-1. Check for missing arguments
-2. Parse provided arguments
-3. Validate input values
-4. Execute command logic
-5. Return appropriate status code
+#### Command Processing Flow
+1. Main command handler receives command
+2. If test command, delegates to test handler
+3. Test handler parses and validates arguments
+4. Test function is called
+5. Result is returned to main handler
 
-Example implementation:
-```c
-int handle_command(char* args) {
-    // Check for missing arguments
-    if (!args) {
-        print_argument_error("command", "<arg1> <arg2>", true);
-        return CMD_ERROR;
-    }
-    
-    // Parse arguments
-    int parsed = sscanf(args, "%d %d", &arg1, &arg2);
-    if (parsed != 2) {
-        print_argument_error("command", "<arg1> <arg2>", false);
-        return CMD_ERROR;
-    }
-    
-    // Command logic...
-}
-``` 
+#### Error Handling
+Test commands follow standard error handling:
+1. Argument validation
+2. Input range checking
+3. Consistent error messages
+4. Resource cleanup
+
+[Rest of the document remains the same...] 

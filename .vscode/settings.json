@@ -58,7 +58,8 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "channel.h": "c"
+        "channel.h": "c",
+        "stdlib.h": "c"
     },
     "makefile.launchConfigurations": [
         {

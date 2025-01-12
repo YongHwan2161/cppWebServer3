@@ -10,7 +10,6 @@
 // Function declarations
 ushort get_channel_count(uchar* node);
 uint get_channel_offset(uchar* node, ushort channel_index);
-ushort get_channel_size(uchar* node, ushort channel_index);
 int create_channel(uint node_index);
 
-#endif 
+#endif

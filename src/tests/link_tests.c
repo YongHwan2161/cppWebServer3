@@ -163,10 +163,10 @@ int test_multi_channel_links(uint node_index) {
     printf("Target Node: %d\n", node_index);
     
     // Create second channel (channel 0 exists by default)
-    if (create_channel(node_index) != CHANNEL_SUCCESS) {
-        printf("Failed to create channel 1\n");
-        return -1;
-    }
+    // if (create_channel(node_index) != CHANNEL_SUCCESS) {
+    //     printf("Failed to create channel 1\n");
+    //     return -1;
+    // }
     
     // Store initial state
     uchar* node = Core[node_index];

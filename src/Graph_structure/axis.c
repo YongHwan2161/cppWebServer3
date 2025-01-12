@@ -11,7 +11,19 @@ ushort get_axis_count(uchar* node, ushort channel_index) {
     uint offset = get_channel_offset(node, channel_index);
     return *(ushort*)(node + offset);  // First 2 bytes contain axis count
 }
-
+uint get_axis_index(uchar* node, ushort channel_index, ushort axis_number) {
+    uint channel_offset = get_channel_offset(node, channel_index);
+    ushort axis_count = *(ushort*)(node + channel_offset);
+    for (int i = 0; i < axis_count; i++) {
+        if (*(ushort*)(node + channel_offset + 2 + (i * 6)) == axis_number) {
+            return i;
+        }
+    }
+}
+uint get_axis_offset_by_index(uchar* node, ushort channel_index, ushort axis_index) {
+    uint channel_offset = get_channel_offset(node, channel_index);
+    return *(uint*)(node + channel_offset + 2 + (axis_index * 6) + 2);
+}
 uint get_axis_offset(uchar* node, ushort channel_index, ushort axis_number) {
     uint channel_offset = get_channel_offset(node, channel_index);
     
