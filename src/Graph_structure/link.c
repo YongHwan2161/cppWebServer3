@@ -9,12 +9,13 @@
 int create_link(uint source_node, ushort source_ch, 
                 uint dest_node, ushort dest_ch, 
                 ushort axis_number) {
-    
-    uchar* node = Core[source_node];
+    printf("axis_number: %d\n", axis_number);
+    uint node_position = CoreMap[source_node].core_position;
+    uchar* node = Core[node_position];
     uint channel_offset = get_channel_offset(node, source_ch);
-    // printf("channel_offset: %d\n", channel_offset);
+    printf("channel_offset: %d\n", channel_offset);
     uint axis_offset = get_axis_offset(node, source_ch, axis_number);
-
+    printf("axis_offset: %d\n", axis_offset);
     uint current_actual_size = *(uint*)(node + 2);
     uint required_size = current_actual_size + 6;  // Add 6 bytes for new link
     // Check and resize if needed using the new function
@@ -23,11 +24,14 @@ int create_link(uint source_node, ushort source_ch,
         printf("Error: Failed to resize node\n");
         return LINK_ERROR;
     }
-    node = Core[source_node];
+    node = Core[node_position];
     
     ushort channel_count = get_channel_count(node);  // Get channel count
+    printf("channel_count: %d\n", channel_count);
     ushort* current_link_count = (ushort*)(node + channel_offset + axis_offset);
+    printf("current_link_count: %d\n", *current_link_count);
     uint link_insert_offset = channel_offset + axis_offset + 2 + (*current_link_count * 6);
+    printf("link_insert_offset: %d\n", link_insert_offset);
     uint move_size = current_actual_size - link_insert_offset;  // Move all remaining data
     insert_link(node, link_insert_offset, dest_node, dest_ch, move_size);
     // Update offsets in current channel
@@ -60,6 +64,15 @@ int create_link(uint source_node, ushort source_ch,
     }
     return LINK_SUCCESS;
 }
+/**
+ * @brief Create a loop link between a node and itself
+ * 
+ * @param source_node The node to create the loop link from
+ * @param source_ch The channel to create the loop link on
+ * @param axis_number The axis number to create the loop link on
+ * @return LINK_SUCCESS if the loop link is created successfully, LINK_ERROR if it fails
+ * make sure to create the axis first
+ */
 int create_loop(uint source_node, ushort source_ch, ushort axis_number) {
     create_link(source_node, source_ch, source_node, source_ch, axis_number);
     return LINK_SUCCESS;

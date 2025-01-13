@@ -11,5 +11,4 @@
 // Function declarations
 int initialize_database(void);
 void create_DB(void);
-void save_DB(void);
 #endif 

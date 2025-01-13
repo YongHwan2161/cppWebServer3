@@ -7,7 +7,7 @@
 // Function declarations
 bool validate_node(unsigned int node_index);
 bool save_node_to_file(unsigned int node_index);
-bool save_node_to_file2(FILE* data_file, FILE* map_file, unsigned int index);
 void create_new_node();
+void delete_node(unsigned int node_index);
 
 #endif // NODE_H 

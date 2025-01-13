@@ -1,5 +1,7 @@
 #include "node.h"
 #include "../../CGDB.h"
+#include "channel.h"
+#include "axis.h"
 #include <stdio.h>
 #include "link.h"  // For Core array access
 
@@ -39,7 +41,9 @@ bool save_node_to_file(unsigned int node_index) {
     if (!validate_node(node_index)) {
         return false;
     }
-    uchar* node = Core[node_index];
+    // printf("start save_node_to_file\n");
+    uint node_position = CoreMap[node_index].core_position;
+    uchar* node = Core[node_position];
     // Try to open data file, create if doesn't exist
     FILE* data_file = fopen(DATA_FILE, "r+b");
     if (!data_file) {
@@ -51,7 +55,7 @@ bool save_node_to_file(unsigned int node_index) {
         fclose(data_file);
         data_file = fopen(DATA_FILE, "r+b");
     }
-
+    printf("file offset: 0x%lx\n", CoreMap[node_index].file_offset);
     // Write node data
     if (fseek(data_file, CoreMap[node_index].file_offset, SEEK_SET) != 0) {
         printf("Error: Failed to seek in data.bin\n");
@@ -75,7 +79,7 @@ bool save_node_to_file(unsigned int node_index) {
             printf("Error: Failed to create map.bin\n");
             return false;
         }
-        // // Write initial node count
+        // Write initial node count
         // uint initial_count = 256;
         // fwrite(&initial_count, sizeof(uint), 1, map_file);
         // // Initialize all offsets to 0
@@ -104,25 +108,15 @@ bool save_node_to_file(unsigned int node_index) {
     return true;
 }
 
-bool save_node_to_file2(FILE* data_file, FILE* map_file, unsigned int index) {
-    uchar* node = Core[index];
-    long offset = ftell(data_file);
-    
-    fwrite(&offset, sizeof(long), 1, map_file);
-    
-    // Read size as power of 2 (first 2 bytes)
-    ushort size_power = *(ushort*)node;
-    uint actual_size = 1 << size_power;  // 2^size_power
-    
-    // Write the entire node data
-    fwrite(node, sizeof(uchar), actual_size, data_file);
-    return true;
-}
 bool save_current_node_count() {
     FILE* map_file = fopen(MAP_FILE, "r+b");
     if (!map_file) {
-        printf("Error: Failed to open map.bin\n");
-        return false;
+        printf("Error: Failed to open map.bin in save_current_node_count\n");
+        map_file = fopen(MAP_FILE, "wb");
+        if (!map_file) {
+            printf("Error: Failed to create map.bin in save_current_node_count\n");
+            return false;
+        }
     }
     fwrite(&CurrentNodeCount, sizeof(uint), 1, map_file);
     fclose(map_file);
@@ -140,10 +134,33 @@ void create_new_node() {
     CoreSize++;
     CoreMap[CurrentNodeCount - 1].core_position = CurrentNodeCount - 1;
     CoreMap[CurrentNodeCount - 1].is_loaded = 1;
-    uint last_node_size = 1 << (*(ushort*)Core[CurrentNodeCount - 1]);
-    // printf("Last node size: %d\n", last_node_size);
-    uint file_offset = CoreMap[CurrentNodeCount - 1].file_offset + last_node_size;
-    CoreMap[CurrentNodeCount - 1].file_offset = file_offset;
+    if (CurrentNodeCount == 1) {
+        CoreMap[CurrentNodeCount - 1].file_offset = 0;
+    } else {
+        uint last_node_size = 1 << (*(ushort*)Core[CurrentNodeCount - 2]);
+        // printf("Last node size: %d\n", last_node_size);
+        uint file_offset = CoreMap[CurrentNodeCount - 2].file_offset + last_node_size;
+        CoreMap[CurrentNodeCount - 1].file_offset = file_offset;
+    }
     save_node_to_file(CurrentNodeCount - 1);
     printf("Node created at index %d\n", CurrentNodeCount - 1);
+}
+void delete_node(unsigned int node_index) {
+    uint node_position = CoreMap[node_index].core_position;
+    for (uint i = 0; i < 16; i++) {
+        Core[node_position][i] = initValues[i];
+    }
+    uint channel_offset = get_channel_offset(Core[GarbageNodeIndex], 0);
+    uint axis_offset = get_axis_offset(Core[GarbageNodeIndex], 0, 0);
+    uint first_garbage_node = *(uint*)(Core[GarbageNodeIndex] + channel_offset + axis_offset);
+    printf("First garbage node: %d\n", first_garbage_node);
+    delete_link(GarbageNodeIndex, 0, first_garbage_node, 0, 0);
+    create_link(GarbageNodeIndex, 0, node_index, 0, 0);
+    create_link(node_index, 0, first_garbage_node, 0, 0);
+
+    Core[node_position] = NULL;
+    CoreMap[node_index].core_position = -1;
+    CoreMap[node_index].is_loaded = 0;
+
+    CoreSize--;
 }

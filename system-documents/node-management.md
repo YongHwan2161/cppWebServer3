@@ -181,3 +181,58 @@ Error: Maximum number of nodes (256) reached
    - 즉시 저장
    - 오프셋 계산
    - 매핑 정보 유지 
+
+### Node Deletion
+
+#### Command Interface
+```shell
+delete-node <node_index>
+```
+
+##### 기능
+- 노드 데이터 초기화
+- 가비지 체인에 추가
+- 메모리 관리 업데이트
+
+##### 프로세스
+1. 초기화
+   - 노드 데이터를 기본값으로 리셋
+   - 기본 채널 구조 유지
+   - axis count 초기화
+
+2. 가비지 체인 연결
+   - 가비지 노드(0)의 첫 번째 링크 읽기
+   - 삭제할 노드를 가비지 노드에 연결
+   - 삭제할 노드를 이전 첫 번째 노드에 연결
+
+3. 메모리 관리
+   - Core 배열에서 제거
+   - CoreMap 상태 업데이트
+   - CoreSize 감소
+
+##### 사용 예시
+```shell
+# 노드 삭제
+> delete-node 5
+Successfully deleted node 5
+
+# 가비지 노드 삭제 시도
+> delete-node 0
+Error: Cannot delete garbage node (index 0)
+```
+
+##### 주의사항
+1. 가비지 체인
+   - 가비지 노드(0) 보호
+   - 체인 일관성 유지
+   - 순환 참조 방지
+
+2. 메모리 관리
+   - 메모리 누수 방지
+   - CoreMap 상태 정확성
+   - Core 배열 관리
+
+3. 데이터 정리
+   - 완전한 초기화
+   - 링크 정리
+   - 참조 제거 

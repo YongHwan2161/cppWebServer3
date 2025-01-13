@@ -41,7 +41,7 @@ void init_core_mapping() {
         }
         fclose(map_file);
     } else {
-        printf("Error: Failed to open map.bin\n");
+        printf("Error: Failed to open map.bin in init_core_mapping\n");
     }
 }
 
@@ -51,7 +51,12 @@ int initialize_system() {
         printf("Error creating data directory\n");
         return INIT_ERROR;
     }
-    
+        // 3. Initialize free space management
+    int fs_status = init_free_space();
+    if (fs_status == FREE_SPACE_ERROR) {
+        printf("Error initializing free space management\n");
+        return INIT_ERROR;
+    }
     // 2. Initialize database (creates or loads existing)
     int db_status = initialize_database();
     if (db_status == DB_ERROR) {
@@ -59,14 +64,7 @@ int initialize_system() {
         return INIT_ERROR;
     }
     
-    // 3. Initialize free space management
-    int fs_status = init_free_space();
-    if (fs_status == FREE_SPACE_ERROR) {
-        printf("Error initializing free space management\n");
-        return INIT_ERROR;
-    }
-    
-     create_loop(GarbageNodeIndex, 0, 0); // Create a loop to the garbage node
+
     // Return NEW if either database or free space was newly created
     if (db_status == DB_NEW || fs_status == FREE_SPACE_NEW) {
         return DB_NEW;

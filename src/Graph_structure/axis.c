@@ -68,8 +68,8 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
         printf("Error: Invalid node index\n");
         return AXIS_ERROR;
     }
-    
-    uchar* node = Core[node_index];
+    uint node_position = CoreMap[node_index].core_position;
+    uchar* node = Core[node_position];
     uint channel_offset = get_channel_offset(node, channel_index);
         
     // Check if axis already exists
@@ -92,10 +92,10 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
             printf("Error: Failed to resize node\n");
             return AXIS_ERROR;
         }
-        Core[node_index] = new_node;
+        Core[node_position] = new_node;
         // channel_offset remains the same, no need to recalculate
     }
-    node = Core[node_index];
+    node = Core[node_position];
     // Get current axis count
     ushort current_count = *(ushort*)(node + channel_offset);
     uint insert_pos = channel_offset + 2 + (current_count * 6);
@@ -129,11 +129,12 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
     
     // Update actual size
     *(uint*)(node + 2) = required_size;
-    
+    printf("before call save_node_to_file\n");
     if (!save_node_to_file(node_index)) {
         printf("Error: Failed to save node\n");
         return AXIS_ERROR;
     }
+    printf("after call save_node_to_file\n");
     return AXIS_SUCCESS;
 }
 

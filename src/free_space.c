@@ -265,7 +265,8 @@ int check_and_resize_node(uchar* node, uint required_size, uint node_index) {
             printf("Error: Failed to resize node\n");
             return FREE_SPACE_ERROR;
         }
-        Core[node_index] = new_node;
+        uint node_position = CoreMap[node_index].core_position;
+        Core[node_position] = new_node;
         // printf("Core[node_index]: %p\n", Core[node_index]);
         return FREE_SPACE_RESIZED;
     }

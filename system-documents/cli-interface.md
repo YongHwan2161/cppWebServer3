@@ -845,6 +845,43 @@ Memory Utilization: 18.8%
    - 로드 가능 여부 확인
    - 최적화 필요성 판단
 
+### Delete Node
+```
+delete-node <node_index>
+```
+Deletes a node and adds it to the garbage chain.
+
+Parameters:
+- node_index: Target node to delete (0-255)
+
+Example:
+```
+> delete-node 5
+Successfully deleted node 5
+
+> delete-node 256
+Error: Node index must be between 0 and 255
+
+> delete-node 0
+Error: Cannot delete garbage node (index 0)
+```
+
+#### Purpose
+- 노드 삭제
+- 가비지 체인 관리
+- 메모리 정리
+
+#### Notes
+1. Garbage Chain
+   - 삭제된 노드는 가비지 체인에 추가
+   - 가비지 노드(0)는 삭제 불가
+   - 재사용을 위한 관리
+
+2. Memory Management
+   - Core 배열에서 제거
+   - CoreMap 상태 업데이트
+   - 메모리 해제
+
 ## Error Handling
 
 ### Missing Arguments

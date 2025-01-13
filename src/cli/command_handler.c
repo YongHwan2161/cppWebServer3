@@ -662,6 +662,34 @@ int handle_create_node(char* args) {
     return CMD_SUCCESS;
 }
 
+int handle_delete_node(char* args) {
+    int node_index;
+    
+    // Parse arguments
+    if (!args || sscanf(args, "%d", &node_index) != 1) {
+        print_argument_error("delete-node", "<node_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate node index
+    if (node_index < 0) {
+        printf("Error: Node index must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
+
+    // Can't delete garbage node
+    if ((unsigned int)node_index == GarbageNodeIndex) {
+        printf("Error: Cannot delete garbage node (index %d)\n", GarbageNodeIndex);
+        return CMD_ERROR;
+    }
+    
+    // Delete the node
+    delete_node(node_index);
+    printf("Successfully deleted node %d\n", node_index);
+    
+    return CMD_SUCCESS;
+}
+
 void print_help() {
     printf("\nAvailable commands:\n");
 
@@ -699,6 +727,7 @@ void print_help() {
     
     printf("  help                                 Show this help message\n");
     printf("  exit                                 Exit the program\n");
+    printf("  delete-node <node_index>            Delete a node and add to garbage chain\n");
     printf("\nAxis types:\n");
     printf("  0: Forward link\n");
     printf("  1: Backward link\n");
@@ -799,6 +828,9 @@ int handle_command(char* command) {
         else if (strcmp(cmd, "check-core-size") == 0) {
             return handle_check_core_size(args);
         }
+        else if (strcmp(cmd, "delete-node") == 0) {
+            return handle_delete_node(args);
+        }
         else {
             printf("Unknown command. Type 'help' for available commands.\n");
         }
@@ -874,6 +906,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "create-node") == 0) {
         return handle_create_node(args);
+    }
+    else if (strcmp(cmd, "delete-node") == 0) {
+        return handle_delete_node(args);
     }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");

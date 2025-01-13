@@ -25,24 +25,26 @@ int initialize_database() {
         if (data_file) fclose(data_file);
         
         create_DB();
-        save_DB();
+        // save_DB();
         return DB_NEW;
-    }
-    
-    // Initialize CoreMap and load mapping information
-    init_core_mapping();
-    
-    // Load initial set of nodes
-    Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
+    } else {
+        printf("Database already exists\n");
+        // Initialize CoreMap and load mapping information
+        init_core_mapping();
 
-    for (uint i = 0; i < MaxCoreSize && i < CurrentNodeCount; i++) {
-        Core[i] = NULL;
-        load_node_to_core(i);
+        // Load initial set of nodes
+        Core = (uchar **)malloc(MaxCoreSize * sizeof(uchar *));
+
+        for (uint i = 0; i < CurrentNodeCount; i++)
+        {
+            Core[i] = NULL;
+            load_node_to_core(i);
+        }
+
+        fclose(map_file);
+        fclose(data_file);
+        return DB_SUCCESS;
     }
-    
-    fclose(map_file);
-    fclose(data_file);
-    return DB_SUCCESS;
 }
 
 void create_DB() {
@@ -57,28 +59,6 @@ void create_DB() {
         CoreMap[i].file_offset = 16 * i;  // Each node starts with 16 bytes, plus 4 bytes header        
         create_new_node();
     }
-}
-
-void save_DB() {
-    // Create directory if it doesn't exist
-    MKDIR(DATA_DIR);  // Using the macro instead of direct mkdir calls
-
-    FILE* data_file = fopen(DATA_FILE, "wb");
-    FILE* map_file = fopen(MAP_FILE, "wb");
-    
-    if (!data_file || !map_file) {
-        printf("Error opening files for writing\n");
-        return;
-    }
-    
-    uint num_nodes = CurrentNodeCount;
-    fwrite(&num_nodes, sizeof(uint), 1, map_file);
-    
-    for (uint i = 0; i < CurrentNodeCount; i++) {
-        save_node_to_file2(data_file, map_file, i);
-    }
-    
-    fclose(data_file);
-    fclose(map_file);
-    printf("Database saved successfully\n");
+    create_axis(256, 0, 0); // create axis first
+    create_loop(GarbageNodeIndex, 0, 0);
 }
