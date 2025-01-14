@@ -661,13 +661,15 @@ int handle_delete_vertex(char* args) {
         printf("Error: Cannot delete garbage vertex (index %d)\n", GarbagevertexIndex);
         return CMD_ERROR;
     }
-    
+    // printf("vertex_index: %d\n", vertex_index);
     // Delete the vertex
-    if (delete_vertex(vertex_index) == VERTEX_SUCCESS) {
+    int result = delete_vertex(vertex_index);
+    // int result = VERTEX_SUCCESS;
+    if (result == VERTEX_SUCCESS) {
         printf("Successfully deleted vertex %d\n", vertex_index);
-    } else if (delete_vertex(vertex_index) == VERTEX_ERROR_GARBAGE) {
+    } else if (result == VERTEX_ERROR_GARBAGE) {
         printf("Error: Cannot delete garbage vertex (index %d)\n", GarbagevertexIndex);
-    } else if (delete_vertex(vertex_index) == VERTEX_ERROR_IN_GARBAGE_CIRCLE) {
+    } else if (result == VERTEX_ERROR_IN_GARBAGE_CIRCLE) {
         printf("Error: Vertex %d is in garbage circle\n", vertex_index);
     } else {
         printf("Failed to delete vertex %d\n", vertex_index);
@@ -905,17 +907,21 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "delete-vertex") == 0) {
         return handle_delete_vertex(args);
     }
-// Update handle_command to include new commands:
-else if (strcmp(cmd, "validate-free-offsets") == 0) {
-    return handle_validate_free_offsets(args);
+    // Update handle_command to include new commands:
+    else if (strcmp(cmd, "validate-free-offsets") == 0)
+    {
+        return handle_validate_free_offsets(args);
     }
-    else if (strcmp(cmd, "validate-circle") == 0) {
+    else if (strcmp(cmd, "validate-circle") == 0)
+    {
         return handle_validate_circle(args);
-    } 
-    else if (strcmp(cmd, "print-circle") == 0) {
+    }
+    else if (strcmp(cmd, "print-circle") == 0)
+    {
         return handle_print_circle(args);
     }
-    else {
+    else
+    {
         printf("Unknown command. Type 'help' for available commands.\n");
         return CMD_ERROR;
     }
@@ -937,8 +943,14 @@ int handle_validate_circle(char* args) {
     if (parsed != 3) {
         print_argument_error("validate-circle", "<vertex_index> <channel_index> <axis_number>", false);
         return CMD_ERROR;
-    }    
-
+    }
+    
+    // Validate input
+    if (!validate_vertex(vertex_index)) {
+        printf("Error: vertex %d does not exist\n", vertex_index);
+        return CMD_ERROR;
+    }
+    
     bool has_circle = validate_circle(vertex_index, channel_index, axis_number);
     printf("Path from vertex %d, channel %d, axis %d %s a circle\n",
            vertex_index, channel_index, axis_number,

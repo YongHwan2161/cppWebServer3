@@ -13,7 +13,7 @@ typedef struct {
     ushort axis;
 } Pathvertex;
 
-bool has_circle(int vertex_index, int channel_index, int axis_number) {
+bool has_circle(unsigned int vertex_index, ushort channel_index, ushort axis_number) {
     Pathvertex* visited = malloc(MAX_CIRCLE_vertices * sizeof(Pathvertex));
     int visited_count = 0;
     bool has_circle = false;
@@ -65,7 +65,7 @@ cleanup:
     return has_circle;
 }
 
-CircleInfo* get_circle_info(int vertex_index, int channel_index, int axis_number) {
+CircleInfo* get_circle_info(unsigned int vertex_index, ushort channel_index, ushort axis_number) {
     Pathvertex* visited = malloc(MAX_CIRCLE_vertices * sizeof(Pathvertex));
     CircleInfo* info = malloc(sizeof(CircleInfo));
     info->vertices = malloc(MAX_CIRCLE_vertices * sizeof(uint));
@@ -85,6 +85,7 @@ CircleInfo* get_circle_info(int vertex_index, int channel_index, int axis_number
     ushort current_axis = axis_number;
     
     while (visited_count < MAX_CIRCLE_vertices) {
+        printf("visited_count: %d\n", visited_count);
         uint vertex_position = get_vertex_position(current_vertex);
         if (!Core[vertex_position]) break;
         
@@ -134,9 +135,9 @@ void free_circle_info(CircleInfo* info) {
     }
 }
 
-bool is_in_garbage_circle(uint vertex_index) {
+bool is_in_garbage_circle(unsigned int vertex_index) {
     // Start from garbage vertex (0)
-    CircleInfo* info = get_circle_info(0, 0, 0);
+    CircleInfo* info = get_circle_info(GarbagevertexIndex, 0, 0);
     bool found = false;
     
     // Check if vertex_index exists in the circle

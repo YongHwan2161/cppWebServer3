@@ -134,43 +134,6 @@ printf("Circle contains %d vertices\n", info->count);
 free_circle_info(info);
 ```
 
-```c
-uchar initValues[16] = {
-    4,  0,     // data size (2^4 = 16 bytes)
-    1,  0,     // number of channels (1)
-    8,  0, 0, 0,   // offset for channel 0 (starts at byte 8)
-    0,  0,     // number of axes (0)
-    0,  0, 0, 0, 0, 0    // remaining bytes
-};
-```
-
-### Circle Analysis Tools
-The system provides several ways to analyze circles in the graph:
-
-1. Basic Detection
-   ```c
-   bool has_circle = has_circle(vertex_index, channel_index, axis_number);
-   ```
-   - Simple yes/no circle detection
-   - Fast execution
-   - Minimal memory usage
-
-2. Detailed Information
-   ```c
-   CircleInfo* info = get_circle_info(vertex_index, channel_index, axis_number);
-   ```
-   - Complete path information
-   - vertex and channel lists
-   - Circle size calculation
-
-3. Visual Representation
-   ```shell
-   > print-circle <vertex> <channel> <axis>
-   ```
-   - Human-readable output
-   - Path visualization
-   - Connection details
-
 ### Circle Data Structure
 ```c
 typedef struct {

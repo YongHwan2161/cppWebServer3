@@ -11,15 +11,15 @@ typedef struct {
 } CircleInfo;
 
 // Check if there is a circle starting from given vertex/channel/axis
-bool has_circle(int vertex_index, int channel_index, int axis_number);
+bool has_circle(unsigned int vertex_index, ushort channel_index, ushort axis_number);
 
 // Get detailed information about the circle
-CircleInfo* get_circle_info(int vertex_index, int channel_index, int axis_number);
+CircleInfo* get_circle_info(unsigned int vertex_index, ushort channel_index, ushort axis_number);
 
 // Free circle info structure
 void free_circle_info(CircleInfo* info);
 
 // Add this function declaration
-bool is_in_garbage_circle(uint vertex_index);
+bool is_in_garbage_circle(unsigned int vertex_index);
 
 #endif // CIRCLE_H 

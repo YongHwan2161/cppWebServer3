@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "link.h"  // For Core array access
 #include "circle.h"
-
+#include "../map.h"
 // Initial vertex values
 static uchar initValues[16] = {
     4,  0,     // allocated size power (2^4 = 16 bytes)
@@ -150,7 +150,8 @@ void create_new_vertex() {
     save_vertex_to_file(CurrentvertexCount - 1);
     printf("vertex created at index %d\n", CurrentvertexCount - 1);
 }
-int delete_vertex(uint vertex_index) {
+int delete_vertex(unsigned int vertex_index) {
+    printf("calling delete_vertex: %d\n", vertex_index);
     // Check if trying to delete garbage vertex
     if (vertex_index == GarbagevertexIndex) {
         return VERTEX_ERROR_GARBAGE;
@@ -162,8 +163,9 @@ int delete_vertex(uint vertex_index) {
     }
     
     uint vertex_position = CoreMap[vertex_index].core_position;
-    
+    printf("vertex_position: %d\n", vertex_position);
     initialize_vertex(&Core[vertex_position]);
+    printf("vertex initialized\n");
 
     uint channel_offset = get_channel_offset(Core[GarbagevertexIndex], 0);
     uint axis_offset = get_axis_offset(Core[GarbagevertexIndex], 0, 0);
