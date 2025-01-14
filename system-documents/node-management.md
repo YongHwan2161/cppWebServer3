@@ -1,13 +1,13 @@
-# Node Management
+# vertex Management
 
 ## File Operations
 
-### Node Data Persistence
+### vertex Data Persistence
 노드 데이터의 파일 저장을 담당하는 중앙화된 함수를 제공합니다.
 
-#### save_node_to_file
+#### save_vertex_to_file
 ```c
-bool save_node_to_file(unsigned int node_index);
+bool save_vertex_to_file(unsigned int vertex_index);
 ```
 
 ##### 기능
@@ -62,8 +62,8 @@ bool save_node_to_file(unsigned int node_index);
 ##### 사용 예시
 ```c
 // 노드 데이터 수정 후 저장
-modify_node_data(node_index);
-if (!save_node_to_file(node_index)) {
+modify_vertex_data(vertex_index);
+if (!save_vertex_to_file(vertex_index)) {
     // 실패 처리
     handle_error();
     return ERROR_CODE;
@@ -107,20 +107,20 @@ if (!save_node_to_file(node_index)) {
 2. 크기 계산
    ```c
    // 노드 크기 계산 (2의 거듭제곱)
-   size_t node_size = 1 << (*(ushort*)node);
+   size_t vertex_size = 1 << (*(ushort*)vertex);
    ```
 
 3. Offset 계산
    ```c
    // map.bin에서 노드의 offset 위치
-   long map_offset = sizeof(uint) + (node_index * sizeof(long));
+   long map_offset = sizeof(uint) + (vertex_index * sizeof(long));
    ``` 
 
-### Node Creation
+### vertex Creation
 
 #### Command Interface
 ```shell
-create-node
+create-vertex
 ```
 
 ##### 기능
@@ -135,7 +135,7 @@ create-node
    - 기본 채널 설정
 
 2. 시스템 업데이트
-   - CurrentNodeCount 증가
+   - CurrentvertexCount 증가
    - Core 배열 업데이트
    - CoreMap 정보 설정
 
@@ -158,12 +158,12 @@ Offset  Content     Description
 ##### 사용 예시
 ```shell
 # 새 노드 생성
-> create-node
-Successfully created new node at index 5
+> create-vertex
+Successfully created new vertex at index 5
 
 # 최대 개수 초과 시
-> create-node
-Error: Maximum number of nodes (256) reached
+> create-vertex
+Error: Maximum number of vertexs (256) reached
 ```
 
 ##### 주의사항
@@ -182,11 +182,11 @@ Error: Maximum number of nodes (256) reached
    - 오프셋 계산
    - 매핑 정보 유지 
 
-### Node Deletion
+### vertex Deletion
 
 #### Command Interface
 ```shell
-delete-node <node_index>
+delete-vertex <vertex_index>
 ```
 
 ##### 기능
@@ -213,12 +213,12 @@ delete-node <node_index>
 ##### 사용 예시
 ```shell
 # 노드 삭제
-> delete-node 5
-Successfully deleted node 5
+> delete-vertex 5
+Successfully deleted vertex 5
 
 # 가비지 노드 삭제 시도
-> delete-node 0
-Error: Cannot delete garbage node (index 0)
+> delete-vertex 0
+Error: Cannot delete garbage vertex (index 0)
 ```
 
 ##### 주의사항

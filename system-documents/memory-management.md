@@ -372,25 +372,25 @@ After:  [78 56 34 12 AA BB CC DD EE]
 ### Link Entry Insertion
 ```c
 int insert_link(unsigned char* dest, unsigned int insert_pos,
-               unsigned int node_index, unsigned short channel_index,
+               unsigned int vertex_index, unsigned short channel_index,
                unsigned int move_size);
 ```
 
 #### 기능
-- Link entry (node index + channel)를 메모리에 삽입
+- Link entry (vertex index + channel)를 메모리에 삽입
 - 6바이트 크기의 link entry 구조 처리
 - 기존 데이터 자동 이동
 
 #### Parameters
 - dest: 대상 버퍼
 - insert_pos: 삽입 위치
-- node_index: 대상 노드 인덱스 (4 bytes)
+- vertex_index: 대상 노드 인덱스 (4 bytes)
 - channel_index: 대상 채널 인덱스 (2 bytes)
 - move_size: 이동해야 할 데이터 크기
 
 #### Data Format
 ```
-[Node Index(4)] [Channel Index(2)]
+[vertex Index(4)] [Channel Index(2)]
 ```
 
 #### Process
@@ -412,11 +412,11 @@ int insert_link(unsigned char* dest, unsigned int insert_pos,
 #### Usage Example
 ```c
 unsigned char buffer[100];
-unsigned int node = 1;
+unsigned int vertex = 1;
 unsigned short channel = 2;
 
 // Insert link entry at position 0
-int result = insert_link(buffer, 0, node, channel, 10);
+int result = insert_link(buffer, 0, vertex, channel, 10);
 // Result: buffer now contains link entry at start
 ```
 
@@ -424,7 +424,7 @@ int result = insert_link(buffer, 0, node, channel, 10);
 Link entry는 다음과 같은 메모리 레이아웃을 가집니다:
 ```
 Offset    Content          Description
-0000      01 00 00 00     Node index (4 bytes)
+0000      01 00 00 00     vertex index (4 bytes)
 0004      02 00           Channel index (2 bytes)
 ```
 
@@ -432,7 +432,7 @@ Offset    Content          Description
 1. 구조체 패킹
    ```c
    struct {
-       unsigned int node;
+       unsigned int vertex;
        unsigned short channel;
    } __attribute__((packed)) link_data;
    ```
@@ -441,7 +441,7 @@ Offset    Content          Description
    - 바이트 패딩 제거
 
 2. 데이터 정렬
-   - 4바이트 node index
+   - 4바이트 vertex index
    - 2바이트 channel index
    - 총 6바이트 크기
 
@@ -450,18 +450,18 @@ Offset    Content          Description
    - 인라인 함수 활용
    - 최소 메모리 접근 
 
-## Node Data Management
+## vertex Data Management
 
-### Node Unloading
+### vertex Unloading
 ```c
-int unload_node_data(uint node_index);
+int unload_vertex_data(uint vertex_index);
 ```
 
 #### Purpose
 메모리에서 자주 사용되지 않는 노드 데이터를 해제합니다. 데이터는 binary file에 저장되어 있으므로, 필요할 때 다시 로드할 수 있습니다.
 
 #### Parameters
-- node_index: 언로드할 노드의 인덱스 (0-255)
+- vertex_index: 언로드할 노드의 인덱스 (0-255)
 
 #### Returns
 - 1: 성공
@@ -473,8 +473,8 @@ int unload_node_data(uint node_index);
    - 노드가 메모리에 로드되어 있는지 확인
 
 2. 메모리 해제
-   - Core[node_index]의 메모리 해제
-   - Core[node_index]를 NULL로 설정
+   - Core[vertex_index]의 메모리 해제
+   - Core[vertex_index]를 NULL로 설정
 
 3. CoreMap 업데이트
    - is_loaded 플래그를 0으로 설정
@@ -483,26 +483,26 @@ int unload_node_data(uint node_index);
 
 #### Usage Example
 ```c
-// Unload node 5 from memory
-if (unload_node_data(5)) {
-    printf("Successfully unloaded node 5\n");
+// Unload vertex 5 from memory
+if (unload_vertex_data(5)) {
+    printf("Successfully unloaded vertex 5\n");
 } else {
-    printf("Failed to unload node 5\n");
+    printf("Failed to unload vertex 5\n");
 }
 ```
 
 #### Error Cases
 1. 잘못된 노드 인덱스
    ```c
-   if (unload_node_data(256)) {  // Invalid index
+   if (unload_vertex_data(256)) {  // Invalid index
        // This will fail
    }
    ```
 
 2. 이미 언로드된 노드
    ```c
-   unload_node_data(5);  // First unload
-   if (unload_node_data(5)) {  // Second unload
+   unload_vertex_data(5);  // First unload
+   if (unload_vertex_data(5)) {  // Second unload
        // This will fail
    }
    ```
@@ -539,11 +539,11 @@ if (unload_node_data(5)) {
    - 이중 해제 방지
    - 상태 검증 
 
-### Node Unloading Command
+### vertex Unloading Command
 
 #### Command Interface
 ```shell
-unload-node <node_index>
+unload-vertex <vertex_index>
 ```
 
 ##### 기능
@@ -570,15 +570,15 @@ unload-node <node_index>
 ##### 사용 예시
 ```shell
 # 정상 케이스
-> unload-node 5
-Successfully unloaded node 5 from memory
+> unload-vertex 5
+Successfully unloaded vertex 5 from memory
 
 # 에러 케이스
-> unload-node 256
-Error: Node index must be between 0 and 255
+> unload-vertex 256
+Error: vertex index must be between 0 and 255
 
-> unload-node 5
-Error: Node 5 is not loaded in memory
+> unload-vertex 5
+Error: vertex 5 is not loaded in memory
 ```
 
 ##### 주의사항
@@ -597,11 +597,11 @@ Error: Node 5 is not loaded in memory
    - 로드/언로드 이력 관리
    - 메모리 사용량 모니터링 
 
-### Node Loading Command
+### vertex Loading Command
 
 #### Command Interface
 ```shell
-load-node <node_index>
+load-vertex <vertex_index>
 ```
 
 ##### 기능
@@ -628,15 +628,15 @@ load-node <node_index>
 ##### 사용 예시
 ```shell
 # 정상 케이스
-> load-node 5
-Successfully loaded node 5 to Core position 3
+> load-vertex 5
+Successfully loaded vertex 5 to Core position 3
 
 # 에러 케이스
-> load-node 256
-Error: Node index must be between 0 and 255
+> load-vertex 256
+Error: vertex index must be between 0 and 255
 
-> load-node 5
-Node 5 is already loaded at Core position 3
+> load-vertex 5
+vertex 5 is already loaded at Core position 3
 ```
 
 ##### 주의사항

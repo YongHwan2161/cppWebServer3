@@ -10,13 +10,13 @@
 
 // Link structure (6 bytes)
 typedef struct {
-    uint node;     // 4 bytes for node index
+    uint vertex;     // 4 bytes for vertex index
     ushort channel; // 2 bytes for channel index
 } Link;
 
 // Function declarations
-int create_link(uint source_node, ushort source_ch, uint dest_node, ushort dest_ch, ushort axis_number);
-int create_loop(uint source_node, ushort source_ch, ushort axis_number);
-int delete_link(uint source_node, ushort source_ch, uint dest_node, ushort dest_ch, ushort axis_number);
+int create_link(uint source_vertex, ushort source_ch, uint dest_vertex, ushort dest_ch, ushort axis_number);
+int create_loop(uint source_vertex, ushort source_ch, ushort axis_number);
+int delete_link(uint source_vertex, ushort source_ch, uint dest_vertex, ushort dest_ch, ushort axis_number);
 
 #endif // LINK_H 

@@ -5,16 +5,16 @@
 #include "../../CGDB.h"
 // Structure to store circle information
 typedef struct {
-    uint* nodes;         // Array of nodes in circle
+    uint* vertexs;         // Array of vertexs in circle
     ushort* channels;    // Array of channels in circle
-    int count;          // Number of nodes in circle
+    int count;          // Number of vertexs in circle
 } CircleInfo;
 
-// Check if there is a circle starting from given node/channel/axis
-bool has_circle(int node_index, int channel_index, int axis_number);
+// Check if there is a circle starting from given vertex/channel/axis
+bool has_circle(int vertex_index, int channel_index, int axis_number);
 
 // Get detailed information about the circle
-CircleInfo* get_circle_info(int node_index, int channel_index, int axis_number);
+CircleInfo* get_circle_info(int vertex_index, int channel_index, int axis_number);
 
 // Free circle info structure
 void free_circle_info(CircleInfo* info);

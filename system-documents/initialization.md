@@ -11,12 +11,12 @@ The initialization process ensures all necessary components are properly set up 
 - Ensures proper permissions are set
 
 ### 2. Database Files
-- **map.bin**: Node mapping information
+- **map.bin**: vertex mapping information
   - Created if doesn't exist
   - Loaded into CoreMap if exists
-- **data.bin**: Node data storage
-  - Created with initial nodes if doesn't exist
-  - Used to load existing nodes if present
+- **data.bin**: vertex data storage
+  - Created with initial vertexs if doesn't exist
+  - Used to load existing vertexs if present
 - **free_space.bin**: Free space management
   - Created with empty state if doesn't exist
   - Loaded into memory if exists
@@ -28,9 +28,9 @@ The initialization process ensures all necessary components are properly set up 
    - Initializes with default values if new
 
 2. Core Array Setup
-   - Allocates memory for node pointers
-   - Loads initial set of nodes
-   - Prepares for dynamic node loading
+   - Allocates memory for vertex pointers
+   - Loads initial set of vertexs
+   - Prepares for dynamic vertex loading
 
 3. Free Space Management
    - Initializes free space tracking
@@ -69,7 +69,7 @@ int test_axis_creation(void);  // Returns number of failed tests
 
 2. Error Handling
    - Duplicate axis creation
-   - Invalid node index
+   - Invalid vertex index
 
 3. Success Criteria
    - Successful creation returns AXIS_SUCCESS
@@ -100,14 +100,14 @@ run-tests
 ```
 Executes all available test cases including:
 - Axis creation tests
-- Resize node space tests
+- Resize vertex space tests
 - Reports total number of failed tests
 
 2. Test Resize Functionality
 ```shell
 test-resize
 ```
-Specifically tests the resize_node_space functionality:
+Specifically tests the resize_vertex_space functionality:
 - Creates initial test conditions
 - Verifies free space management
 - Checks block allocation and reuse
@@ -115,7 +115,7 @@ Specifically tests the resize_node_space functionality:
 
 3. Test Axis Creation/Deletion
 ```shell
-test-axis-create-delete <node> <channel> <max_axis>
+test-axis-create-delete <vertex> <channel> <max_axis>
 ```
 Tests axis creation and deletion cycle:
 - Creates axes from 0 to max_axis
@@ -125,7 +125,7 @@ Tests axis creation and deletion cycle:
 - Reports any failures
 
 Parameters:
-- node: Target node index (0-255)
+- vertex: Target vertex index (0-255)
 - channel: Target channel index
 - max_axis: Maximum axis number to create
 

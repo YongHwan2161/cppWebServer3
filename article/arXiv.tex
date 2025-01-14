@@ -101,7 +101,7 @@
 
 \begin{adjustwidth}{20pt}{20pt}
 \small \noindent 
-This paper introduces Channel Graph Theory, a novel approach to graph database management that introduces the concept of channels as independent connection pathways within nodes. We present a theoretical framework and practical implementation of a graph database system where nodes can maintain multiple independent sets of connections through distinct channels. The system incorporates axis-based link management, allowing for structured relationship categorization and efficient memory management. We demonstrate the effectiveness of this approach through a detailed analysis of its memory layout, data persistence strategies, and operational characteristics.
+This paper introduces Channel Graph Theory, a novel approach to graph database management that introduces the concept of channels as independent connection pathways within vertexs. We present a theoretical framework and practical implementation of a graph database system where vertexs can maintain multiple independent sets of connections through distinct channels. The system incorporates axis-based link management, allowing for structured relationship categorization and efficient memory management. We demonstrate the effectiveness of this approach through a detailed analysis of its memory layout, data persistence strategies, and operational characteristics.
 \end{adjustwidth}
 
 
@@ -112,27 +112,27 @@ This paper introduces Channel Graph Theory, a novel approach to graph database m
 
 \vspace{10pt}
 \section{Introduction}\label{Sec:Introduction}
-Graph databases have become increasingly important in managing complex interconnected data structures. Traditional graph databases typically represent relationships through direct edges between nodes. However, this approach can become limiting when dealing with multiple independent connection patterns between the same nodes. We present Channel Graph Theory, which introduces an additional layer of abstraction through the concept of channels, allowing nodes to maintain multiple independent sets of connections.
+Graph databases have become increasingly important in managing complex interconnected data structures. Traditional graph databases typically represent relationships through direct edges between vertexs. However, this approach can become limiting when dealing with multiple independent connection patterns between the same vertexs. We present Channel Graph Theory, which introduces an additional layer of abstraction through the concept of channels, allowing vertexs to maintain multiple independent sets of connections.
 
 \section{Channel Graph Theory}\label{Sec:Theory}
 \subsection{Core Concepts}
 Channel Graph Theory is built upon three fundamental concepts:
 \begin{itemize}
-    \item \textbf{Nodes}: Basic units of data storage, each with a unique index (0-255)
-    \item \textbf{Channels}: Independent connection pathways within nodes, allowing multiple relationship sets
+    \item \textbf{vertexs}: Basic units of data storage, each with a unique index (0-255)
+    \item \textbf{Channels}: Independent connection pathways within vertexs, allowing multiple relationship sets
     \item \textbf{Axes}: Connection properties that define the nature of links between channels
 \end{itemize}
 
 \subsection{Database Structure}
 The system maintains data through two critical files:
 \begin{itemize}
-    \item data.bin: Contains actual node data with structured memory layout
-    \item map.bin: Stores node mapping information and file offsets
+    \item data.bin: Contains actual vertex data with structured memory layout
+    \item map.bin: Stores vertex mapping information and file offsets
 \end{itemize}
 
 \section{Memory Management}\label{Sec:Memory}
-\subsection{Node Structure}
-Each node follows a structured memory layout:
+\subsection{vertex Structure}
+Each vertex follows a structured memory layout:
 \begin{itemize}
     \item Allocated Size Power (2 bytes): Size expressed as a power of 2
     \item Actual Used Size (4 bytes): Current data utilization
@@ -165,28 +165,28 @@ The system defines three primary axis types:
 \subsection{Link Data Structure}
 Each link entry uses a compact 6-byte structure:
 \begin{itemize}
-    \item Node Index (4 bytes): Target node identifier
+    \item vertex Index (4 bytes): Target vertex identifier
     \item Channel Index (2 bytes): Target channel identifier
 \end{itemize}
 
 \section{Core Memory Management}\label{Sec:CoreMemory}
-The system utilizes a CoreMap structure for efficient node management:
+The system utilizes a CoreMap structure for efficient vertex management:
 \begin{equation}
     CoreMap = \{core\_position: int, is\_loaded: int, file\_offset: long\}
 \end{equation}
 
 This enables:
 \begin{itemize}
-    \item Dynamic node loading/unloading
+    \item Dynamic vertex loading/unloading
     \item Efficient memory utilization
-    \item Quick node access and modification
+    \item Quick vertex access and modification
 \end{itemize}
 
 \section{Performance Analysis}\label{Sec:Performance}
 \subsection{Memory Efficiency}
 Our implementation achieves significant efficiency through:
 \begin{itemize}
-    \item Optimized node structure
+    \item Optimized vertex structure
     \item Efficient free space management
     \item Minimal memory overhead
 \end{itemize}
@@ -194,7 +194,7 @@ Our implementation achieves significant efficiency through:
 \subsection{Operation Complexity}
 Key operations demonstrate optimal complexity:
 \begin{itemize}
-    \item Node Creation: O(1)
+    \item vertex Creation: O(1)
     \item Link Creation: O(log n)
     \item Channel Addition: O(1)
     \item Axis Management: O(1)

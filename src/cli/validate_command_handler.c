@@ -11,13 +11,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_VISITED_NODES 1000
+#define MAX_VISITED_vertexS 1000
 
 typedef struct {
-    uint node;
+    uint vertex;
     ushort channel;
     ushort axis;
-} PathNode;
+} Pathvertex;
 
 int validate_free_offsets(char* args) {
     if (args) {
@@ -29,14 +29,14 @@ int validate_free_offsets(char* args) {
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
-bool validate_circle(int node_index, int channel_index, int axis_number) {
-    CircleInfo* info = get_circle_info(node_index, channel_index, axis_number);
+bool validate_circle(int vertex_index, int channel_index, int axis_number) {
+    CircleInfo* info = get_circle_info(vertex_index, channel_index, axis_number);
     bool has_circle = info->count > 0;
     
     if (has_circle) {
-        printf("Found circle with %d nodes:\n", info->count);
+        printf("Found circle with %d vertexs:\n", info->count);
         for (int i = 0; i < info->count; i++) {
-            printf("Node %u, Channel %u\n", info->nodes[i], info->channels[i]);
+            printf("vertex %u, Channel %u\n", info->vertexs[i], info->channels[i]);
         }
     }
     

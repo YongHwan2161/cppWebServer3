@@ -58,36 +58,36 @@ int insert_uint(unsigned char* dest, unsigned int insert_pos,
                unsigned int value, unsigned int move_size);
 
 /**
- * Inserts a link entry (node index and channel) into a buffer
+ * Inserts a link entry (vertex index and channel) into a buffer
  * 
  * @param dest Destination buffer
  * @param insert_pos Position to insert at
- * @param node_index Node index for the link
+ * @param vertex_index vertex index for the link
  * @param channel_index Channel index for the link
  * @param move_size Size of data to move
  * @return 1 if successful, 0 if failed
  */
 int insert_link(unsigned char* dest, unsigned int insert_pos,
-               unsigned int node_index, unsigned short channel_index,
+               unsigned int vertex_index, unsigned short channel_index,
                unsigned int move_size);
 
 /**
- * Unloads node data from memory
+ * Unloads vertex data from memory
  * 
- * @param node_index Index of the node to unload
+ * @param vertex_index Index of the vertex to unload
  * @return 1 if successful, 0 if failed
  */
-int unload_node_data(unsigned int node_index);
+int unload_vertex_data(unsigned int vertex_index);
 
 /**
- * Loads node data from file into memory
+ * Loads vertex data from file into memory
  * 
  * @param data_file File pointer to the data file
  * @param offset Offset in the file to read from
- * @param index Index of the node to load
+ * @param index Index of the vertex to load
  */
-void load_node_from_file(FILE* data_file, long offset, unsigned int index);
+void load_vertex_from_file(FILE* data_file, long offset, unsigned int index);
 
-int load_node_to_core(unsigned int node_index);
+int load_vertex_to_core(unsigned int vertex_index);
 
 #endif // MEMORY_H 

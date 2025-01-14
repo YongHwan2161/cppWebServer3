@@ -1,15 +1,15 @@
 #include "map.h"
 #include <stdio.h>
 
-int save_map(uint node_index) {
+int save_map(uint vertex_index) {
     FILE* map_file = fopen(MAP_FILE, "r+b");
     if (!map_file) {
         printf("Error: Could not open map file for writing\n");
         return MAP_ERROR;
     }
     
-    // Calculate exact position for this node's file_offset
-    long position = sizeof(uint) + (node_index * sizeof(long));
+    // Calculate exact position for this vertex's file_offset
+    long position = sizeof(uint) + (vertex_index * sizeof(long));
     
     // Seek to exact position and write only the file_offset
     if (fseek(map_file, position, SEEK_SET) != 0) {
@@ -19,7 +19,7 @@ int save_map(uint node_index) {
     }
     
     // Write only the file_offset value
-    size_t written = fwrite(&CoreMap[node_index].file_offset, sizeof(long), 1, map_file);
+    size_t written = fwrite(&CoreMap[vertex_index].file_offset, sizeof(long), 1, map_file);
     fclose(map_file);
     
     if (written != 1) {
@@ -37,9 +37,9 @@ int save_map_all(void) {
         return MAP_ERROR;
     }
     
-    // Write number of nodes
-    uint num_nodes = 256;
-    fwrite(&num_nodes, sizeof(uint), 1, map_file);
+    // Write number of vertexs
+    uint num_vertexs = 256;
+    fwrite(&num_vertexs, sizeof(uint), 1, map_file);
     
     // Write all offsets
     for (int i = 0; i < 256; i++) {
@@ -57,9 +57,9 @@ int load_map(void) {
         return MAP_ERROR;
     }
     
-    // Read and verify number of nodes
-    uint num_nodes;
-    if (fread(&num_nodes, sizeof(uint), 1, map_file) != 1 || num_nodes != 256) {
+    // Read and verify number of vertexs
+    uint num_vertexs;
+    if (fread(&num_vertexs, sizeof(uint), 1, map_file) != 1 || num_vertexs != 256) {
         fclose(map_file);
         return MAP_ERROR;
     }
@@ -85,13 +85,13 @@ void init_map(void) {
     }
 }
 
-int get_node_position(unsigned int node_index) {
+int get_vertex_position(unsigned int vertex_index) {
     
-    // Check if node is loaded
-    if (!CoreMap[node_index].is_loaded) {
-        printf("Error: Node %d is not loaded in memory\n", node_index);
+    // Check if vertex is loaded
+    if (!CoreMap[vertex_index].is_loaded) {
+        printf("Error: vertex %d is not loaded in memory\n", vertex_index);
         return -1;
     }
     
-    return CoreMap[node_index].core_position;
+    return CoreMap[vertex_index].core_position;
 } 

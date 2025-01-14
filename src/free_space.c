@@ -122,21 +122,21 @@ void add_free_index(uint index) {
     free_space->free_indices[free_space->index_count - 1] = index;
 }
 
-void release_node_space(int node_index) {
-    if (!CoreMap[node_index].is_loaded) return;
+void release_vertex_space(int vertex_index) {
+    if (!CoreMap[vertex_index].is_loaded) return;
     
-    // Get node size
-    uchar* node = Core[CoreMap[node_index].core_position];
-    ushort size_power = *(ushort*)node;
+    // Get vertex size
+    uchar* vertex = Core[CoreMap[vertex_index].core_position];
+    ushort size_power = *(ushort*)vertex;
     uint actual_size = 1 << size_power;
     
     // Add to free space
-    add_free_block(actual_size, CoreMap[node_index].file_offset);
+    add_free_block(actual_size, CoreMap[vertex_index].file_offset);
     
     // Clear data in data.bin
     FILE* data_file = fopen(DATA_FILE, "r+b");
     if (data_file) {
-        fseek(data_file, CoreMap[node_index].file_offset, SEEK_SET);
+        fseek(data_file, CoreMap[vertex_index].file_offset, SEEK_SET);
         uchar* zeros = (uchar*)calloc(actual_size, 1);
         fwrite(zeros, 1, actual_size, data_file);
         free(zeros);
@@ -144,36 +144,36 @@ void release_node_space(int node_index) {
     }
     
     // Add index to free indices
-    add_free_index(node_index);
+    add_free_index(vertex_index);
     
     // Update free space file
     save_free_space();
 }
 
-uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uint* new_size) {
+uchar* resize_vertex_space(uchar* vertex, ushort required_size, uint vertex_index, uint* new_size) {
     printf("required_size: %d\n", required_size);
     // Calculate new size (next power of 2)
-    ushort node_size_power = *(ushort*)node;
-    uint current_size = 1 << node_size_power;
+    ushort vertex_size_power = *(ushort*)vertex;
+    uint current_size = 1 << vertex_size_power;
     
-    while ((1 << node_size_power) < required_size) {
-        node_size_power++;
+    while ((1 << vertex_size_power) < required_size) {
+        vertex_size_power++;
     }
     
     // Set new size for caller
-    *new_size = 1 << node_size_power;
+    *new_size = 1 << vertex_size_power;
     // Allocate new space
     FreeBlock* free_block = find_and_get_free_block(*new_size);
-    uchar* new_node = NULL;
+    uchar* new_vertex = NULL;
     
     if (free_block) {
         // Use found free block
-        new_node = (uchar*)malloc(*new_size);
-        memcpy(new_node, node, current_size);
+        new_vertex = (uchar*)malloc(*new_size);
+        memcpy(new_vertex, vertex, current_size);
         
         // Store old offset before updating CoreMap
-        long old_offset = CoreMap[node_index].file_offset;
-        CoreMap[node_index].file_offset = free_block->offset;
+        long old_offset = CoreMap[vertex_index].file_offset;
+        CoreMap[vertex_index].file_offset = free_block->offset;
         
         // Add old space to free space using stored old_offset
         add_free_block(current_size, old_offset);
@@ -181,33 +181,33 @@ uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uin
         free(free_block);  // Don't forget to free the block
     } else {
         // No suitable free block found, allocate at end of file
-        new_node = (uchar*)malloc(*new_size);
-        memcpy(new_node, node, current_size);
+        new_vertex = (uchar*)malloc(*new_size);
+        memcpy(new_vertex, vertex, current_size);
         
         // Add old space to free space
-        add_free_block(current_size, CoreMap[node_index].file_offset);
+        add_free_block(current_size, CoreMap[vertex_index].file_offset);
         
         // Update CoreMap with new location
         FILE* data_file = fopen(DATA_FILE, "ab");
         if (data_file) {
-            CoreMap[node_index].file_offset = ftell(data_file);
+            CoreMap[vertex_index].file_offset = ftell(data_file);
             fclose(data_file);
         }
     }
     
-    // Update node size
-    *(ushort*)new_node = node_size_power;
+    // Update vertex size
+    *(ushort*)new_vertex = vertex_size_power;
     
-    // Free old node
-    free(node);
+    // Free old vertex
+    free(vertex);
         // Save updated free space information
     save_free_space();
         // Save updated mapping information
-    if (save_map(node_index) != MAP_SUCCESS)
+    if (save_map(vertex_index) != MAP_SUCCESS)
     {
         printf("Warning: Failed to update map.bin\n");
     }
-    return new_node;
+    return new_vertex;
 }
 
 FreeBlock* find_and_get_free_block(uint size) {
@@ -252,22 +252,22 @@ FreeBlock* find_and_get_free_block(uint size) {
     return NULL;
 }
 
-int check_and_resize_node(uchar* node, uint required_size, uint node_index) {
+int check_and_resize_vertex(uchar* vertex, uint required_size, uint vertex_index) {
     // Check if we need to resize
-    ushort node_size_power = *(ushort*)(node);
-    uint current_node_size = 1 << node_size_power;
+    ushort vertex_size_power = *(ushort*)(vertex);
+    uint current_vertex_size = 1 << vertex_size_power;
     
-    if (required_size > current_node_size) {
+    if (required_size > current_vertex_size) {
         uint new_size;
-        uchar* new_node = resize_node_space(node, required_size, node_index, &new_size);
-        // printf("new_node: %p\n", new_node);
-        if (!new_node) {
-            printf("Error: Failed to resize node\n");
+        uchar* new_vertex = resize_vertex_space(vertex, required_size, vertex_index, &new_size);
+        // printf("new_vertex: %p\n", new_vertex);
+        if (!new_vertex) {
+            printf("Error: Failed to resize vertex\n");
             return FREE_SPACE_ERROR;
         }
-        uint node_position = CoreMap[node_index].core_position;
-        Core[node_position] = new_node;
-        // printf("Core[node_index]: %p\n", Core[node_index]);
+        uint vertex_position = CoreMap[vertex_index].core_position;
+        Core[vertex_position] = new_vertex;
+        // printf("Core[vertex_index]: %p\n", Core[vertex_index]);
         return FREE_SPACE_RESIZED;
     }
     

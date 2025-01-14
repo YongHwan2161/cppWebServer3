@@ -9,8 +9,8 @@
     # pkgs.go
     # pkgs.python311
     # pkgs.python311Packages.pip
-    # pkgs.nodejs_20
-    # pkgs.nodePackages.nodemon
+    # pkgs.vertexjs_20
+    # pkgs.vertexPackages.vertexmon
   ];
 
   # Sets environment variables in the workspace

@@ -26,10 +26,10 @@ std::vector<uchar *> CoRe;
 std::vector<uchar *> Core;
 // std::vector<vector<tuple<int, ushort, long long, long long>>> order;
 uint user = 1;
-uint cNode[10];
+uint cvertex[10];
 ushort cCh[10];
 uint pageNum[10];
-pair<uint, ushort> copyNode;
+pair<uint, ushort> copyvertex;
 int line_spacing = 5;
 int text_size = 15;
 vector<wstring> LogStr{};
@@ -37,16 +37,16 @@ unsigned int gar = 39701;
 uint orderStart = 36673;
 uint ttt = 166972;
 vector<uchar> zero8 = {0, 0, 0, 0, 0, 0, 0, 0};
-uchar initValues[18] = {14, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // node 추가시 초기값 설정 charToushort(uchar *arr)
+uchar initValues[18] = {14, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // vertex 추가시 초기값 설정 charToushort(uchar *arr)
 ushort charToushort(uchar *arr)
 {
     return (static_cast<ushort>(arr[0])) |
            (static_cast<ushort>(arr[1]) << 8);
 }
-ushort numCh(uint node) // node의 채널 수를 반환(채널 수는 2바이트로 저장됨)
+ushort numCh(uint vertex) // vertex의 채널 수를 반환(채널 수는 2바이트로 저장됨)
 {
-    return (static_cast<ushort>(CoRe[node][4])) |
-           (static_cast<ushort>(CoRe[node][5]) << 8);
+    return (static_cast<ushort>(CoRe[vertex][4])) |
+           (static_cast<ushort>(CoRe[vertex][5]) << 8);
 }
 uint charTouint(uchar *arr)
 {
@@ -126,20 +126,20 @@ uchar *pairToBytes(uint32_t val1, uint16_t val2)
 
     return bytes; // 배열의 포인터 반환
 }
-uchar *pairToBytes2(uint node1, ushort ch1, uint node2, ushort ch2)
+uchar *pairToBytes2(uint vertex1, ushort ch1, uint vertex2, ushort ch2)
 {
     unsigned char *bytes = new unsigned char[12]; // 6 바이트 배열 동적 할당
 
-    bytes[0] = static_cast<unsigned char>(node1 & 0xFF);
-    bytes[1] = static_cast<unsigned char>((node1 >> 8) & 0xFF);
-    bytes[2] = static_cast<unsigned char>((node1 >> 16) & 0xFF);
-    bytes[3] = static_cast<unsigned char>((node1 >> 24) & 0xFF);
+    bytes[0] = static_cast<unsigned char>(vertex1 & 0xFF);
+    bytes[1] = static_cast<unsigned char>((vertex1 >> 8) & 0xFF);
+    bytes[2] = static_cast<unsigned char>((vertex1 >> 16) & 0xFF);
+    bytes[3] = static_cast<unsigned char>((vertex1 >> 24) & 0xFF);
     bytes[4] = static_cast<unsigned char>(ch1 & 0xFF);
     bytes[5] = static_cast<unsigned char>((ch1 >> 8) & 0xFF);
-    bytes[6] = static_cast<unsigned char>(node2 & 0xFF);
-    bytes[7] = static_cast<unsigned char>((node2 >> 8) & 0xFF);
-    bytes[8] = static_cast<unsigned char>((node2 >> 16) & 0xFF);
-    bytes[9] = static_cast<unsigned char>((node2 >> 24) & 0xFF);
+    bytes[6] = static_cast<unsigned char>(vertex2 & 0xFF);
+    bytes[7] = static_cast<unsigned char>((vertex2 >> 8) & 0xFF);
+    bytes[8] = static_cast<unsigned char>((vertex2 >> 16) & 0xFF);
+    bytes[9] = static_cast<unsigned char>((vertex2 >> 24) & 0xFF);
     bytes[10] = static_cast<unsigned char>(ch2 & 0xFF);
     bytes[11] = static_cast<unsigned char>((ch2 >> 8) & 0xFF);
 
@@ -159,56 +159,56 @@ uchar *longlongToBytes(long long val)
     bytes[7] = static_cast<unsigned char>((val >> 56) & 0xFF);
     return bytes;
 }
-uchar *chVec(uint node, ushort ch)
+uchar *chVec(uint vertex, ushort ch)
 {
-    uint posi = charTouint(CoRe[node] + 6 + 4 * ch);
+    uint posi = charTouint(CoRe[vertex] + 6 + 4 * ch);
     uint posiEnd;
 
-    if (ch < numCh(node) - 1)
+    if (ch < numCh(vertex) - 1)
     {
-        posiEnd = charTouint(CoRe[node] + 6 + 4 * (ch + 1));
+        posiEnd = charTouint(CoRe[vertex] + 6 + 4 * (ch + 1));
     }
     else
     {
-        posiEnd = 4 + charTouint(CoRe[node]);
+        posiEnd = 4 + charTouint(CoRe[vertex]);
     }
     uchar *result = new uchar[posiEnd - posi];
     for (int i = 0; i < posiEnd - posi; i++)
     {
-        result[i] = CoRe[node][i + posi];
+        result[i] = CoRe[vertex][i + posi];
     }
     return result;
 }
-uchar *axis1(uint node, ushort ch)
+uchar *axis1(uint vertex, ushort ch)
 {
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    return CoRe[node] + startCoo + 4; // 포인터를 그대로 전달함.
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    return CoRe[vertex] + startCoo + 4; // 포인터를 그대로 전달함.
 }
-uint axis2(uint node, ushort ch)
+uint axis2(uint vertex, ushort ch)
 {
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
     return startRev + 4;
 }
-uchar *axis3(uint node, ushort ch)
+uchar *axis3(uint vertex, ushort ch)
 {
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(CoRe[node] + startRev);
-    return CoRe[node] + startRev + 4 + sizeRev + 4;
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
+    return CoRe[vertex] + startRev + 4 + sizeRev + 4;
 }
-uchar *axis(uint node, ushort ch, ushort axis)
+uchar *axis(uint vertex, ushort ch, ushort axis)
 {
-    uint startAxis = charTouint(CoRe[node] + 6 + 4 * ch);
+    uint startAxis = charTouint(CoRe[vertex] + 6 + 4 * ch);
     uint sizeAxis = 0;
     for (int i = 2; i <= axis; i++)
     {
-        sizeAxis = charTouint(CoRe[node] + startAxis);
+        sizeAxis = charTouint(CoRe[vertex] + startAxis);
         startAxis += 4 + sizeAxis;
     }
-    return CoRe[node] + startAxis + 4;
+    return CoRe[vertex] + startAxis + 4;
 }
 void changeShort(uchar *arr, uint index, ushort update)
 {
@@ -222,13 +222,13 @@ void changeInt(uchar *arr, uint index, uint update)
     arr[index + 2] = static_cast<uchar>((update >> 16) & 0xFF);
     arr[index + 3] = static_cast<uchar>((update >> 24) & 0xFF);
 }
-void changePair(uchar *arr, uint index, uint node, ushort ch)
+void changePair(uchar *arr, uint index, uint vertex, ushort ch)
 {
-    // node 값을 벡터에 할당
-    arr[index] = static_cast<uchar>(node & 0xFF);
-    arr[index + 1] = static_cast<uchar>((node >> 8) & 0xFF);
-    arr[index + 2] = static_cast<uchar>((node >> 16) & 0xFF);
-    arr[index + 3] = static_cast<uchar>((node >> 24) & 0xFF);
+    // vertex 값을 벡터에 할당
+    arr[index] = static_cast<uchar>(vertex & 0xFF);
+    arr[index + 1] = static_cast<uchar>((vertex >> 8) & 0xFF);
+    arr[index + 2] = static_cast<uchar>((vertex >> 16) & 0xFF);
+    arr[index + 3] = static_cast<uchar>((vertex >> 24) & 0xFF);
 
     // ch 값을 벡터에 할당
     arr[index + 4] = static_cast<uchar>(ch & 0xFF);
@@ -245,44 +245,44 @@ void changeLong(uchar *arr, uint index, long long update)
     arr[index + 6] = static_cast<uchar>((update >> 48) & 0xFF);
     arr[index + 7] = static_cast<uchar>((update >> 52) & 0xFF);
 }
-void eraseCoo(uint node, ushort ch, uint index)
+void eraseCoo(uint vertex, ushort ch, uint index)
 {
     // 6바이트 제거
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(CoRe[node] + startRev);
-    vector<uchar> replace = vector<uchar>(CoRe[node] + startCoo + 4 + 6 * (index + 1), CoRe[node] + startRev + 4 + sizeRev);
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
+    vector<uchar> replace = vector<uchar>(CoRe[vertex] + startCoo + 4 + 6 * (index + 1), CoRe[vertex] + startRev + 4 + sizeRev);
     for (int i = startCoo + 4 + 6 * index; i < startRev - 2 + sizeRev; i++)
     {
-        CoRe[node][i] = replace[i - startCoo - 4 - 6 * index]; // Rev 위치를 앞으로 6칸 이동
+        CoRe[vertex][i] = replace[i - startCoo - 4 - 6 * index]; // Rev 위치를 앞으로 6칸 이동
     }
-    changeInt(CoRe[node], startCoo, sizeCoo - 6);
+    changeInt(CoRe[vertex], startCoo, sizeCoo - 6);
 }
-void eraseRev(uint node, ushort ch, uint index)
+void eraseRev(uint vertex, ushort ch, uint index)
 {
     // 6바이트 제거
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
-    uint startRev = charTouint(CoRe[node] + startCoo + 4 + sizeCoo);
-    // CoRe[node].erase(CoRe[node].begin() + startRev + 4 + 6 * index, CoRe[node].begin() + startCoo + 4 + 6 * (index + 1));
-    changePair(CoRe[node], startRev + 4 + 6 * index, 0, 0); // 제거할 때 메모리를 삭제시키지 않고 그냥 0으로 채움.(나중에 재활용하기 위함 + 프로그램 성능을 위해)
-    uint sizeRev = charTouint(CoRe[node] + startRev);
-    changeInt(CoRe[node], startRev, sizeRev - 6);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
+    uint startRev = charTouint(CoRe[vertex] + startCoo + 4 + sizeCoo);
+    // CoRe[vertex].erase(CoRe[vertex].begin() + startRev + 4 + 6 * index, CoRe[vertex].begin() + startCoo + 4 + 6 * (index + 1));
+    changePair(CoRe[vertex], startRev + 4 + 6 * index, 0, 0); // 제거할 때 메모리를 삭제시키지 않고 그냥 0으로 채움.(나중에 재활용하기 위함 + 프로그램 성능을 위해)
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
+    changeInt(CoRe[vertex], startRev, sizeRev - 6);
     // uint sizeCh = charTouint(vec, startCoo - 4);
     // changeInt(vec, startCoo - 4, sizeRev - 6);
 }
-void clearCoo(uint node, uint ch)
+void clearCoo(uint vertex, uint ch)
 {
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(CoRe[node] + startRev);
-    changeInt(CoRe[node], startCoo, 0);
-    vector<uchar> replace = vector<uchar>(CoRe[node] + startRev, CoRe[node] + startRev + 4 + sizeRev);
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
+    changeInt(CoRe[vertex], startCoo, 0);
+    vector<uchar> replace = vector<uchar>(CoRe[vertex] + startRev, CoRe[vertex] + startRev + 4 + sizeRev);
     for (int i = 4; i < 8 + sizeRev; i++)
     {
-        CoRe[node][i] = replace[i - 4];
+        CoRe[vertex][i] = replace[i - 4];
     }
     // vec.erase(vec.begin() + 4, vec.begin() + 4 + szC);
     // for (int i = 0; i < 4; i++)
@@ -290,12 +290,12 @@ void clearCoo(uint node, uint ch)
     //     vec[i] = 0;
     // }
 }
-void clearRev(uint node, uint ch)
+void clearRev(uint vertex, uint ch)
 {
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    changeInt(CoRe[node], startRev, 0);
+    changeInt(CoRe[vertex], startRev, 0);
     // uint szC = charTouint(vec, 0);
     // vec = vector<uchar>(vec.begin(), vec.begin() + 8 + szC);
     // for (int i = 0; i < 4; i++)
@@ -343,10 +343,10 @@ void insertArr2(uchar *Arr, uint index, uchar *add, uint addSize)
     Arr = result;
     delete[] Arr; // 메모리 해제 먼저 해야 함!
 }
-void insertArr(uint32_t node, uint32_t index, uint8_t *add, uint32_t addSize)
+void insertArr(uint32_t vertex, uint32_t index, uint8_t *add, uint32_t addSize)
 {
-    // CoRe[node]의 현재 크기를 구합니다. 이 예에서는 별도의 메커니즘으로 크기를 추적하고 있다고 가정합니다.
-    uint32_t originalSize = charTouint(CoRe[node]); // 여기서 charTouint 함수는 첫 4바이트에서 크기 정보를 읽는 함수라고 가정합니다.
+    // CoRe[vertex]의 현재 크기를 구합니다. 이 예에서는 별도의 메커니즘으로 크기를 추적하고 있다고 가정합니다.
+    uint32_t originalSize = charTouint(CoRe[vertex]); // 여기서 charTouint 함수는 첫 4바이트에서 크기 정보를 읽는 함수라고 가정합니다.
 
     // 새로운 배열의 총 크기를 계산합니다.
     uint32_t newSize = originalSize + addSize;
@@ -358,44 +358,44 @@ void insertArr(uint32_t node, uint32_t index, uint8_t *add, uint32_t addSize)
     changeInt(result, 0, newSize - 4);
 
     // 기존 데이터의 처음부터 삽입 위치까지를 복사
-    std::copy(CoRe[node] + 4, CoRe[node] + index + 4, result + 4);
+    std::copy(CoRe[vertex] + 4, CoRe[vertex] + index + 4, result + 4);
 
     // 추가할 데이터를 삽입 위치에 복사
     std::copy(add, add + addSize, result + index + 4);
 
     // 원래 데이터에서 삽입 위치 이후의 데이터를 새 위치에 복사
-    std::copy(CoRe[node] + index + 4, CoRe[node] + originalSize, result + index + addSize + 4);
+    std::copy(CoRe[vertex] + index + 4, CoRe[vertex] + originalSize, result + index + addSize + 4);
 
     // 기존 데이터 메모리 해제
-    delete[] CoRe[node];
+    delete[] CoRe[vertex];
 
-    // CoRe[node]를 새 배열로 업데이트
-    CoRe[node] = result;
+    // CoRe[vertex]를 새 배열로 업데이트
+    CoRe[vertex] = result;
 }
-uint endOfCh(uint node, ushort ch)
+uint endOfCh(uint vertex, ushort ch)
 {
     uint re = 0;
-    ushort numCh = charToushort(CoRe[node] + 4);
+    ushort numCh = charToushort(CoRe[vertex] + 4);
     if (ch < numCh - 1) // is not last channel
     {
-        re = charTouint(CoRe[node] + 6 + 4 * (ch + 1));
+        re = charTouint(CoRe[vertex] + 6 + 4 * (ch + 1));
     }
     else // is last channel
     {
-        re = 4 + charTouint(CoRe[node]);
+        re = 4 + charTouint(CoRe[vertex]);
     }
     return re;
 }
-uint numAxis(uint node, ushort ch)
+uint numAxis(uint vertex, ushort ch)
 {
-    ushort numch = charToushort(CoRe[node] + 4);
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    ushort numch = charToushort(CoRe[vertex] + 4);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(CoRe[node] + startRev);
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
     if (ch < numch - 1)
     {
-        uint startCoo2 = charTouint(CoRe[node] + 6 + 4 * (ch + 1));
+        uint startCoo2 = charTouint(CoRe[vertex] + 6 + 4 * (ch + 1));
         if (startRev + 4 + sizeRev < startCoo2)
         {
             return 3;
@@ -407,7 +407,7 @@ uint numAxis(uint node, ushort ch)
     }
     else
     {
-        if (startRev + 4 + sizeRev < charTouint(CoRe[node]))
+        if (startRev + 4 + sizeRev < charTouint(CoRe[vertex]))
         {
             return 3;
         }
@@ -417,213 +417,213 @@ uint numAxis(uint node, ushort ch)
         }
     }
 }
-void pushCoo(uint node, ushort ch, uchar *add)
+void pushCoo(uint vertex, ushort ch, uchar *add)
 {
-    ushort numCh = charToushort(CoRe[node] + 4);
-    uint startCoo = charTouint(CoRe[node] + (6 + 4 * ch));
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    ushort numCh = charToushort(CoRe[vertex] + 4);
+    uint startCoo = charTouint(CoRe[vertex] + (6 + 4 * ch));
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(CoRe[node] + startRev);
-    uint startCoo2 = endOfCh(node, ch);
-    ushort nAxis = numAxis(node, ch);
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
+    uint startCoo2 = endOfCh(vertex, ch);
+    ushort nAxis = numAxis(vertex, ch);
     if (nAxis == 2)
     {
         if (sizeCoo + sizeRev + 14 > startCoo2 - startCoo)
         {
             for (ushort i = ch + 1; i < numCh; i++)
             {
-                uint temp = charTouint(CoRe[node] + 6 + 4 * i);
-                changeInt(CoRe[node], 6 + 4 * i, temp + 6);
+                uint temp = charTouint(CoRe[vertex] + 6 + 4 * i);
+                changeInt(CoRe[vertex], 6 + 4 * i, temp + 6);
             }
-            insertArr(node, startRev, add, 6);
-            // CoRe[node].insert(CoRe[node].begin() + startCoo + 4 + sizeCoo, add.begin(), add.end());
-            changeInt(CoRe[node], startCoo, sizeCoo + 6);
+            insertArr(vertex, startRev, add, 6);
+            // CoRe[vertex].insert(CoRe[vertex].begin() + startCoo + 4 + sizeCoo, add.begin(), add.end());
+            changeInt(CoRe[vertex], startCoo, sizeCoo + 6);
         }
         else
         {
-            changeInt(CoRe[node], startCoo, sizeCoo + 6);
-            vector<uchar> RevVec = vector<uchar>(CoRe[node] + startRev, CoRe[node] + startRev + 4 + sizeRev);
+            changeInt(CoRe[vertex], startCoo, sizeCoo + 6);
+            vector<uchar> RevVec = vector<uchar>(CoRe[vertex] + startRev, CoRe[vertex] + startRev + 4 + sizeRev);
             for (int i = startRev + 6; i < startRev + 10 + sizeRev; i++)
             {
-                CoRe[node][i] = RevVec[i - startRev - 6];
+                CoRe[vertex][i] = RevVec[i - startRev - 6];
             }
             for (int i = startRev; i < startRev + 6; i++)
             {
-                CoRe[node][i] = add[i - startRev];
+                CoRe[vertex][i] = add[i - startRev];
             }
         }
     }
     else if (nAxis == 3)
     {
-        insertArr(node, startRev, add, 6); // inserArr에서 전체 byte 수 변경함
-        changeInt(CoRe[node], startCoo, sizeCoo + 6);
+        insertArr(vertex, startRev, add, 6); // inserArr에서 전체 byte 수 변경함
+        changeInt(CoRe[vertex], startCoo, sizeCoo + 6);
         for (ushort i = ch + 1; i < numCh; i++)
         {
-            uint temp = charTouint(CoRe[node] + 6 + 4 * i);
-            changeInt(CoRe[node], 6 + 4 * i, temp + 6);
+            uint temp = charTouint(CoRe[vertex] + 6 + 4 * i);
+            changeInt(CoRe[vertex], 6 + 4 * i, temp + 6);
         }
     }
     delete[] add;
 }
-void pushRev(uint node, ushort ch, uchar *add)
+void pushRev(uint vertex, ushort ch, uchar *add)
 {
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(CoRe[node] + startRev);
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
 
     uint endPosi = startRev + 4 + sizeRev;
-    ushort numCh = charToushort(CoRe[node] + 4);
-    uint startCoo2 = endOfCh(node, ch);
-    ushort nAxis = numAxis(node, ch);
+    ushort numCh = charToushort(CoRe[vertex] + 4);
+    uint startCoo2 = endOfCh(vertex, ch);
+    ushort nAxis = numAxis(vertex, ch);
     if (nAxis == 2)
     {
         if (sizeCoo + sizeRev + 14 > startCoo2 - startCoo)
         {
-            insertArr(node, endPosi, add, 6);
+            insertArr(vertex, endPosi, add, 6);
             for (ushort i = ch + 1; i < numCh; i++)
             {
-                uint temp = charTouint(CoRe[node] + 6 + 4 * i);
-                changeInt(CoRe[node], 6 + 4 * i, temp + 6);
+                uint temp = charTouint(CoRe[vertex] + 6 + 4 * i);
+                changeInt(CoRe[vertex], 6 + 4 * i, temp + 6);
             }
-            changeInt(CoRe[node], startRev, sizeRev + 6);
+            changeInt(CoRe[vertex], startRev, sizeRev + 6);
         }
         else
         {
             for (int i = endPosi; i < endPosi + 6; i++)
             {
-                CoRe[node][i] = add[i - endPosi];
+                CoRe[vertex][i] = add[i - endPosi];
             }
         }
     }
     else if (nAxis == 3)
     {
-        insertArr(node, endPosi, add, 6);
+        insertArr(vertex, endPosi, add, 6);
         for (ushort i = ch + 1; i < numCh; i++)
         {
-            uint temp = charTouint(CoRe[node] + 6 + 4 * i);
-            changeInt(CoRe[node], 6 + 4 * i, temp + 6);
+            uint temp = charTouint(CoRe[vertex] + 6 + 4 * i);
+            changeInt(CoRe[vertex], 6 + 4 * i, temp + 6);
         }
-        changeInt(CoRe[node], startRev, sizeRev + 6);
+        changeInt(CoRe[vertex], startRev, sizeRev + 6);
     }
 
     delete[] add;
-    changeInt(CoRe[node], startRev, sizeRev + 6);
+    changeInt(CoRe[vertex], startRev, sizeRev + 6);
 }
-void pushRev2(uint node, ushort ch, uchar *add) // Brain 함수에서만 사용하는 특수용도(일반적으로 사용하면 안됨)
+void pushRev2(uint vertex, ushort ch, uchar *add) // Brain 함수에서만 사용하는 특수용도(일반적으로 사용하면 안됨)
 {
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(CoRe[node] + startRev);
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
     uint endPosi = startRev + 4 + sizeRev;
-    ushort numCh = charToushort(CoRe[node] + 4);
-    // CoRe[node].insert(CoRe[node].begin() + endPosi, add.begin(), add.end());
-    insertArr(node, endPosi, add, 12);
+    ushort numCh = charToushort(CoRe[vertex] + 4);
+    // CoRe[vertex].insert(CoRe[vertex].begin() + endPosi, add.begin(), add.end());
+    insertArr(vertex, endPosi, add, 12);
     for (ushort i = ch + 1; i < numCh; i++)
     {
-        changeInt(CoRe[node], 6 + 4 * i, charTouint(CoRe[node] + 6 + 4 * i) + 12);
+        changeInt(CoRe[vertex], 6 + 4 * i, charTouint(CoRe[vertex] + 6 + 4 * i) + 12);
     }
-    changeInt(CoRe[node], startRev, sizeRev + 12);
+    changeInt(CoRe[vertex], startRev, sizeRev + 12);
 }
-void pushAxis3(uint node, ushort ch, uchar *bitmap)
+void pushAxis3(uint vertex, ushort ch, uchar *bitmap)
 {
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(CoRe[node] + startRev);
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
     uint startAxis3 = startRev + 4 + sizeRev;
-    uint sizeAxis3 = charTouint(CoRe[node] + startAxis3);
+    uint sizeAxis3 = charTouint(CoRe[vertex] + startAxis3);
     uint endPosi = startAxis3 + 4 + sizeAxis3;
-    ushort numCh = charToushort(CoRe[node] + 4);
+    ushort numCh = charToushort(CoRe[vertex] + 4);
     // uint startCoo2 = 0;
     // if (ch < numCh - 1)
     // {
-    //     startCoo2 = charTouint(CoRe[node] + 6 + 4 * (ch + 1));
+    //     startCoo2 = charTouint(CoRe[vertex] + 6 + 4 * (ch + 1));
     // }
     // else
     // {
-    //     startCoo2 = 4 + charTouint(CoRe[node]);
+    //     startCoo2 = 4 + charTouint(CoRe[vertex]);
     // }
     // uchar *add = uintToBytes(8);
-    // insertArr(node, endPosi, add, 4);
-    uint width = charTouint(CoRe[node] + startAxis3 + 4);
-    uint height = charTouint(CoRe[node] + startAxis3 + 8);
-    changeInt(CoRe[node], startAxis3, 16 + width * height);
-    // insertArr(node, endPosi + 8, bitmap, 4);
+    // insertArr(vertex, endPosi, add, 4);
+    uint width = charTouint(CoRe[vertex] + startAxis3 + 4);
+    uint height = charTouint(CoRe[vertex] + startAxis3 + 8);
+    changeInt(CoRe[vertex], startAxis3, 16 + width * height);
+    // insertArr(vertex, endPosi + 8, bitmap, 4);
     if (width != 0 && height != 0)
     {
-        insertArr(node, endPosi + 4, bitmap, width * height);
+        insertArr(vertex, endPosi + 4, bitmap, width * height);
     }
-    // insertArr(node, endPosi + 12, bitmap, width * height);
+    // insertArr(vertex, endPosi + 12, bitmap, width * height);
     for (ushort i = ch + 1; i < numCh; i++)
     {
-        uint temp = charTouint(CoRe[node] + 6 + 4 * i);
-        changeInt(CoRe[node], 6 + 4 * i, temp + width * height);
+        uint temp = charTouint(CoRe[vertex] + 6 + 4 * i);
+        changeInt(CoRe[vertex], 6 + 4 * i, temp + width * height);
     }
 }
-void insertCoo(uint node, ushort ch, int indexCoo, uchar *add)
+void insertCoo(uint vertex, ushort ch, int indexCoo, uchar *add)
 {
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
-    insertArr(node, startCoo + 4 + indexCoo, add, 6);
-    // CoRe[node].insert(CoRe[node].begin() + startCoo + 4 + indexCoo, add.begin(), add.end());
-    changeInt(CoRe[node], startCoo, sizeCoo + 6);
-    ushort sizeCh = numCh(node);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
+    insertArr(vertex, startCoo + 4 + indexCoo, add, 6);
+    // CoRe[vertex].insert(CoRe[vertex].begin() + startCoo + 4 + indexCoo, add.begin(), add.end());
+    changeInt(CoRe[vertex], startCoo, sizeCoo + 6);
+    ushort sizeCh = numCh(vertex);
     for (ushort i = ch + 1; i < sizeCh; i++)
     {
-        uint temp = charTouint(CoRe[node] + 6 + 4 * i);
-        changeInt(CoRe[node], 6 + 4 * i, temp + 6);
+        uint temp = charTouint(CoRe[vertex] + 6 + 4 * i);
+        changeInt(CoRe[vertex], 6 + 4 * i, temp + 6);
     }
 }
-void insertRev(uint node, ushort ch, int indexRev, uchar *add)
+void insertRev(uint vertex, ushort ch, int indexRev, uchar *add)
 {
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(CoRe[node] + startRev);
-    insertArr(node, startRev + +indexRev, add, 6);
-    // CoRe[node].insert(CoRe[node].begin() + startRev + 4 + indexRev, add.begin(), add.end());
-    changeInt(CoRe[node], startRev, sizeRev + 6);
-    ushort sizeCh = numCh(node);
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
+    insertArr(vertex, startRev + +indexRev, add, 6);
+    // CoRe[vertex].insert(CoRe[vertex].begin() + startRev + 4 + indexRev, add.begin(), add.end());
+    changeInt(CoRe[vertex], startRev, sizeRev + 6);
+    ushort sizeCh = numCh(vertex);
     for (ushort i = ch + 1; i < sizeCh; i++)
     {
-        uint temp = charTouint(CoRe[node] + 6 + 4 * i);
-        changeInt(CoRe[node], 6 + 4 * i, temp + 6);
+        uint temp = charTouint(CoRe[vertex] + 6 + 4 * i);
+        changeInt(CoRe[vertex], 6 + 4 * i, temp + 6);
     }
 }
-uint startCh(uint node, ushort ch)
+uint startCh(uint vertex, ushort ch)
 {
-    return charTouint(CoRe[node] + 6 + 4 * ch);
+    return charTouint(CoRe[vertex] + 6 + 4 * ch);
 }
-uint sizeCoo(uint node, ushort ch)
+uint sizeCoo(uint vertex, ushort ch)
 {
-    uint start = startCh(node, ch);
-    return charTouint(CoRe[node] + start);
+    uint start = startCh(vertex, ch);
+    return charTouint(CoRe[vertex] + start);
 }
-uint sizeRev(uint node, ushort ch)
+uint sizeRev(uint vertex, ushort ch)
 {
     // std::cerr << "call sizeRev()" << std::endl;
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
-    return charTouint(CoRe[node] + startCoo + 4 + sizeCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
+    return charTouint(CoRe[vertex] + startCoo + 4 + sizeCoo);
 }
-vector<uint> sizeCoRe(uint node, ushort ch)
+vector<uint> sizeCoRe(uint vertex, ushort ch)
 {
     vector<uint> re(2);
-    uint startCoo = startCh(node, ch);
-    re[0] = charTouint(CoRe[node] + startCoo);
-    re[1] = charTouint(CoRe[node] + startCoo + 4 + re[0]);
+    uint startCoo = startCh(vertex, ch);
+    re[0] = charTouint(CoRe[vertex] + startCoo);
+    re[1] = charTouint(CoRe[vertex] + startCoo + 4 + re[0]);
     return re;
 }
-uint startAxis3(uint node, ushort ch)
+uint startAxis3(uint vertex, ushort ch)
 {
-    if (numAxis(node, ch) >= 3)
+    if (numAxis(vertex, ch) >= 3)
     {
-        uint startCoo2 = charTouint(CoRe[node] + 6 + 4 * ch);
-        uint sizeCoo2 = charTouint(CoRe[node] + startCoo2);
+        uint startCoo2 = charTouint(CoRe[vertex] + 6 + 4 * ch);
+        uint sizeCoo2 = charTouint(CoRe[vertex] + startCoo2);
         uint startRev2 = startCoo2 + 4 + sizeCoo2;
-        uint sizeRev2 = charTouint(CoRe[node] + startRev2);
+        uint sizeRev2 = charTouint(CoRe[vertex] + startRev2);
         return startRev2 + 4 + sizeRev2;
     }
     else
@@ -658,10 +658,10 @@ void CoMove(uint ori, ushort oriCh, uint From, uint To, ushort ToCh)
         }
     }
 }
-void link(uint prevNode, ushort prevCh, uint nextNode, ushort nextCh)
+void link(uint prevvertex, ushort prevCh, uint nextvertex, ushort nextCh)
 {
-    pushCoo(prevNode, prevCh, pairToBytes(nextNode, nextCh));
-    pushRev(nextNode, nextCh, pairToBytes(prevNode, prevCh));
+    pushCoo(prevvertex, prevCh, pairToBytes(nextvertex, nextCh));
+    pushRev(nextvertex, nextCh, pairToBytes(prevvertex, prevCh));
 }
 std::wstring ushortToWstring(ushort num) // ushort 번호에 해당하는 wstring 글자를 반환하는 함수임. ushort 자체를 글자로 변환하는 거 아님(이거는 intToWString() 사용할 것)
 {
@@ -744,32 +744,32 @@ std::string wstringToUtf8(const std::wstring &wstr)
     wcstombs(buffer.data(), wstr.c_str(), buffer.size());
     return std::string(buffer.data());
 }
-uchar *word(uint node)
+uchar *word(uint vertex)
 {
     // uchar *re1 = new uchar[1024];
     uchar re1[4000]; // 스택에 고정 크기 할당
 
     ushort nowPosi = 4;
-    if (node >= ttt && node < ttt + 256)
+    if (vertex >= ttt && vertex < ttt + 256)
     {
-        re1[nowPosi] = (uchar)(node - ttt);
+        re1[nowPosi] = (uchar)(vertex - ttt);
         nowPosi++;
     }
-    else if (sizeRev(node, 0) > 0)
+    else if (sizeRev(vertex, 0) > 0)
     {
         stack<uint> st;
         vector<uint> index;
-        st.push(node);
+        st.push(vertex);
         index.push_back(0);
 
         int ii = 0;
         while (!st.empty() && ii < 4000)
         {
             ii++;
-            uint topNode = st.top();
-            uint szCoo = sizeCoo(topNode, 0);
-            uint szRev = sizeRev(topNode, 0);
-            // vector<uint> szCR = sizeCoRe(topNode, 0);
+            uint topvertex = st.top();
+            uint szCoo = sizeCoo(topvertex, 0);
+            uint szRev = sizeRev(topvertex, 0);
+            // vector<uint> szCR = sizeCoRe(topvertex, 0);
             if (szRev == 6 * index.back())
             {
                 if (st.size() == 1)
@@ -779,8 +779,8 @@ uchar *word(uint node)
                 index.back()++;
                 continue;
             }
-            uint startCoo = startCh(topNode, 0);
-            uint rev = charTouint(CoRe[topNode] + startCoo + 8 + szCoo + 6 * index.back());
+            uint startCoo = startCh(topvertex, 0);
+            uint rev = charTouint(CoRe[topvertex] + startCoo + 8 + szCoo + 6 * index.back());
             if (rev != 41155)
             {
                 st.push(rev);
@@ -788,7 +788,7 @@ uchar *word(uint node)
             }
             else
             {
-                uchar chch = (uchar)(topNode - ttt);
+                uchar chch = (uchar)(topvertex - ttt);
                 re1[nowPosi] = chch;
                 nowPosi++;
                 st.pop();
@@ -799,7 +799,7 @@ uchar *word(uint node)
         }
         if (ii > 4000) // 오류 처리 logic은 while 문 밖으로 꺼내는 게 좋음
         {
-            // Log(L"word Error! node: " + intToWString(node));
+            // Log(L"word Error! vertex: " + intToWString(vertex));
         }
     }
     uchar *sizeRe = uintToBytes(nowPosi - 4);
@@ -814,27 +814,27 @@ uchar *word(uint node)
 
     return result;
 }
-uint ushortToNode(ushort charCode)
+uint ushortTovertex(ushort charCode)
 {
     uchar *byte = ushortToBytes(charCode);
-    uint node1 = ttt + byte[0];
-    uint startCoo = charTouint(CoRe[node1] + 6);
-    uint sizeCoo = charTouint(CoRe[node1] + startCoo);
-    uint node2 = 0;
+    uint vertex1 = ttt + byte[0];
+    uint startCoo = charTouint(CoRe[vertex1] + 6);
+    uint sizeCoo = charTouint(CoRe[vertex1] + startCoo);
+    uint vertex2 = 0;
     for (int i = 0; i < sizeCoo / 6; i++)
     {
-        node2 = charTouint(CoRe[node1] + startCoo + 4 + 6 * i);
-        uint startCoo2 = charTouint(CoRe[node2] + 6);
-        uint sizeCoo2 = charTouint(CoRe[node2] + startCoo2);
+        vertex2 = charTouint(CoRe[vertex1] + startCoo + 4 + 6 * i);
+        uint startCoo2 = charTouint(CoRe[vertex2] + 6);
+        uint sizeCoo2 = charTouint(CoRe[vertex2] + startCoo2);
         uint startRev = startCoo2 + 4 + sizeCoo2;
-        uint node3 = charTouint(CoRe[node2] + startRev + 10);
-        if (node3 == ttt + byte[1])
+        uint vertex3 = charTouint(CoRe[vertex2] + startRev + 10);
+        if (vertex3 == ttt + byte[1])
         {
             break;
         }
     }
     delete[] byte;
-    return node2;
+    return vertex2;
 }
 
 vector<wstring> splitWstring(const wstring &input, const wstring &del)
@@ -871,8 +871,8 @@ float stringAdvance(const std::string &text)
     for (auto c : utf32Text)
     {
         ushort dd = static_cast<ushort>(c);
-        uint node = ushortToNode(dd);
-        uchar *widthData = axis(node, 0, 3);
+        uint vertex = ushortTovertex(dd);
+        uchar *widthData = axis(vertex, 0, 3);
         uint adv = charTouint(widthData + 8);
         // auto glyphIter = bitmapGlyphMap.find(c);
         // if (glyphIter == bitmapGlyphMap.end())
@@ -945,8 +945,8 @@ std::vector<std::wstring> splitLinesW(const std::wstring &input)
     for (size_t end = 0; end <= input.size(); ++end)
     {
         ushort dd = static_cast<ushort>(input[end]);
-        uint node = ushortToNode(dd);
-        uchar *widthData = axis(node, 0, 3);
+        uint vertex = ushortTovertex(dd);
+        uchar *widthData = axis(vertex, 0, 3);
         uint adv = charTouint(widthData + 8);
 
         if (end == input.size() || input[end] == L'\n')
@@ -1038,32 +1038,32 @@ std::wstring charToWstring(uchar *val) // size 정보 담아서 전달되어야 
     }
     return re;
 }
-uchar *Sheet(uint node)
+uchar *Sheet(uint vertex)
 {
     // cerr << "call Sheet()" << endl;
     constexpr uint reSize = 4000;
     uchar *re = new uchar[reSize]();
     ushort nowPosi = 4;
 
-    if (node == 41155)
+    if (vertex == 41155)
     {
         delete[] re;
         return wstringToUChar(L"Entrance");
     }
-    int szR = sizeRev(node, 0);
+    int szR = sizeRev(vertex, 0);
     if (szR > 1)
     {
         delete[] re;
-        return word(node);
+        return word(vertex);
     }
     else if (szR == 0)
     {
         cerr << "szR == 0" << endl;
-        std::pair<uint, ushort> dd(node, 0);
+        std::pair<uint, ushort> dd(vertex, 0);
         uint start1 = startCh(dd.first, dd.second);
         dd = charToPair(CoRe[dd.first] + start1 + 4);
 
-        while (dd.first != node || dd.second != 0)
+        while (dd.first != vertex || dd.second != 0)
         {
             uchar *wordDD = word(dd.first); // Assuming word() allocates memory
             uint sizeWord = charTouint(wordDD);
@@ -1216,46 +1216,46 @@ uint firstToken(uchar *data, uint size) // size 정보 포함해서 받아야 �
     }
     return coord;
 }
-void clearCh(uint node, ushort ch)
+void clearCh(uint vertex, ushort ch)
 {
-    uint startCoo = startCh(node, ch);
-    // uint endCh = endOfCh(node, ch);
-    changeInt(CoRe[node], 0, 10);
-    std::fill(CoRe[node] + startCoo, CoRe[node] + startCoo + 8, 0);
+    uint startCoo = startCh(vertex, ch);
+    // uint endCh = endOfCh(vertex, ch);
+    changeInt(CoRe[vertex], 0, 10);
+    std::fill(CoRe[vertex] + startCoo, CoRe[vertex] + startCoo + 8, 0);
 }
-void addCh(uint node)
+void addCh(uint vertex)
 {
-    ushort numch = numCh(node);
-    changeShort(CoRe[node], 4, numch + 1);
-    uint sizeNode = 4 + charTouint(CoRe[node]);
-    uchar *temp2 = uintToBytes(sizeNode + 4);
-    insertArr(node, 6 + 4 * numch, temp2, 4);
+    ushort numch = numCh(vertex);
+    changeShort(CoRe[vertex], 4, numch + 1);
+    uint sizevertex = 4 + charTouint(CoRe[vertex]);
+    uchar *temp2 = uintToBytes(sizevertex + 4);
+    insertArr(vertex, 6 + 4 * numch, temp2, 4);
     delete[] temp2;
     uchar *z8 = new uchar[8]();
-    insertArr(node, sizeNode, z8, 8);
+    insertArr(vertex, sizevertex, z8, 8);
     delete[] z8;
     for (int i = 0; i < numch; i++)
     {
-        changeInt(CoRe[node], 6 + 4 * i, charTouint(CoRe[node] + 6 + 4 * i) + 4);
+        changeInt(CoRe[vertex], 6 + 4 * i, charTouint(CoRe[vertex] + 6 + 4 * i) + 4);
     }
-    changeInt(CoRe[node], 0, sizeNode + 12);
+    changeInt(CoRe[vertex], 0, sizevertex + 12);
 }
-void addCh2(uint node)
+void addCh2(uint vertex)
 {
-    ushort numch = numCh(node);
-    changeShort(CoRe[node], 4, numch + 2);
-    uint sizeNode = 4 + charTouint(CoRe[node]);
-    uchar *temp2 = uintToBytes2(sizeNode + 8, sizeNode + 16);
-    insertArr(node, 6 + 4 * numch, temp2, 8);
+    ushort numch = numCh(vertex);
+    changeShort(CoRe[vertex], 4, numch + 2);
+    uint sizevertex = 4 + charTouint(CoRe[vertex]);
+    uchar *temp2 = uintToBytes2(sizevertex + 8, sizevertex + 16);
+    insertArr(vertex, 6 + 4 * numch, temp2, 8);
     delete[] temp2;
     uchar *z16 = new uchar[16]();
-    insertArr(node, sizeNode, z16, 16);
+    insertArr(vertex, sizevertex, z16, 16);
     delete[] z16;
     for (int i = 0; i < numch; i++)
     {
-        changeInt(CoRe[node], 6 + 4 * i, charTouint(CoRe[node] + 6 + 4 * i) + 8);
+        changeInt(CoRe[vertex], 6 + 4 * i, charTouint(CoRe[vertex] + 6 + 4 * i) + 8);
     }
-    changeInt(CoRe[node], 0, sizeNode + 24);
+    changeInt(CoRe[vertex], 0, sizevertex + 24);
 }
 bool isZ8(uchar *arr)
 {
@@ -1265,29 +1265,29 @@ bool isZ8(uchar *arr)
 void move(int numTo, uint user)
 {
     uint temp{};
-    uint tN = cNode[user];
-    uint startCoo = startCh(cNode[user], cCh[user]);
+    uint tN = cvertex[user];
+    uint startCoo = startCh(cvertex[user], cCh[user]);
     if (numTo > 0)
     {
         temp = numTo - 1;
-        cNode[user] = charTouint(CoRe[cNode[user]] + startCoo + 4 + 6 * temp);
-        cCh[user] = charToushort(CoRe[tN] + startCoo + 8 + 6 * temp); // cNode[user]를 변경했으므로 tN을 써야 함!!
+        cvertex[user] = charTouint(CoRe[cvertex[user]] + startCoo + 4 + 6 * temp);
+        cCh[user] = charToushort(CoRe[tN] + startCoo + 8 + 6 * temp); // cvertex[user]를 변경했으므로 tN을 써야 함!!
     }
     else
     {
         temp = (-1 * numTo) - 1;
-        uint szC = charTouint(CoRe[cNode[user]] + startCoo);
-        cNode[user] = charTouint(CoRe[cNode[user]] + startCoo + 8 + szC + 6 * temp);
+        uint szC = charTouint(CoRe[cvertex[user]] + startCoo);
+        cvertex[user] = charTouint(CoRe[cvertex[user]] + startCoo + 8 + szC + 6 * temp);
         cCh[user] = charToushort(CoRe[tN] + startCoo + 12 + szC + 6 * temp);
     }
 }
-void Brain(uint node, uchar *data) // 사이즈 정보 포함해서 받아야 함
+void Brain(uint vertex, uchar *data) // 사이즈 정보 포함해서 받아야 함
 {
     cerr << "call Brain()" << endl;
     auto start = std::chrono::high_resolution_clock::now();
     uint coord = 41155;
     ushort ch = 0;
-    uint beforeCd = node;
+    uint beforeCd = vertex;
     ushort beforeCh = 0;
     vector<pair<uint, ushort>> save;
     save.push_back(make_pair(beforeCd, beforeCh));
@@ -1439,7 +1439,7 @@ void Brain(uint node, uchar *data) // 사이즈 정보 포함해서 받아야 �
         beforeCh = ch; // 현재 채널을 before로 이동
         save.push_back(make_pair(beforeCd, beforeCh));
     }
-    pushCoo(beforeCd, beforeCh, pairToBytes(node, 0));
+    pushCoo(beforeCd, beforeCh, pairToBytes(vertex, 0));
     Log(intToWString(recyle) + L"개 재활용!");
     Log(intToWString(addCh3) + L"개 채널 추가!");
     Log(intToWString(addToken) + L"개 Token 추가!");
@@ -1467,13 +1467,13 @@ wstring timeW(time_t timer)
     std::wcsftime(buffer, 80, L"%Y-%m-%d %H:%M:%S", timeinfo);
     return buffer;
 }
-// wstring findAndUpdateOrder(uint node, ushort ch, ushort num)
+// wstring findAndUpdateOrder(uint vertex, ushort ch, ushort num)
 // {
 //     wstring re = L"";
 //     long long tmp = 0;
 //     for (int i = 0; i < order[num].size(); i++)
 //     {
-//         if (node == get<0>(order[num][i]) && ch == get<1>(order[num][i]))
+//         if (vertex == get<0>(order[num][i]) && ch == get<1>(order[num][i]))
 //         {
 //             re = timeW(get<2>(order[num][i]));
 //             tmp = get<3>(order[num][i]);
@@ -1483,40 +1483,40 @@ wstring timeW(time_t timer)
 //     }
 //     time_t timer;
 //     time(&timer);
-//     order[num].push_back(make_tuple(node, ch, timer, tmp));
+//     order[num].push_back(make_tuple(vertex, ch, timer, tmp));
 //     return re;
 // }
 uint numOrder(uint user)
 {
     uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
-    uint node = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
+    uint vertex = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
     ushort ch = charToushort(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1) + 4);
-    uint nodeT = node;
+    uint vertexT = vertex;
     ushort chT = ch;
-    uint startX3 = startAxis3(node, ch);
-    uint node2 = charTouint(CoRe[node] + startX3 + 4);
-    ushort ch2 = charToushort(CoRe[node] + startX3 + 8);
+    uint startX3 = startAxis3(vertex, ch);
+    uint vertex2 = charTouint(CoRe[vertex] + startX3 + 4);
+    ushort ch2 = charToushort(CoRe[vertex] + startX3 + 8);
     uint ii = 1;
-    while (node2 != nodeT || ch2 != chT)
+    while (vertex2 != vertexT || ch2 != chT)
     {
         ii++;
         if (ii == 34640)
         {
             int aa = 0;
         }
-        if (node2 == 36673)
+        if (vertex2 == 36673)
         {
             int bb = 0;
         }
-        node = node2;
+        vertex = vertex2;
         ch = ch2;
-        startX3 = startAxis3(node, ch);
-        node2 = charTouint(CoRe[node] + startX3 + 4);
-        ch2 = charToushort(CoRe[node] + startX3 + 8);
+        startX3 = startAxis3(vertex, ch);
+        vertex2 = charTouint(CoRe[vertex] + startX3 + 4);
+        ch2 = charToushort(CoRe[vertex] + startX3 + 8);
     }
     return ii;
 }
-wstring findAndUpdateOrder(uint node0, ushort ch0, ushort user)
+wstring findAndUpdateOrder(uint vertex0, ushort ch0, ushort user)
 {
     wstring re = L"";
     long tmp = 0;
@@ -1524,116 +1524,116 @@ wstring findAndUpdateOrder(uint node0, ushort ch0, ushort user)
     time_t timer;
     time(&timer);
     uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
-    uint node = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
+    uint vertex = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
     ushort ch = charToushort(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1) + 4);
-    uint nodeT = node;
+    uint vertexT = vertex;
     ushort chT = ch;
-    uint startX3 = startAxis3(node, ch);
-    uint node2 = charTouint(CoRe[node] + startX3 + 4);
-    ushort ch2 = charToushort(CoRe[node] + startX3 + 8);
+    uint startX3 = startAxis3(vertex, ch);
+    uint vertex2 = charTouint(CoRe[vertex] + startX3 + 4);
+    ushort ch2 = charToushort(CoRe[vertex] + startX3 + 8);
     bool check = false;
-    if (nodeT == node0 && chT == ch0)
+    if (vertexT == vertex0 && chT == ch0)
     {
         startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
-        changePair(CoRe[orderStart], startCoo + 4 + 6 * (user - 1), node2, ch2);
-        re = timeW(charToLong(CoRe[nodeT] + startX3 + 10));
-        tmp = charToLong(CoRe[nodeT] + startX3 + 18);
+        changePair(CoRe[orderStart], startCoo + 4 + 6 * (user - 1), vertex2, ch2);
+        re = timeW(charToLong(CoRe[vertexT] + startX3 + 10));
+        tmp = charToLong(CoRe[vertexT] + startX3 + 18);
         re = re + L"\t" + timeW(tmp);
     }
-    while (node != nodeT || ch != chT)
+    while (vertex != vertexT || ch != chT)
     {
-        node = node2;
+        vertex = vertex2;
         ch = ch2;
-        startX3 = startAxis3(node, ch);
-        node2 = charTouint(CoRe[node] + startX3 + 4);
-        ch2 = charToushort(CoRe[node] + startX3 + 8);
-        if (check == true && node2 == nodeT && ch2 == chT)
+        startX3 = startAxis3(vertex, ch);
+        vertex2 = charTouint(CoRe[vertex] + startX3 + 4);
+        ch2 = charToushort(CoRe[vertex] + startX3 + 8);
+        if (check == true && vertex2 == vertexT && ch2 == chT)
         {
-            uint startAxis32 = startAxis3(node2, ch2);
-            changePair(CoRe[node2], startAxis32 + 4, node0, ch0);
+            uint startAxis32 = startAxis3(vertex2, ch2);
+            changePair(CoRe[vertex2], startAxis32 + 4, vertex0, ch0);
         }
-        if (node2 == node0 && ch2 == ch0)
+        if (vertex2 == vertex0 && ch2 == ch0)
         {
-            uint startAxis32 = startAxis3(node2, ch2);
-            uint node3 = charTouint(CoRe[node2] + startX3 + 4);
-            ushort ch3 = charToushort(CoRe[node2] + startX3 + 8);
-            re = timeW(charToLong(CoRe[node] + startX3 + 10));
-            tmp = charToLong(CoRe[node] + startX3 + 18);
+            uint startAxis32 = startAxis3(vertex2, ch2);
+            uint vertex3 = charTouint(CoRe[vertex2] + startX3 + 4);
+            ushort ch3 = charToushort(CoRe[vertex2] + startX3 + 8);
+            re = timeW(charToLong(CoRe[vertex] + startX3 + 10));
+            tmp = charToLong(CoRe[vertex] + startX3 + 18);
             re = re + L"\t" + timeW(tmp);
-            changePair(CoRe[node], startX3 + 4, node3, ch3);
-            changePair(CoRe[node2], startAxis32 + 4, nodeT, chT);
-            changeLong(CoRe[node2], startAxis32 + 10, timer);
+            changePair(CoRe[vertex], startX3 + 4, vertex3, ch3);
+            changePair(CoRe[vertex2], startAxis32 + 4, vertexT, chT);
+            changeLong(CoRe[vertex2], startAxis32 + 10, timer);
             check = true;
         }
     }
     return re;
 }
-void eraseOrder(uint node0, ushort ch0, ushort user)
+void eraseOrder(uint vertex0, ushort ch0, ushort user)
 {
     uint orderSize = numOrder(user);
     uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
-    uint node = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
+    uint vertex = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
     ushort ch = charToushort(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1) + 4);
-    uint nodeT = node;
+    uint vertexT = vertex;
     ushort chT = ch;
-    uint startX3 = startAxis3(node, ch);
-    uint node2 = charTouint(CoRe[node] + startX3 + 4);
-    ushort ch2 = charToushort(CoRe[node] + startX3 + 8);
-    while (node != nodeT || ch != chT)
+    uint startX3 = startAxis3(vertex, ch);
+    uint vertex2 = charTouint(CoRe[vertex] + startX3 + 4);
+    ushort ch2 = charToushort(CoRe[vertex] + startX3 + 8);
+    while (vertex != vertexT || ch != chT)
     {
-        node = node2;
+        vertex = vertex2;
         ch = ch2;
-        startX3 = startAxis3(node, ch);
-        node2 = charTouint(CoRe[node] + startX3 + 4);
-        ch2 = charToushort(CoRe[node] + startX3 + 8);
-        if (node2 == node0 && ch2 == ch0)
+        startX3 = startAxis3(vertex, ch);
+        vertex2 = charTouint(CoRe[vertex] + startX3 + 4);
+        ch2 = charToushort(CoRe[vertex] + startX3 + 8);
+        if (vertex2 == vertex0 && ch2 == ch0)
         {
-            uint startAxis32 = startAxis3(node2, ch2);
-            uint node3 = charTouint(CoRe[node2] + startX3 + 4);
-            ushort ch3 = charToushort(CoRe[node2] + startX3 + 8);
-            changePair(CoRe[node], startX3 + 4, node3, ch3);
+            uint startAxis32 = startAxis3(vertex2, ch2);
+            uint vertex3 = charTouint(CoRe[vertex2] + startX3 + 4);
+            ushort ch3 = charToushort(CoRe[vertex2] + startX3 + 8);
+            changePair(CoRe[vertex], startX3 + 4, vertex3, ch3);
         }
     }
 }
-void pushOrder(uint node0, ushort ch0, uint user, long timer1, long timer2)
+void pushOrder(uint vertex0, ushort ch0, uint user, long timer1, long timer2)
 {
     // uint orderSize = numOrder(user);
     uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
-    uint node = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
+    uint vertex = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
     ushort ch = charToushort(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1) + 4);
-    uint nodeT = node;
+    uint vertexT = vertex;
     ushort chT = ch;
-    uint startX3 = startAxis3(node, ch);
-    uint node2 = charTouint(CoRe[node] + startX3 + 4);
-    ushort ch2 = charToushort(CoRe[node] + startX3 + 8);
+    uint startX3 = startAxis3(vertex, ch);
+    uint vertex2 = charTouint(CoRe[vertex] + startX3 + 4);
+    ushort ch2 = charToushort(CoRe[vertex] + startX3 + 8);
     uint ii = 0;
-    while (node2 != nodeT || ch2 != chT)
+    while (vertex2 != vertexT || ch2 != chT)
     {
         ii++;
-        node = node2;
+        vertex = vertex2;
         ch = ch2;
-        startX3 = startAxis3(node, ch);
-        node2 = charTouint(CoRe[node] + startX3 + 4);
-        ch2 = charToushort(CoRe[node] + startX3 + 8);
-        if (node2 == node0 && ch2 == ch0)
+        startX3 = startAxis3(vertex, ch);
+        vertex2 = charTouint(CoRe[vertex] + startX3 + 4);
+        ch2 = charToushort(CoRe[vertex] + startX3 + 8);
+        if (vertex2 == vertex0 && ch2 == ch0)
         {
-            uint startAxis32 = startAxis3(node2, ch2);
-            uint node3 = charTouint(CoRe[node2] + startX3 + 4);
-            ushort ch3 = charToushort(CoRe[node2] + startX3 + 8);
-            changePair(CoRe[node], startX3 + 4, node3, ch3);
+            uint startAxis32 = startAxis3(vertex2, ch2);
+            uint vertex3 = charTouint(CoRe[vertex2] + startX3 + 4);
+            ushort ch3 = charToushort(CoRe[vertex2] + startX3 + 8);
+            changePair(CoRe[vertex], startX3 + 4, vertex3, ch3);
         }
     }
-    changePair(CoRe[node], startX3 + 4, node0, ch0);
-    if (numAxis(node0, ch0) == 2)
+    changePair(CoRe[vertex], startX3 + 4, vertex0, ch0);
+    if (numAxis(vertex0, ch0) == 2)
     {
         uchar *arr = new uchar[26];
         uchar *aa = uintToBytes(22);
-        ushort numch2 = numCh(node0);
-        uint startCoo = charTouint(CoRe[node0] + (6 + 4 * ch0));
-        uint sizeCoo = charTouint(CoRe[node0] + startCoo);
+        ushort numch2 = numCh(vertex0);
+        uint startCoo = charTouint(CoRe[vertex0] + (6 + 4 * ch0));
+        uint sizeCoo = charTouint(CoRe[vertex0] + startCoo);
         uint startRev = startCoo + 4 + sizeCoo;
-        uint sizeRev = charTouint(CoRe[node0] + startRev);
-        uchar *pair = pairToBytes(nodeT, chT);
+        uint sizeRev = charTouint(CoRe[vertex0] + startRev);
+        uchar *pair = pairToBytes(vertexT, chT);
         uchar *ll = longlongToBytes(timer1);
         uchar *ll2 = longlongToBytes(timer2);
         for (int k = 0; k < 4; k++)
@@ -1658,22 +1658,22 @@ void pushOrder(uint node0, ushort ch0, uint user, long timer1, long timer2)
         delete[] ll2;
         for (int k = ch; k < numch2 - 1; k++)
         {
-            uint uu = charTouint(CoRe[node0] + 6 + 4 * (k + 1));
-            changeInt(CoRe[node0], 6 + 4 * (k + 1), uu + 26);
+            uint uu = charTouint(CoRe[vertex0] + 6 + 4 * (k + 1));
+            changeInt(CoRe[vertex0], 6 + 4 * (k + 1), uu + 26);
         }
-        insertArr(node0, startRev + 4 + sizeRev, arr, 26);
+        insertArr(vertex0, startRev + 4 + sizeRev, arr, 26);
     }
-    else if (numAxis(node0, ch0) == 3)
+    else if (numAxis(vertex0, ch0) == 3)
     {
-        startX3 = startAxis3(node0, ch0);
-        changePair(CoRe[node0], startX3 + 4, nodeT, chT);
+        startX3 = startAxis3(vertex0, ch0);
+        changePair(CoRe[vertex0], startX3 + 4, vertexT, chT);
     }
 }
-// void eraseOrderNode(uint node, ushort user)
+// void eraseOrdervertex(uint vertex, ushort user)
 // {
 //     for (int i = 0; i < order[user].size(); i++)
 //     {
-//         if (node == get<0>(order[user][i]))
+//         if (vertex == get<0>(order[user][i]))
 //         {
 //             order[user].erase(order[user].begin() + i);
 //         }
@@ -1732,55 +1732,55 @@ void sendMsg(int ClientSocket, std::wstring content)
         total_sent += sent;
     }
 }
-wstring contentList(uint node, ushort ch, uint page = 1)
+wstring contentList(uint vertex, ushort ch, uint page = 1)
 {
     wstring ws = L"";
-    uint startCoo = charTouint(CoRe[node] + 6 + 4 * ch);
-    uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    uint startCoo = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     uint startRev = startCoo + 4 + sizeCoo;
-    uint sizeRev = charTouint(CoRe[node] + startRev);
+    uint sizeRev = charTouint(CoRe[vertex] + startRev);
     if (sizeRev > 0)
     {
-        uint prevNode = axis2(node, ch);
+        uint prevvertex = axis2(vertex, ch);
         wstring prev = L"";
         wstring pprev = L"";
         for (int i = 0; i < sizeRev / 6; i++)
         {
             wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonRev" + intToWString(i + 1) + L"\", \"\")' onclick='sendTextToServer(" + intToWString(-(i + 1)) + L"); return false;'>" + intToWString(-(i + 1)) + L"</a>";
-            uchar *sheetPrev = Sheet(charTouint(CoRe[node] + prevNode + 6 * i));
+            uchar *sheetPrev = Sheet(charTouint(CoRe[vertex] + prevvertex + 6 * i));
             prev += hpL + L". " + charToWstring(sheetPrev) + L"<br/>";
             delete[] sheetPrev;
-            // prev += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&prevNode[6 * i]))) + L"<br/>";
-            uint node2 = charTouint(CoRe[node] + prevNode + 6 * i);
-            ushort ch2 = charToushort(CoRe[node] + prevNode + 4 + 6 * i);
-            uint startCoo2 = charTouint(CoRe[node2] + 6 + 4 * ch2);
-            uint sizeCoo2 = charTouint(CoRe[node2] + startCoo2);
+            // prev += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&prevvertex[6 * i]))) + L"<br/>";
+            uint vertex2 = charTouint(CoRe[vertex] + prevvertex + 6 * i);
+            ushort ch2 = charToushort(CoRe[vertex] + prevvertex + 4 + 6 * i);
+            uint startCoo2 = charTouint(CoRe[vertex2] + 6 + 4 * ch2);
+            uint sizeCoo2 = charTouint(CoRe[vertex2] + startCoo2);
             uint startRev2 = startCoo2 + 4 + sizeCoo2;
-            uint sizeRev2 = charTouint(CoRe[node2] + startRev2);
-            // uchar *splPrev2 = CoRe[node2] + startRev2 + 4 + 6 * i;
+            uint sizeRev2 = charTouint(CoRe[vertex2] + startRev2);
+            // uchar *splPrev2 = CoRe[vertex2] + startRev2 + 4 + 6 * i;
             uint splPrev2 = startRev2 + 4 + 6 * i;
-            // vector<uchar> splPrev2 = axon2(charTouint(prevNode, 6 * i), charToushort(prevNode, 4 + 6 * i));
+            // vector<uchar> splPrev2 = axon2(charTouint(prevvertex, 6 * i), charToushort(prevvertex, 4 + 6 * i));
             for (int j = 0; j < sizeRev2 / 6; j++)
             {
                 // pprev += intToWString(-(i + 1)) + L"." + intToWString(j + 1) + L" " + charToWstring(Sheet(*reinterpret_cast<uint *>(&splPrev2[6 * j]))) + L"<br/>";
-                uint sheetNode2 = charTouint(CoRe[node2] + splPrev2 + 6 * j);
-                if (sheetNode2 > CoRe.size())
+                uint sheetvertex2 = charTouint(CoRe[vertex2] + splPrev2 + 6 * j);
+                if (sheetvertex2 > CoRe.size())
                 {
                     Log(L"error: prev i = " + intToWString(i) + L", pprev j = " + intToWString(j) + L".");
                     continue;
                 }
-                uchar *sheetPP = Sheet(sheetNode2);
+                uchar *sheetPP = Sheet(sheetvertex2);
                 pprev += intToWString(-(i + 1)) + L"." + intToWString(j + 1) + L" " + charToWstring(sheetPP) + L"<br/>";
                 delete[] sheetPP;
             }
         }
         ws += pprev + L"<p class='prev'>" + prev;
     }
-    uchar *sheetNode = Sheet(node);
-    ws += L"<p class='this'>" + charToWstring(sheetNode) + L"<br/>" + L"<p class='next'>"; // 현재 단계
-    delete[] sheetNode;
+    uchar *sheetvertex = Sheet(vertex);
+    ws += L"<p class='this'>" + charToWstring(sheetvertex) + L"<br/>" + L"<p class='next'>"; // 현재 단계
+    delete[] sheetvertex;
 
-    uchar *nextNode = CoRe[node] + startCoo + 4;
+    uchar *nextvertex = CoRe[vertex] + startCoo + 4;
     for (int i = (page - 1) * 50; i < page * 50 - 1 && sizeCoo != 0; i++)
     {
         if (i == sizeCoo / 6)
@@ -1788,8 +1788,8 @@ wstring contentList(uint node, ushort ch, uint page = 1)
             break;
         }
         wstring hpL = L"<a href='javascript:__doPostBack(\"LinkButtonNext" + intToWString(i + 1) + L"\", \"\")' onclick='sendTextToServer(" + intToWString(i + 1) + L"); return false;'>" + intToWString(i + 1) + L"</a>";
-        // ws += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&nextNode[6 * i]))) + L"<br/>";
-        uchar *sheetNext = Sheet(charTouint(nextNode + 6 * i));
+        // ws += hpL + L". " + charToWstring(Sheet(*reinterpret_cast<uint *>(&nextvertex[6 * i]))) + L"<br/>";
+        uchar *sheetNext = Sheet(charTouint(nextvertex + 6 * i));
         ws += hpL + L". " + charToWstring(sheetNext) + L"<br/>";
         delete[] sheetNext;
     }
@@ -1815,9 +1815,9 @@ wstring contentList(uint node, ushort ch, uint page = 1)
 //         t1 = get<0>(order[user][0]);
 //         t2 = get<1>(order[user][0]);
 //     }
-//     cNode[user] = t1;
+//     cvertex[user] = t1;
 //     cCh[user] = t2;
-//     wcout << "98Node = " << intToWString(t1) << endl;
+//     wcout << "98vertex = " << intToWString(t1) << endl;
 //     wcout << "98Ch = " << to_wstring(t2) << endl;
 //     tuple<int, ushort, time_t, time_t> temp = order[user][0];
 //     eraseOrder(t1, t2, user);
@@ -1826,20 +1826,20 @@ wstring contentList(uint node, ushort ch, uint page = 1)
 void study(uint user)
 {
     uint startCoo = charTouint(CoRe[orderStart] + 10); // ch = 1
-    uint node = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
+    uint vertex = charTouint(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1));
     ushort ch = charToushort(CoRe[orderStart] + startCoo + 4 + 6 * (user - 1) + 4);
-    uint nodeT = node;
+    uint vertexT = vertex;
     ushort chT = ch;
-    cNode[user] = nodeT;
+    cvertex[user] = vertexT;
     cCh[user] = chT;
-    // uint startCoo2 = charTouint(CoRe[node] + 6 + 4 * ch);
-    // uint sizeCoo2 = charTouint(CoRe[node] + startCoo2);
+    // uint startCoo2 = charTouint(CoRe[vertex] + 6 + 4 * ch);
+    // uint sizeCoo2 = charTouint(CoRe[vertex] + startCoo2);
     // uint startRev2 = startCoo2 + 4 + sizeCoo2;
-    // uint sizeRev2 = charTouint(CoRe[node] + startRev2);
+    // uint sizeRev2 = charTouint(CoRe[vertex] + startRev2);
     // uint startAxis3 = startRev2 + 4 + sizeRev2;
-    // uint node2 = charTouint(CoRe[node] + startAxis3 + 4);
-    // ushort ch2 = charToushort(CoRe[node] + startAxis3 + 8);
-    // findAndUpdateOrder(nodeT, chT, user);
+    // uint vertex2 = charTouint(CoRe[vertex] + startAxis3 + 4);
+    // ushort ch2 = charToushort(CoRe[vertex] + startAxis3 + 8);
+    // findAndUpdateOrder(vertexT, chT, user);
 }
 // void study2(uint user)
 // {
@@ -1905,37 +1905,37 @@ void info()
         // RenderText(line, 1000, 1000 - (20 + 15 * i));
     }
 }
-void pushGarbage(uint node) // 오류 있음 수정해야 함.
+void pushGarbage(uint vertex) // 오류 있음 수정해야 함.
 {
     uint next = charTouint(CoRe[gar] + 14); // 14가 다음 노드 가리키는 위치임
     // uchar newCh[18] = {14, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //startCoo = 6이 아니라 10이 되어야 함.
     //  delete[] CoRe[gar]; //pushCoo에서 CoRe[gar]를 사용하므로 메모리 해제하면 안됨
     // CoRe[gar] = newCh;
-    uchar *ptb = pairToBytes(node, 0);
+    uchar *ptb = pairToBytes(vertex, 0);
     uchar *ptb2 = pairToBytes(next, 0);
     uchar newCh2[24] = {20, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     for (int i = 0; i < 24; i++)
     {
-        CoRe[node][i] = newCh2[i];
+        CoRe[vertex][i] = newCh2[i];
     }
-    // delete[] CoRe[node];
-    // CoRe[node] = newCh2;
+    // delete[] CoRe[vertex];
+    // CoRe[vertex] = newCh2;
     for (int i = 0; i < 6; i++)
     {
         CoRe[gar][i + 14] = ptb[i];
-        CoRe[node][i + 14] = ptb2[i];
+        CoRe[vertex][i + 14] = ptb2[i];
     }
     // pushCoo(gar, 0, ptb);
-    // pushCoo(node, 0, ptb2);
+    // pushCoo(vertex, 0, ptb2);
     delete[] ptb;
     delete[] ptb2;
     // delete[] newCh2;
 }
-void clearToken(uint node)
+void clearToken(uint vertex)
 {
-    uint startCoo = startCh(node, 0);
-    pair<uint, ushort> cod = charToPair(CoRe[node] + startCoo + 4);
-    while (cod != make_pair((uint)node, (ushort)0))
+    uint startCoo = startCh(vertex, 0);
+    pair<uint, ushort> cod = charToPair(CoRe[vertex] + startCoo + 4);
+    while (cod != make_pair((uint)vertex, (ushort)0))
     {
         pair<uint, ushort> temp = cod;
         startCoo = startCh(cod.first, cod.second);
@@ -1944,21 +1944,21 @@ void clearToken(uint node)
         clearCh(temp.first, temp.second);
     }
 }
-void deleteNode(uint node)
+void deletevertex(uint vertex)
 {
-    if (sizeRev(node, 0) == 6)
+    if (sizeRev(vertex, 0) == 6)
     {
-        clearToken(node);
+        clearToken(vertex);
     }
-    uint numch = numCh(node);
+    uint numch = numCh(vertex);
     for (int i = 0; i < numch; i++)
     {
-        vector<uint> sizeCRn = sizeCoRe(node, i);
-        uint startI = startCh(node, i);
+        vector<uint> sizeCRn = sizeCoRe(vertex, i);
+        uint startI = startCh(vertex, i);
         for (int j = 0; j < sizeCRn[0] / 6; j++)
         {
-            // uint startI = startCh(node, i);
-            pair<uint, ushort> temp = charToPair(CoRe[node] + startI + 4 + 6 * j);
+            // uint startI = startCh(vertex, i);
+            pair<uint, ushort> temp = charToPair(CoRe[vertex] + startI + 4 + 6 * j);
             // int size = CoRe[temp.first].size();
             int size = numCh(temp.first);
             if (size > 0 && size <= temp.second + 1)
@@ -1970,7 +1970,7 @@ void deleteNode(uint node)
                     {
                         uint startTemp = startCh(temp.first, temp.second);
                         pair<uint, ushort> temp2 = charToPair(CoRe[temp.first] + startTemp + 8 + szCR[0] + 6 * k);
-                        if (temp2 == make_pair((uint)node, (ushort)i))
+                        if (temp2 == make_pair((uint)vertex, (ushort)i))
                         {
                             // eraseRev(CoRe[temp.first], startTemp, 8 + szCR[0] + 6 * k);
                             eraseRev(temp.first, temp.second, k);
@@ -1982,7 +1982,7 @@ void deleteNode(uint node)
         }
         for (int j = 0; j < sizeCRn[1] / 6; j++)
         {
-            pair<uint, ushort> temp = charToPair(CoRe[node] + startI + 8 + sizeCRn[0] + 6 * j);
+            pair<uint, ushort> temp = charToPair(CoRe[vertex] + startI + 8 + sizeCRn[0] + 6 * j);
             int size = numCh(temp.first);
             if (size > 0 && size <= temp.second + 1)
             {
@@ -1993,7 +1993,7 @@ void deleteNode(uint node)
                     for (int k = 0; k < szC / 6; k++)
                     {
                         pair<uint, ushort> temp2 = charToPair(CoRe[temp.first] + startTemp + 4 + 6 * k);
-                        if (temp2 == make_pair((uint)node, (ushort)i))
+                        if (temp2 == make_pair((uint)vertex, (ushort)i))
                         {
                             // eraseCoo(CoRe[temp.first], startTemp, 4 + 6 * k);
                             eraseCoo(temp.first, temp.second, k);
@@ -2003,16 +2003,16 @@ void deleteNode(uint node)
                 }
             }
         }
-        eraseOrder(node, i, 1);
+        eraseOrder(vertex, i, 1);
     }
-    // CoRe[node].clear();
-    pushGarbage(node);
+    // CoRe[vertex].clear();
+    pushGarbage(vertex);
 }
-void cut(uint node, ushort ch, uint index)
+void cut(uint vertex, ushort ch, uint index)
 {
-    vector<uint> sizeCRn = sizeCoRe(node, ch);
-    uint startCoo = startCh(node, ch);
-    pair<uint, ushort> temp = charToPair(CoRe[node] + startCoo + 4 + 6 * index);
+    vector<uint> sizeCRn = sizeCoRe(vertex, ch);
+    uint startCoo = startCh(vertex, ch);
+    pair<uint, ushort> temp = charToPair(CoRe[vertex] + startCoo + 4 + 6 * index);
     // uint startTemp = startCh(temp.first, temp.second);
     int size = numCh(temp.first);
     if (size > 0 && size <= temp.second + 1)
@@ -2022,7 +2022,7 @@ void cut(uint node, ushort ch, uint index)
         {
             for (int k = 0; k < szCR[1] / 6; k++)
             {
-                if (temp == make_pair(cNode[1], cCh[1]))
+                if (temp == make_pair(cvertex[1], cCh[1]))
                 {
                     // eraseRev(CoRe[temp.first], startTemp, 8 + szCR[0] + 6 * k);
                     eraseRev(temp.first, temp.second, k);
@@ -2030,8 +2030,8 @@ void cut(uint node, ushort ch, uint index)
             }
         }
     }
-    // eraseCoo(CoRe[node], startCoo, 4 + 6 * index);
-    eraseCoo(node, ch, index);
+    // eraseCoo(CoRe[vertex], startCoo, 4 + 6 * index);
+    eraseCoo(vertex, ch, index);
 }
 uint popGarbage()
 {
@@ -2045,9 +2045,9 @@ uint popGarbage()
     // delete[] ptb;
     return re;
 }
-void AddStringToNode(const string &str, uint node, ushort ch, uint user)
+void AddStringTovertex(const string &str, uint vertex, ushort ch, uint user)
 {
-    cerr << "call AddStringToNode()" << endl;
+    cerr << "call AddStringTovertex()" << endl;
     wstring wstr = utf8ToWstring(str);
     uchar *wstr2 = wstringToUChar(wstr);
     time_t timer;
@@ -2057,7 +2057,7 @@ void AddStringToNode(const string &str, uint node, ushort ch, uint user)
     { // 쓰레기통에서 재활용
         newcd = popGarbage();
         addCh(newcd); // make count of ch as 2
-        link(node, ch, newcd, 1);
+        link(vertex, ch, newcd, 1);
         // order[user].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
         pushOrder(newcd, 1, user, timer, timer);
         Brain(newcd, wstr2);
@@ -2071,14 +2071,14 @@ void AddStringToNode(const string &str, uint node, ushort ch, uint user)
         }
         CoRe.push_back(newCh2);
         addCh(newcd);
-        link(node, ch, newcd, 1);
+        link(vertex, ch, newcd, 1);
         // order[user].push_back(make_tuple(newcd, 1, timer, timer));
         pushOrder(newcd, 1, user, timer, timer);
         Brain(newcd, wstr2);
     }
     delete[] wstr2;
 }
-void AddStringToNode2(const string &str1, const string &str2, uint node, ushort ch, uint user)
+void AddStringTovertex2(const string &str1, const string &str2, uint vertex, ushort ch, uint user)
 {
     wstring wstr1 = utf8ToWstring(str1);
     wstring wstr2 = utf8ToWstring(str2);
@@ -2093,7 +2093,7 @@ void AddStringToNode2(const string &str1, const string &str2, uint node, ushort 
         newcd = popGarbage();
         wcout << L"popGarbage = " << intToWString(newcd) << endl;
         addCh(newcd); // make count of ch as 2
-        link(node, ch, newcd, 1);
+        link(vertex, ch, newcd, 1);
         // order[user].push_back(make_tuple(newcd, 1, timer, timer)); // 생성시간 = timer
         pushOrder(newcd, 1, user, timer, timer);
         Brain(newcd, char1);
@@ -2113,7 +2113,7 @@ void AddStringToNode2(const string &str1, const string &str2, uint node, ushort 
         }
         CoRe.push_back(newCh2);
         addCh(newcd);
-        link(node, ch, newcd, 1);
+        link(vertex, ch, newcd, 1);
         // order[user].push_back(make_tuple(newcd, 1, timer, timer));
         pushOrder(newcd, 1, user, timer, timer);
         Brain(newcd, char1);
@@ -2350,11 +2350,11 @@ void handleSignUp(const std::string &requestBody, int clientSocket)
     //     write(clientSocket, response.c_str(), response.length());
     // }
     std::string response = "Signup Successful!";
-    AddStringToNode(data["username"], 34196, 1, 1);
+    AddStringTovertex(data["username"], 34196, 1, 1);
     uint startCoo = charTouint(CoRe[34196] + 6 + 4 * 1);
     uint sizeCoo = charTouint(CoRe[34196] + startCoo);
-    AddStringToNode(data["password"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1, 1);
-    AddStringToNode(data["email"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1, 1);
+    AddStringTovertex(data["password"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1, 1);
+    AddStringTovertex(data["email"], charTouint(CoRe[34196] + startCoo + sizeCoo - 6), 1, 1);
     send(clientSocket, response.c_str(), response.size(), 0);
 }
 // bool checkLogin(const std::string &username, const std::string &password)
@@ -2397,8 +2397,8 @@ wstring makeContent(uint user, wstring inputText, wstring Log2 = L"")
 {
     Log(Log2);
     info();
-    uint cch = numCh(cNode[user]) - 1;
-    wstring content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(cNode[user], cCh[user], user) + L"\t" + LogToClient + L"\t" + infoStr + L"\t" + intToWString(cch) + L"\t" + intToWString(copyNode.first) + L"\t" + intToWString((int)copyNode.second);
+    uint cch = numCh(cvertex[user]) - 1;
+    wstring content = intToWString(user) + L"\t" + intToWString(cvertex[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cvertex[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t" + inputText + L"\t" + findAndUpdateOrder(cvertex[user], cCh[user], user) + L"\t" + LogToClient + L"\t" + infoStr + L"\t" + intToWString(cch) + L"\t" + intToWString(copyvertex.first) + L"\t" + intToWString((int)copyvertex.second);
     return content;
 }
 void handleLogin(const std::string &requestBody, int client_socket)
@@ -2426,14 +2426,14 @@ void handleLogin(const std::string &requestBody, int client_socket)
                 uint startPass = startCh(Pass.first, Pass.second);
                 pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
                 user = i + 1;
-                cNode[user] = start.first;
+                cvertex[user] = start.first;
                 cCh[user] = start.second;
                 // content = intToWString(user) + L"\t" + intToWString(start.first) + L"\t" + intToWString(start.first) + L"\t" + contentList(start.first, start.second) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 시작 화면을 보냄
                 sendMsg(client_socket, makeContent(user, L""));
             }
             else
             {
-                content = intToWString(0) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + L"비밀번호가 틀립니다. 다시 입력해 주세요." + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, node, ch, sheet 순서
+                content = intToWString(0) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + L"비밀번호가 틀립니다. 다시 입력해 주세요." + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, vertex, ch, sheet 순서
                 sendMsg(client_socket, content);
             }
             check = true;
@@ -2466,11 +2466,11 @@ void handleLogin(const std::string &requestBody, int client_socket)
     //     write(client_socket, response.c_str(), response.length());
     // }
 }
-void change_data(uint node, uchar *data)
+void change_data(uint vertex, uchar *data)
 {
-    clearToken(node);
-    clearCh(node, 0);
-    Brain(node, data);
+    clearToken(vertex);
+    clearCh(vertex, 0);
+    Brain(vertex, data);
 }
 std::string handle_check_duplicate(const std::string &request)
 {
@@ -2619,7 +2619,7 @@ int Network()
                             cerr << "첫 화면" << endl;
                             uchar *sheet34198 = Sheet(34198);
                             wcout << L"Sheet(34198) =" << charToWstring(sheet34198) << endl;
-                            content = intToWString(user) + L"\t" + intToWString(34198) + L"\t" + L"0" + L"\t" + charToWstring(sheet34198) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 아이디 입력 화면을 보냄 user, node, ch, sheet 순서
+                            content = intToWString(user) + L"\t" + intToWString(34198) + L"\t" + L"0" + L"\t" + charToWstring(sheet34198) + L"\t" + intToWString(CoRe.size()) + L"\t"; // 아이디 입력 화면을 보냄 user, vertex, ch, sheet 순서
                             delete[] sheet34198;
                             std::cerr << "content = " << wstringToUtf8(content) << std::endl;
                             sendMsg(client_socket, content);
@@ -2638,7 +2638,7 @@ int Network()
                                 if (clientMvec[3] == charToWstring(Sheet(*reinterpret_cast<uint *>(&IDList[6 * i])))) // ID가 존재하는 경우
                                 {
                                     check = true;
-                                    content = intToWString(i + 1) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + charToWstring(Sheet(34199)) + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, node, sheet 순서
+                                    content = intToWString(i + 1) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + charToWstring(Sheet(34199)) + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, vertex, sheet 순서
                                     sendMsg(client_socket, content);
                                     break;
                                 }
@@ -2663,13 +2663,13 @@ int Network()
                             {
                                 uint startPass = startCh(Pass.first, Pass.second);
                                 pair<uint, ushort> start = charToPair(CoRe[Pass.first] + startPass + 4);
-                                cNode[user] = start.first;
+                                cvertex[user] = start.first;
                                 cCh[user] = start.second;
                                 sendMsg(client_socket, makeContent(user, L""));
                             }
                             else
                             {
-                                content = intToWString(user) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + L"비밀번호가 틀립니다. 다시 입력해 주세요." + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, node, ch, sheet 순서
+                                content = intToWString(user) + L"\t" + intToWString(34199) + L"\t" + L"0" + L"\t" + L"비밀번호가 틀립니다. 다시 입력해 주세요." + L"\t" + intToWString(CoRe.size()) + L"\t"; // password 입력 화면을 보냄 user, vertex, ch, sheet 순서
                                 sendMsg(client_socket, content);
                             }
                         }
@@ -2688,23 +2688,23 @@ int Network()
                                 else if (num == 982) // if not working 98 function
                                 {
                                     // study2(user);
-                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t98";
+                                    content = intToWString(user) + L"\t" + intToWString(cvertex[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cvertex[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t98";
                                     sendMsg(client_socket, content);
                                 }
                                 else if (num == 99)
                                 {
-                                    copyNode = make_pair(cNode[user], cCh[user]);
+                                    copyvertex = make_pair(cvertex[user], cCh[user]);
                                     sendMsg(client_socket, makeContent(user, L""));
                                 }
                                 else if (num == 100)
                                 {
-                                    if (copyNode.first != 0 && copyNode.second != 0)
+                                    if (copyvertex.first != 0 && copyvertex.second != 0)
                                     {
-                                        link(cNode[user], cCh[user], copyNode.first, copyNode.second);
+                                        link(cvertex[user], cCh[user], copyvertex.first, copyvertex.second);
                                     }
                                     sendMsg(client_socket, makeContent(user, L""));
                                 }
-                                else if ((num > 0 && num <= sizeCoo(cNode[user], cCh[user]) / 6) || (num < 0 && -num <= sizeRev(cNode[user], cCh[user]) / 6))
+                                else if ((num > 0 && num <= sizeCoo(cvertex[user], cCh[user]) / 6) || (num < 0 && -num <= sizeRev(cvertex[user], cCh[user]) / 6))
                                 {
                                     move(num, user);
                                     sendMsg(client_socket, makeContent(user, L""));
@@ -2717,47 +2717,47 @@ int Network()
                                 uint sizeCoo = charTouint(CoRe[6478] + startCoo) / 6;
                                 for (int i = 0; i < sizeCoo; i++)
                                 { // 바로가기 기능 구현
-                                    uint nextNode = charTouint(CoRe[6478] + startCoo + 4 + 6 * i);
-                                    uchar *sheetNode = Sheet(nextNode);
-                                    wstring ws = charToWstring(sheetNode);
+                                    uint nextvertex = charTouint(CoRe[6478] + startCoo + 4 + 6 * i);
+                                    uchar *sheetvertex = Sheet(nextvertex);
+                                    wstring ws = charToWstring(sheetvertex);
                                     if (clientMvec[3] == ws)
                                     {
                                         ushort nextCh = charToushort(CoRe[6478] + startCoo + 8 + 6 * i);
-                                        cNode[user] = nextNode;
+                                        cvertex[user] = nextvertex;
                                         cCh[user] = nextCh;
-                                        delete[] sheetNode;
+                                        delete[] sheetvertex;
                                         sendMsg(client_socket, makeContent(user, L"", L""));
                                         break;
                                     }
                                     else
                                     {
-                                        delete[] sheetNode;
+                                        delete[] sheetvertex;
                                     }
                                 }
                                 if (clientMvec[3][0] == L'/')
                                 {
                                     string str = wstringToUtf8(clientMvec[3].substr(1));
-                                    AddStringToNode(str, cNode[user], cCh[user], user);
+                                    AddStringTovertex(str, cvertex[user], cCh[user], user);
                                     sendMsg(client_socket, makeContent(user, L"", L""));
                                 }
                                 else if (inputText == "시작" || inputText == "start")
                                 {
-                                    cNode[user] = 0;
+                                    cvertex[user] = 0;
                                     cCh[user] = 1;
                                     sendMsg(client_socket, makeContent(user, L"", L""));
                                 }
                                 else if (inputText == "수정")
                                 {
-                                    uchar *sheetNode = Sheet(cNode[user]);
-                                    sendMsg(client_socket, makeContent(user, L"@" + charToWstring(sheetNode), L""));
-                                    delete[] sheetNode;
+                                    uchar *sheetvertex = Sheet(cvertex[user]);
+                                    sendMsg(client_socket, makeContent(user, L"@" + charToWstring(sheetvertex), L""));
+                                    delete[] sheetvertex;
                                 }
                                 else if (clientMvec[3][0] == L'@')
                                 {
                                     string str = inputText.substr(1);
                                     wstring wstr = utf8ToWstring(str);
                                     uchar *wstr2 = wstringToUChar(wstr);
-                                    change_data(cNode[1], wstr2);
+                                    change_data(cvertex[1], wstr2);
                                     delete[] wstr2;
                                     sendMsg(client_socket, makeContent(user, L""));
                                 }
@@ -2767,8 +2767,8 @@ int Network()
                                     wstring wstr = utf8ToWstring(str);
                                     uchar *wstr2 = wstringToUChar(wstr);
                                     uint dataSz = charTouint(wstr2);
-                                    uint Node = firstToken(wstr2, dataSz);
-                                    cNode[user] = Node;
+                                    uint vertex = firstToken(wstr2, dataSz);
+                                    cvertex[user] = vertex;
                                     cCh[user] = 1;
                                     sendMsg(client_socket, makeContent(user, L""));
                                 }
@@ -2784,13 +2784,13 @@ int Network()
                                 }
                                 else if (inputText == "del98")
                                 { // 삭제하고 + 98
-                                    deleteNode(cNode[user]);
+                                    deletevertex(cvertex[user]);
                                     study(1);
                                     sendMsg(client_socket, makeContent(user, L"", L"del98 complete!"));
                                 }
                                 else if (inputText == "ch+")
                                 { // channel plus
-                                    ushort nc = numCh(cNode[user]);
+                                    ushort nc = numCh(cvertex[user]);
                                     if (cCh[user] + 1 < nc)
                                     {
                                         cCh[user] += 1;
@@ -2803,7 +2803,7 @@ int Network()
                                 }
                                 else if (inputText == "ch-")
                                 { // 삭제하고 + 98
-                                    ushort nc = numCh(cNode[user]);
+                                    ushort nc = numCh(cvertex[user]);
                                     if (cCh[user] > 0)
                                     {
                                         cCh[user] -= 1;
@@ -2823,7 +2823,7 @@ int Network()
                                         continue; // Skip this iteration
                                     }
                                     std::string content_html((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + utf8ToWstring(content_html) + L"\t" + intToWString(CoRe.size()) + L"\thtml";
+                                    content = intToWString(user) + L"\t" + intToWString(cvertex[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + utf8ToWstring(content_html) + L"\t" + intToWString(CoRe.size()) + L"\thtml";
                                     sendMsg(client_socket, content);
                                 }
                                 else if (inputText == "editHtml")
@@ -2850,7 +2850,7 @@ int Network()
                                         continue; // Skip this iteration
                                     }
                                     std::string content_html((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-                                    content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + utf8ToWstring(content_html) + L"\t" + intToWString(CoRe.size()) + L"\tcpp";
+                                    content = intToWString(user) + L"\t" + intToWString(cvertex[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + utf8ToWstring(content_html) + L"\t" + intToWString(CoRe.size()) + L"\tcpp";
                                     sendMsg(client_socket, content);
                                 }
                                 else if (inputText == "editcpp")
@@ -2874,28 +2874,28 @@ int Network()
                                     if (spl.size() == 2)
                                     {
                                         int tt = stringToUint(spl[1]) - 1;
-                                        cut(cNode[1], cCh[1], tt);
-                                        content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
+                                        cut(cvertex[1], cCh[1], tt);
+                                        content = intToWString(user) + L"\t" + intToWString(cvertex[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cvertex[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
                                         sendMsg(client_socket, content);
                                     }
                                     else
                                     {
                                         Log(L"올바른 입력 형식이 아닙니다. ");
                                     }
-                                    // display(cNode[1], cCh[1]);
+                                    // display(cvertex[1], cCh[1]);
                                     inputText.clear();
                                 }
                                 else if (inputText.size() >= 4 && inputText.substr(0, 4) == "104,")
-                                { // 자식 node로 이동
+                                { // 자식 vertex로 이동
                                     cerr << "call 104, function" << endl;
                                     vector<string> spl = splitStringASCII(inputText, ',');
                                     if (spl.size() == 3)
                                     {
-                                        uint startCoo = startCh(cNode[1], cCh[1]);
-                                        uint res2 = charTouint(CoRe[cNode[1]] + startCoo + 4 + 6 * (stringToUint(spl[1]) - 1));
+                                        uint startCoo = startCh(cvertex[1], cCh[1]);
+                                        uint res2 = charTouint(CoRe[cvertex[1]] + startCoo + 4 + 6 * (stringToUint(spl[1]) - 1));
                                         int tt = 6 * (stringToUint(spl[2]) - 1);
-                                        CoMove(cNode[1], cCh[1], res2, charTouint(CoRe[cNode[1]] + startCoo + 4 + tt), charToushort(CoRe[cNode[1]] + startCoo + 8 + tt));
-                                        content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
+                                        CoMove(cvertex[1], cCh[1], res2, charTouint(CoRe[cvertex[1]] + startCoo + 4 + tt), charToushort(CoRe[cvertex[1]] + startCoo + 8 + tt));
+                                        content = intToWString(user) + L"\t" + intToWString(cvertex[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cvertex[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
                                         sendMsg(client_socket, content);
                                     }
                                     else
@@ -2909,11 +2909,11 @@ int Network()
                                     vector<string> spl = splitStringASCII(inputText, ',');
                                     if (spl.size() == 2)
                                     {
-                                        uint startCoo = startCh(cNode[1], cCh[1]);
+                                        uint startCoo = startCh(cvertex[1], cCh[1]);
                                         int tt = stringToUint(spl[1]) - 1;
-                                        uint deln = charTouint(CoRe[cNode[1]] + startCoo + 4 + 6 * tt);
-                                        cut(cNode[1], cCh[1], tt);
-                                        deleteNode(deln);
+                                        uint deln = charTouint(CoRe[cvertex[1]] + startCoo + 4 + 6 * tt);
+                                        cut(cvertex[1], cCh[1], tt);
+                                        deletevertex(deln);
                                         Log(intToWString(deln) + L" 삭제!");
                                     }
                                     else
@@ -2930,11 +2930,11 @@ int Network()
                                     vector<string> spl = splitStringASCII(inputText, ',');
                                     if (spl.size() == 3)
                                     {
-                                        uint node = stringToUint(spl[1]);
+                                        uint vertex = stringToUint(spl[1]);
                                         ushort ch = stringToUint(spl[2]);
-                                        cNode[1] = node;
+                                        cvertex[1] = vertex;
                                         cCh[1] = ch;
-                                        content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
+                                        content = intToWString(user) + L"\t" + intToWString(cvertex[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cvertex[user], cCh[user]) + L"\t" + intToWString(CoRe.size()) + L"\t";
                                         sendMsg(client_socket, content);
                                     }
                                     else
@@ -2949,7 +2949,7 @@ int Network()
                                     if (spl.size() == 2)
                                     {
                                         uint page = stringToUint(spl[1]);
-                                        content = intToWString(user) + L"\t" + intToWString(cNode[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cNode[user], cCh[user], page) + L"\t" + intToWString(CoRe.size()) + L"\t";
+                                        content = intToWString(user) + L"\t" + intToWString(cvertex[user]) + L"\t" + intToWString(cCh[user]) + L"\t" + contentList(cvertex[user], cCh[user], page) + L"\t" + intToWString(CoRe.size()) + L"\t";
                                         sendMsg(client_socket, content);
                                     }
                                     else
@@ -2962,7 +2962,7 @@ int Network()
                                     vector<string> spl = splitStringASCII(inputText, '/');
                                     if (spl.size() == 3)
                                     {
-                                        AddStringToNode2(spl[1], spl[2], cNode[user], cCh[user], user);
+                                        AddStringTovertex2(spl[1], spl[2], cvertex[user], cCh[user], user);
                                         sendMsg(client_socket, makeContent(user, L"", L""));
                                         sendMsg(client_socket, makeContent(user, L"", L"올바른 입력 형식이 아닙니다."));
                                     }
@@ -3102,8 +3102,8 @@ int main(int argc, char const *argv[])
     uint size3 = charTouint(size2);
     delete[] size2;
     wstring ww = intToWString(size3);
-    // std::cerr << "Node: " << wstringToUtf8(ww) << std::endl;
-    // Log(L"Node" + ww);
+    // std::cerr << "vertex: " << wstringToUtf8(ww) << std::endl;
+    // Log(L"vertex" + ww);
     for (int i = 0; i < size3; i++)
     {
         uchar *size1 = new uchar[4];
@@ -3125,9 +3125,9 @@ int main(int argc, char const *argv[])
 
     // // 중복 제거
     // removeDuplicates(order[1]);
-    // eraseOrderNode(8114, 1);
+    // eraseOrdervertex(8114, 1);
     // // pushGarbage(8114);
-    // //  deleteNode(8114);
+    // //  deletevertex(8114);
     // uint ss = order[1].size();
     // for (int i = 0; i < ss; i++)
     // {
@@ -3154,47 +3154,47 @@ int main(int argc, char const *argv[])
     //     pushCoo(orderStart, 1, pairToBytes(get<0>(order[i][0]), get<1>(order[i][0])));
     //     for (int j = 0; j < ordersize && ordersize > 0; j++)
     //     {
-    //         int node = get<0>(order[i][j]);
+    //         int vertex = get<0>(order[i][j]);
     //         ushort ch = get<1>(order[i][j]);
-    //         ushort numch = numCh(node);
+    //         ushort numch = numCh(vertex);
     //         // if (ch + 1 > numch || numch == 1)
     //         //     continue;
-    //         uint startCoo = charTouint(CoRe[node] + (6 + 4 * ch));
-    //         uint sizeCoo = charTouint(CoRe[node] + startCoo);
+    //         uint startCoo = charTouint(CoRe[vertex] + (6 + 4 * ch));
+    //         uint sizeCoo = charTouint(CoRe[vertex] + startCoo);
     //         uint startRev = startCoo + 4 + sizeCoo;
-    //         uint sizeRev = charTouint(CoRe[node] + startRev);
-    //         uint nAxis = numAxis(node, ch);
+    //         uint sizeRev = charTouint(CoRe[vertex] + startRev);
+    //         uint nAxis = numAxis(vertex, ch);
     //         if (nAxis == 2)
     //         {
     //             ttt++;
     //             uchar *arr = new uchar[26];
     //             uchar *aa = uintToBytes(22);
-    //             uint node2 = get<0>(order[i][j + 1]);
+    //             uint vertex2 = get<0>(order[i][j + 1]);
     //             ushort ch2 = get<1>(order[i][j + 1]);
-    //             ushort numch2 = numCh(node2);
-    //             // uint startCoo2 = charTouint(CoRe[node2] + (6 + 4 * ch2));
-    //             // uint sizeCoo2 = charTouint(CoRe[node2] + startCoo);
+    //             ushort numch2 = numCh(vertex2);
+    //             // uint startCoo2 = charTouint(CoRe[vertex2] + (6 + 4 * ch2));
+    //             // uint sizeCoo2 = charTouint(CoRe[vertex2] + startCoo);
     //             // uint startRev2 = startCoo + 4 + sizeCoo;
-    //             // uint sizeRev2 = charTouint(CoRe[node2] + startRev);
-    //             while (ch2 + 1 > numch2 || ch2 == 0 || numAxis(node2, ch2) == 3)
+    //             // uint sizeRev2 = charTouint(CoRe[vertex2] + startRev);
+    //             while (ch2 + 1 > numch2 || ch2 == 0 || numAxis(vertex2, ch2) == 3)
     //             {
     //                 tttt++;
     //                 order[i].erase(order[i].begin() + j + 1);
     //                 ordersize--;
-    //                 node2 = get<0>(order[i][j + 1]);
+    //                 vertex2 = get<0>(order[i][j + 1]);
     //                 ch2 = get<1>(order[i][j + 1]);
-    //                 numch2 = numCh(node2);
+    //                 numch2 = numCh(vertex2);
     //             }
     //             if (j == ordersize - 1)
     //             {
-    //                 node2 = get<0>(order[i][0]);
+    //                 vertex2 = get<0>(order[i][0]);
     //                 ch2 = get<1>(order[i][0]);
-    //                 // node2 = orderStart;
+    //                 // vertex2 = orderStart;
     //                 // ch2 = 1;
     //                 ordersize--;
-    //                 numch2 = numCh(node2);
+    //                 numch2 = numCh(vertex2);
     //             }
-    //             uchar *pair = pairToBytes(node2, ch2);
+    //             uchar *pair = pairToBytes(vertex2, ch2);
     //             uchar *ll = longlongToBytes(get<2>(order[i][j]));
     //             uchar *ll2 = longlongToBytes(get<3>(order[i][j]));
     //             for (int k = 0; k < 4; k++)
@@ -3219,10 +3219,10 @@ int main(int argc, char const *argv[])
     //             delete[] ll2;
     //             for (int k = ch; k < numch - 1; k++)
     //             {
-    //                 uint uu = charTouint(CoRe[node] + 6 + 4 * (k + 1));
-    //                 changeInt(CoRe[node], 6 + 4 * (k + 1), uu + 26);
+    //                 uint uu = charTouint(CoRe[vertex] + 6 + 4 * (k + 1));
+    //                 changeInt(CoRe[vertex], 6 + 4 * (k + 1), uu + 26);
     //             }
-    //             insertArr(node, startRev + 4 + sizeRev, arr, 26);
+    //             insertArr(vertex, startRev + 4 + sizeRev, arr, 26);
     //         }
     //         else
     //         {
@@ -3237,7 +3237,7 @@ int main(int argc, char const *argv[])
     // std::cout << "tttt: " << tttt << "" << std::endl;
 
     std::cout << "numOrder: " << numOrder(1) << "" << std::endl;
-    cNode[1] = 0;
+    cvertex[1] = 0;
     cCh[1] = 1;
 
     auto end = std::chrono::high_resolution_clock::now();

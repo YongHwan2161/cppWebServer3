@@ -1,16 +1,16 @@
 # Command Line Interface
 
 ## Overview
-The CGDB system provides a command-line interface for interacting with the database. Users can create axes, manage nodes, and perform other operations through simple text commands.
+The CGDB system provides a command-line interface for interacting with the database. Users can create axes, manage vertexs, and perform other operations through simple text commands.
 
 ## Command Structure
 
 ### Create Axis
 ```
-create-axis <node_index> <channel_index> <axis_number>
+create-axis <vertex_index> <channel_index> <axis_number>
 ```
-- node_index: Target node (0-255)
-- channel_index: Target channel in the node
+- vertex_index: Target vertex (0-255)
+- channel_index: Target channel in the vertex
 - axis_number: Type of axis to create
   - 0: Forward link
   - 1: Backward link
@@ -18,36 +18,36 @@ create-axis <node_index> <channel_index> <axis_number>
 
 Example:
 ```
-> create-axis 0 0 0    # Create forward link axis in node 0, channel 0
-> create-axis 1 0 1    # Create backward link axis in node 1, channel 0
-> create-axis 0 1 3    # Create time axis in node 0, channel 1
+> create-axis 0 0 0    # Create forward link axis in vertex 0, channel 0
+> create-axis 1 0 1    # Create backward link axis in vertex 1, channel 0
+> create-axis 0 1 3    # Create time axis in vertex 0, channel 1
 ```
 
 ### Check Specific Axis
 ```
-check-axis <node_index> <channel_index> <axis_number>
+check-axis <vertex_index> <channel_index> <axis_number>
 ```
-Checks if a specific axis exists in the given node and channel.
+Checks if a specific axis exists in the given vertex and channel.
 
 Example:
 ```
 > check-axis 0 0 0
-Axis 0 exists in node 0, channel 0
+Axis 0 exists in vertex 0, channel 0
 
 > check-axis 0 0 2
-Axis 2 does not exist in node 0, channel 0
+Axis 2 does not exist in vertex 0, channel 0
 ```
 
 ### List All Axes
 ```
-list-axes <node_index> <channel_index>
+list-axes <vertex_index> <channel_index>
 ```
-Shows all axes present in the specified node and channel.
+Shows all axes present in the specified vertex and channel.
 
 Example:
 ```
 > list-axes 0 0
-Axes in node 0, channel 0:
+Axes in vertex 0, channel 0:
 Total axes: 3
 
 Axis numbers:
@@ -61,12 +61,12 @@ Error handling:
 ```
 > list-axes
 Error: Missing arguments
-Usage: list-axes <node_index> <channel_index>
+Usage: list-axes <vertex_index> <channel_index>
 Example: list-axes 0 0
 
 > list-axes 0
 Error: Invalid arguments
-Usage: list-axes <node_index> <channel_index>
+Usage: list-axes <vertex_index> <channel_index>
 Example: list-axes 0 0
 ```
 
@@ -90,14 +90,14 @@ Exits the program, saving all changes.
 
 ### Create Link
 ```
-create-link <source_node> <source_ch> <dest_node> <dest_ch> <axis_number>
+create-link <source_vertex> <source_ch> <dest_vertex> <dest_ch> <axis_number>
 ```
 Creates a link between two channels using the specified axis.
 
 Parameters:
-- source_node: Source node index (0-255)
+- source_vertex: Source vertex index (0-255)
 - source_ch: Source channel index
-- dest_node: Destination node index (0-255)
+- dest_vertex: Destination vertex index (0-255)
 - dest_ch: Destination channel index
 - axis_number: Axis to use for the link
   - 0: Forward link
@@ -107,36 +107,36 @@ Parameters:
 Example:
 ```
 > create-link 0 0 1 0 0
-Created link from node 0 channel 0 to node 1 channel 0 using axis 0
+Created link from vertex 0 channel 0 to vertex 1 channel 0 using axis 0
 
 > create-link 1 0 0 0 1
-Created link from node 1 channel 0 to node 0 channel 0 using axis 1
+Created link from vertex 1 channel 0 to vertex 0 channel 0 using axis 1
 ```
 
 Error handling:
 ```
 > create-link
 Error: Missing arguments
-Usage: create-link <source_node> <source_ch> <dest_node> <dest_ch> <axis_number>
+Usage: create-link <source_vertex> <source_ch> <dest_vertex> <dest_ch> <axis_number>
 Example: create-link 0 0 1 0 0
 
 > create-link 0 0
 Error: Invalid arguments
-Usage: create-link <source_node> <source_ch> <dest_node> <dest_ch> <axis_number>
+Usage: create-link <source_vertex> <source_ch> <dest_vertex> <dest_ch> <axis_number>
 Example: create-link 0 0 1 0 0
 ```
 
-### Print Node Data
+### Print vertex Data
 ```
-print-node <node_index>
+print-vertex <vertex_index>
 ```
-Displays detailed node information including structure and memory contents.
+Displays detailed vertex information including structure and memory contents.
 
 Parameters:
-- node_index: Target node (0-255)
+- vertex_index: Target vertex (0-255)
 
 Output includes:
-1. Node Metadata
+1. vertex Metadata
    - Size in bytes
    - Position in Core array
    - File offset in data.bin
@@ -150,17 +150,17 @@ Output includes:
      - Axis number and type
      - Axis offset
      - Link count
-     - Link details (destination node and channel)
+     - Link details (destination vertex and channel)
 
 3. Memory Contents
-   - Hexadecimal view of node data
+   - Hexadecimal view of vertex data
    - ASCII representation
    - Memory offset for each line
 
 Example:
 ```
-> print-node 0
-Node 0 Information:
+> print-vertex 0
+vertex 0 Information:
 Size: 32 bytes
 Core Position: 0
 File Offset: 0x00000000
@@ -172,7 +172,7 @@ Channel 0 (offset: 0x0008):
   Axis Count: 2
   Axis 0 (Forward link) (offset: 0x0010):
     Link Count: 1
-    Link 0: Node 1, Channel 0
+    Link 0: vertex 1, Channel 0
   Axis 1 (Backward link) (offset: 0x0018):
     Link Count: 0
 
@@ -184,7 +184,7 @@ Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII
 ```
 
 The output shows:
-1. Basic node information
+1. Basic vertex information
    - Memory allocation size
    - Location in Core array
    - Position in data.bin file
@@ -202,13 +202,13 @@ The output shows:
 
 Error handling:
 ```
-> print-node
+> print-vertex
 Error: Missing arguments
-Usage: print-node <node_index>
-Example: print-node 0
+Usage: print-vertex <vertex_index>
+Example: print-vertex 0
 
-> print-node 256
-Error: Node index must be between 0 and 255
+> print-vertex 256
+Error: vertex index must be between 0 and 255
 ```
 
 ### Print Free Space Information
@@ -219,16 +219,16 @@ Displays detailed information about the free space management system.
 
 Output includes:
 1. Total number of free blocks
-2. Number of free node indices
+2. Number of free vertex indices
 3. List of free blocks with their sizes and offsets
-4. List of available node indices
+4. List of available vertex indices
 
 Example:
 ```
 > print-free-space
 Free Space Information:
 Total free blocks: 2
-Free node indices: 1
+Free vertex indices: 1
 
 Free Blocks:
 Size (bytes)    Offset
@@ -236,14 +236,14 @@ Size (bytes)    Offset
 16              0x00001000
 32              0x00002000
 
-Free Node Indices:
+Free vertex Indices:
 5
 ```
 
 The output shows:
 1. Summary of free space status
 2. Detailed list of available blocks
-3. List of node indices available for reuse
+3. List of vertex indices available for reuse
 
 Error handling:
 ```
@@ -255,32 +255,32 @@ Example: print-free-space
 
 ### Delete Link
 ```
-delete-link <source_node> <source_ch> <dest_node> <dest_ch> <axis_number>
+delete-link <source_vertex> <source_ch> <dest_vertex> <dest_ch> <axis_number>
 ```
-Deletes an existing link between two nodes.
+Deletes an existing link between two vertexs.
 
 Parameters:
-- source_node: Source node index (0-255)
+- source_vertex: Source vertex index (0-255)
 - source_ch: Source channel index
-- dest_node: Destination node index (0-255)
+- dest_vertex: Destination vertex index (0-255)
 - dest_ch: Destination channel index
 - axis_number: Axis number for the link
 
 Example:
 ```
 > delete-link 0 0 1 0 0
-Successfully deleted link from node 0 channel 0 to node 1 channel 0 using axis 0
+Successfully deleted link from vertex 0 channel 0 to vertex 1 channel 0 using axis 0
 ```
 
 Error handling:
 ```
 > delete-link
 Error: Missing arguments
-Usage: delete-link <source_node> <source_ch> <dest_node> <dest_ch> <axis_number>
+Usage: delete-link <source_vertex> <source_ch> <dest_vertex> <dest_ch> <axis_number>
 Example: delete-link 0 0 1 0 0
 
 > delete-link 256 0 1 0 0
-Error: Node indices must be between 0 and 255
+Error: vertex indices must be between 0 and 255
 
 > delete-link 0 0 1 0 0
 Error: Link not found
@@ -310,17 +310,17 @@ All tests completed. Total failed tests: 0
 ```
 test-resize
 ```
-Runs specific tests for resize_node_space functionality.
+Runs specific tests for resize_vertex_space functionality.
 
 Parameters: None
 
 Example:
 ```
 > test-resize
-Testing resize_node_space functionality...
+Testing resize_vertex_space functionality...
 ✓ Correct number of initial free blocks
 ...
-Resize node space tests completed: 0 failed
+Resize vertex space tests completed: 0 failed
 ```
 
 Error handling:
@@ -333,12 +333,12 @@ Example: test-resize
 
 #### Test Axis Creation/Deletion
 ```
-test-axis-create-delete <node> <channel> <max_axis>
+test-axis-create-delete <vertex> <channel> <max_axis>
 ```
 Tests complete cycle of axis creation and deletion.
 
 Parameters:
-- node: Node index (0-255)
+- vertex: vertex index (0-255)
 - channel: Channel index
 - max_axis: Maximum axis number to create
 
@@ -357,11 +357,11 @@ Error handling:
 ```
 > test-axis-create-delete
 Error: Missing arguments
-Usage: test-axis-create-delete <node_index> <channel_index> <max_axis>
+Usage: test-axis-create-delete <vertex_index> <channel_index> <max_axis>
 Example: test-axis-create-delete 0 0 5
 
 > test-axis-create-delete 256 0 5
-Error: Node index must be between 0 and 255
+Error: vertex index must be between 0 and 255
 
 > test-axis-create-delete 0 0 -1
 Error: Maximum axis number must be non-negative
@@ -394,12 +394,12 @@ Example: test-free-offsets
 
 ### Test Multiple Link Creation
 ```
-test-multiple-link <node_index> <channel_index> <axis_number>
+test-multiple-link <vertex_index> <channel_index> <axis_number>
 ```
 Creates and verifies 100 random links for testing purposes.
 
 Parameters:
-- node_index: Source node (0-255)
+- vertex_index: Source vertex (0-255)
 - channel_index: Source channel
 - axis_number: Axis to use for links
 
@@ -407,12 +407,12 @@ Example:
 ```
 > test-multiple-link 0 0 0
 Testing multiple link creation...
-Source: Node 0, Channel 0, Axis 0
+Source: vertex 0, Channel 0, Axis 0
 Link creation test completed: 0 failures
 
 > test-multiple-link 0 0 1
 Testing multiple link creation...
-Source: Node 0, Channel 0, Axis 1
+Source: vertex 0, Channel 0, Axis 1
 Link creation test completed: 2 failures
 Failed to create link 45
 Link count mismatch after link 67
@@ -422,11 +422,11 @@ Error handling:
 ```
 > test-multiple-link
 Error: Missing arguments
-Usage: test-multiple-link <node_index> <channel_index> <axis_number>
+Usage: test-multiple-link <vertex_index> <channel_index> <axis_number>
 Example: test-multiple-link 0 0 0
 
 > test-multiple-link 256 0 0
-Error: Node index must be between 0 and 255
+Error: vertex index must be between 0 and 255
 ```
 
 The command will:
@@ -437,35 +437,35 @@ The command will:
 
 ### Create Channel
 ```
-create-channel <node_index>
+create-channel <vertex_index>
 ```
-Creates a new channel in the specified node.
+Creates a new channel in the specified vertex.
 
 Parameters:
-- node_index: Target node (0-255)
+- vertex_index: Target vertex (0-255)
 
 Example:
 ```
 > create-channel 0
-Successfully created new channel in node 0
+Successfully created new channel in vertex 0
 
 > create-channel 1
-Successfully created new channel in node 1
+Successfully created new channel in vertex 1
 ```
 
 Error handling:
 ```
 > create-channel
 Error: Missing arguments
-Usage: create-channel <node_index>
+Usage: create-channel <vertex_index>
 Example: create-channel 0
 
 > create-channel 256
-Error: Node index must be between 0 and 255
+Error: vertex index must be between 0 and 255
 ```
 
 The command will:
-1. Validate the node index
+1. Validate the vertex index
 2. Create a new channel sequentially
 3. Initialize the channel with 0 axes
 4. Report success or failure
@@ -474,16 +474,16 @@ The command will:
 
 #### Multi-Channel Link Test
 ```
-test-multi-channel-links <node_index>
+test-multi-channel-links <vertex_index>
 ```
 
-Tests link creation and deletion across multiple channels in a node.
+Tests link creation and deletion across multiple channels in a vertex.
 
 Parameters:
-- node_index: Target node index (0-255)
+- vertex_index: Target vertex index (0-255)
 
 Process:
-1. Creates a second channel in the target node
+1. Creates a second channel in the target vertex
 2. Creates 100 links in each channel
 3. Deletes all links in reverse order
 4. Verifies data consistency throughout
@@ -492,7 +492,7 @@ Example:
 ```shell
 > test-multi-channel-links 0
 Testing link creation/deletion across multiple channels...
-Target Node: 0
+Target vertex: 0
 Creating 100 links in each channel...
 Deleting all links...
 Multi-channel link test completed: 0 failures
@@ -502,11 +502,11 @@ Error Cases:
 ```shell
 > test-multi-channel-links
 Error: Missing arguments
-Usage: test-multi-channel-links <node_index>
+Usage: test-multi-channel-links <vertex_index>
 Example: test-multi-channel-links 0
 
 > test-multi-channel-links 256
-Error: Node index must be between 0 and 255
+Error: vertex index must be between 0 and 255
 ```
 
 #### Test Results
@@ -519,7 +519,7 @@ The command reports:
 ##### Success Output
 ```
 Testing link creation/deletion across multiple channels...
-Target Node: 0
+Target vertex: 0
 Creating 100 links in each channel...
 Deleting all links...
 Multi-channel link test completed: 0 failures
@@ -528,19 +528,19 @@ Multi-channel link test completed: 0 failures
 ##### Failure Output
 ```
 Testing link creation/deletion across multiple channels...
-Target Node: 0
+Target vertex: 0
 Failed to create channel 1
 ```
 
 ### Channel Creation Test
 ```
-test-channel-creation <node_index>
+test-channel-creation <vertex_index>
 ```
 
-Tests sequential channel creation in a node.
+Tests sequential channel creation in a vertex.
 
 Parameters:
-- node_index: Target node index (0-255)
+- vertex_index: Target vertex index (0-255)
 
 Process:
 1. Creates channels sequentially
@@ -552,7 +552,7 @@ Example:
 ```shell
 > test-channel-creation 0
 Testing sequential channel creation...
-Target Node: 0
+Target vertex: 0
 Creating channels sequentially...
 Final channel count: 10
 Channel creation test completed successfully
@@ -562,91 +562,91 @@ Error Cases:
 ```shell
 > test-channel-creation
 Error: Missing arguments
-Usage: test-channel-creation <node_index>
+Usage: test-channel-creation <vertex_index>
 Example: test-channel-creation 0
 
 > test-channel-creation 256
-Error: Node index must be between 0 and 255
+Error: vertex index must be between 0 and 255
 ```
 
 ### Channel Management Commands
 
 #### Clear Channel
 ```
-clear-channel <node_index> <channel_index>
+clear-channel <vertex_index> <channel_index>
 ```
 
 Clears all data in a specified channel, resetting it to initial state.
 
 Parameters:
-- node_index: Target node (0-255)
-- channel_index: Target channel in the node
+- vertex_index: Target vertex (0-255)
+- channel_index: Target channel in the vertex
 
 Process:
 1. Removes all axes and links
 2. Resets channel to empty state
-3. Updates node size and offsets
+3. Updates vertex size and offsets
 4. Preserves channel structure
 
 Example:
 ```shell
 > clear-channel 0 1
-Successfully cleared channel 1 in node 0
+Successfully cleared channel 1 in vertex 0
 ```
 
 Error Cases:
 ```shell
 > clear-channel
 Error: Missing arguments
-Usage: clear-channel <node_index> <channel_index>
+Usage: clear-channel <vertex_index> <channel_index>
 Example: clear-channel 0 1
 
 > clear-channel 256 0
-Error: Node index must be between 0 and 255
+Error: vertex index must be between 0 and 255
 
 > clear-channel 0 1
-Failed to clear channel 1 in node 0
+Failed to clear channel 1 in vertex 0
 ```
 
 The command will:
 1. Validate input parameters
-2. Check node and channel existence
+2. Check vertex and channel existence
 3. Clear all channel data
 4. Update file storage
 5. Report operation result
 
-### Get Node Position
+### Get vertex Position
 ```
-get-node-position <node_index>
+get-vertex-position <vertex_index>
 ```
-Shows the actual position of a node in the Core array and its memory address.
+Shows the actual position of a vertex in the Core array and its memory address.
 
 Parameters:
-- node_index: Target node (0-255)
+- vertex_index: Target vertex (0-255)
 
 Example:
 ```
-> get-node-position 0
-Node 0 is at Core position 0
+> get-vertex-position 0
+vertex 0 is at Core position 0
 Memory address: 0x7f8b4c003a00
 
-> get-node-position 5
-Node 5 is at Core position 3
+> get-vertex-position 5
+vertex 5 is at Core position 3
 Memory address: 0x7f8b4c003c80
 ```
 
 Error handling:
 ```
-> get-node-position
+> get-vertex-position
 Error: Missing arguments
-Usage: get-node-position <node_index>
-Example: get-node-position 0
+Usage: get-vertex-position <vertex_index>
+Example: get-vertex-position 0
 
-> get-node-position 256
-Error: Invalid node index 256
+> get-vertex-position 256
+Error: Invalid vertex index 256
 
-> get-node-position 5
-Error: Node 5 is not loaded in memory
+> get-vertex-position 5
+Error: vertex 5 is not loaded in memory
 ```
 
 #### Purpose
@@ -667,33 +667,33 @@ Error: Node 5 is not loaded in memory
 
 ### Memory Management Commands
 
-#### Unload Node
+#### Unload vertex
 ```
-unload-node <node_index>
+unload-vertex <vertex_index>
 ```
-Unloads a node from memory. The node data remains in the binary file and can be reloaded when needed.
+Unloads a vertex from memory. The vertex data remains in the binary file and can be reloaded when needed.
 
 Parameters:
-- node_index: Target node (0-255)
+- vertex_index: Target vertex (0-255)
 
 Example:
 ```
-> unload-node 5
-Successfully unloaded node 5 from memory
+> unload-vertex 5
+Successfully unloaded vertex 5 from memory
 ```
 
 Error handling:
 ```
-> unload-node
+> unload-vertex
 Error: Missing arguments
-Usage: unload-node <node_index>
-Example: unload-node 0
+Usage: unload-vertex <vertex_index>
+Example: unload-vertex 0
 
-> unload-node 256
-Error: Node index must be between 0 and 255
+> unload-vertex 256
+Error: vertex index must be between 0 and 255
 
-> unload-node 5
-Error: Node 5 is not loaded in memory
+> unload-vertex 5
+Error: vertex 5 is not loaded in memory
 ```
 
 #### Purpose
@@ -712,33 +712,33 @@ Error: Node 5 is not loaded in memory
    - Core 배열 포인터 정리
    - 메모리 누수 방지
 
-#### Load Node
+#### Load vertex
 ```
-load-node <node_index>
+load-vertex <vertex_index>
 ```
-Loads a node from the binary file into memory.
+Loads a vertex from the binary file into memory.
 
 Parameters:
-- node_index: Target node (0-255)
+- vertex_index: Target vertex (0-255)
 
 Example:
 ```
-> load-node 5
-Successfully loaded node 5 to Core position 3
+> load-vertex 5
+Successfully loaded vertex 5 to Core position 3
 ```
 
 Error handling:
 ```
-> load-node
+> load-vertex
 Error: Missing arguments
-Usage: load-node <node_index>
-Example: load-node 0
+Usage: load-vertex <vertex_index>
+Example: load-vertex 0
 
-> load-node 256
-Error: Node index must be between 0 and 255
+> load-vertex 256
+Error: vertex index must be between 0 and 255
 
-> load-node 5
-Node 5 is already loaded at Core position 3
+> load-vertex 5
+vertex 5 is already loaded at Core position 3
 ```
 
 #### Purpose
@@ -759,28 +759,28 @@ Node 5 is already loaded at Core position 3
 
 ### Print CoreMap Status
 ```
-print-coremap [node_index]
+print-coremap [vertex_index]
 ```
-Displays the current status of CoreMap. If a node index is provided, shows information for that specific node. Otherwise, shows all loaded nodes.
+Displays the current status of CoreMap. If a vertex index is provided, shows information for that specific vertex. Otherwise, shows all loaded vertexs.
 
 Parameters:
-- node_index: (optional) Target node (0-255)
+- vertex_index: (optional) Target vertex (0-255)
 
 Example:
 ```
 > print-coremap
 CoreMap Status:
-Total Loaded Nodes: 3
+Total Loaded vertexs: 3
 
-Node     Core Position   Is Loaded      File Offset
+vertex     Core Position   Is Loaded      File Offset
 --------------------------------------------------------
 0        0              Yes            0x00000000
 5        1              Yes            0x00000050
 10       2              Yes            0x000000A0
 
 > print-coremap 5
-CoreMap Status for Node 5:
-Node     Core Position   Is Loaded      File Offset
+CoreMap Status for vertex 5:
+vertex     Core Position   Is Loaded      File Offset
 --------------------------------------------------------
 5        1              Yes            0x00000050
 ```
@@ -788,11 +788,11 @@ Node     Core Position   Is Loaded      File Offset
 Error handling:
 ```
 > print-coremap 256
-Error: Node index must be between 0 and 255
+Error: vertex index must be between 0 and 255
 
 > print-coremap abc
 Error: Invalid arguments
-Usage: print-coremap <node_index>
+Usage: print-coremap <vertex_index>
 Example: print-coremap 0
 ```
 
@@ -803,14 +803,14 @@ Example: print-coremap 0
 
 #### Notes
 1. Display Information
-   - Node index
+   - vertex index
    - Position in Core array
    - Load status
    - File offset in data.bin
 
 2. View Options
-   - No argument: Show all loaded nodes
-   - Node index: Show specific node info
+   - No argument: Show all loaded vertexs
+   - vertex index: Show specific vertex info
 
 ### Check Core Size
 ```
@@ -845,25 +845,25 @@ Memory Utilization: 18.8%
    - 로드 가능 여부 확인
    - 최적화 필요성 판단
 
-### Delete Node
+### Delete vertex
 ```
-delete-node <node_index>
+delete-vertex <vertex_index>
 ```
-Deletes a node and adds it to the garbage chain.
+Deletes a vertex and adds it to the garbage chain.
 
 Parameters:
-- node_index: Target node to delete (0-255)
+- vertex_index: Target vertex to delete (0-255)
 
 Example:
 ```
-> delete-node 5
-Successfully deleted node 5
+> delete-vertex 5
+Successfully deleted vertex 5
 
-> delete-node 256
-Error: Node index must be between 0 and 255
+> delete-vertex 256
+Error: vertex index must be between 0 and 255
 
-> delete-node 0
-Error: Cannot delete garbage node (index 0)
+> delete-vertex 0
+Error: Cannot delete garbage vertex (index 0)
 ```
 
 #### Purpose
@@ -902,67 +902,67 @@ Usage: validate-free-offsets
 
 #### Validate Circle
 ```
-validate-circle <node_index> <channel_index> <axis_number>
+validate-circle <vertex_index> <channel_index> <axis_number>
 ```
-Checks if there is a circle (cyclic path) starting from the given node/channel/axis.
+Checks if there is a circle (cyclic path) starting from the given vertex/channel/axis.
 
 Parameters:
-- node_index: Starting node (0-255)
+- vertex_index: Starting vertex (0-255)
 - channel_index: Starting channel
 - axis_number: Axis to follow
 
 Example:
 ```
 > validate-circle 0 0 0
-Path from node 0, channel 0, axis 0 does not form a circle
+Path from vertex 0, channel 0, axis 0 does not form a circle
 
 > validate-circle 1 0 0
-Path from node 1, channel 0, axis 0 forms a circle
+Path from vertex 1, channel 0, axis 0 forms a circle
 ```
 
 Error handling:
 ```
 > validate-circle
 Error: Missing arguments
-Usage: validate-circle <node_index> <channel_index> <axis_number>
+Usage: validate-circle <vertex_index> <channel_index> <axis_number>
 
 > validate-circle 0
 Error: Invalid arguments
-Usage: validate-circle <node_index> <channel_index> <axis_number>
+Usage: validate-circle <vertex_index> <channel_index> <axis_number>
 ```
 
 ### Circle Analysis Commands
 
 #### Print Circle Information
 ```
-print-circle <node_index> <channel_index> <axis_number>
+print-circle <vertex_index> <channel_index> <axis_number>
 ```
-Prints detailed information about any circle found starting from the specified node/channel/axis.
+Prints detailed information about any circle found starting from the specified vertex/channel/axis.
 
 Parameters:
-- node_index: Starting node (0-255)
+- vertex_index: Starting vertex (0-255)
 - channel_index: Starting channel
 - axis_number: Axis to follow
 
 Example:
 ```
 > print-circle 0 0 0
-Found circle with 3 nodes:
-Path: (Node 0, Ch 0) -> (Node 1, Ch 1) -> (Node 2, Ch 0) -> (Node 0, Ch 0)
+Found circle with 3 vertexs:
+Path: (vertex 0, Ch 0) -> (vertex 1, Ch 1) -> (vertex 2, Ch 0) -> (vertex 0, Ch 0)
 
 > print-circle 1 0 0
-No circle found starting from node 1, channel 0, axis 0
+No circle found starting from vertex 1, channel 0, axis 0
 ```
 
 Error handling:
 ```
 > print-circle
 Error: Missing arguments
-Usage: print-circle <node_index> <channel_index> <axis_number>
+Usage: print-circle <vertex_index> <channel_index> <axis_number>
 
 > print-circle 0
 Error: Invalid arguments
-Usage: print-circle <node_index> <channel_index> <axis_number>
+Usage: print-circle <vertex_index> <channel_index> <axis_number>
 ```
 
 ## Error Handling
@@ -992,19 +992,19 @@ Type 'help' for available commands
 
 > help
 Available commands:
-  create-axis <node> <channel> <axis>  Create a new axis
-  check-axis <node> <channel> <axis>   Check if specific axis exists
-  list-axes <node> <channel>           List all axes in channel
+  create-axis <vertex> <channel> <axis>  Create a new axis
+  check-axis <vertex> <channel> <axis>   Check if specific axis exists
+  list-axes <vertex> <channel>           List all axes in channel
   help                                 Show this help message
   exit                                 Exit the program
 
 > list-axes
 Error: Missing arguments
-Usage: list-axes <node_index> <channel_index>
+Usage: list-axes <vertex_index> <channel_index>
 Example: list-axes 0 0
 
 > list-axes 0 0
-Axes in node 0, channel 0:
+Axes in vertex 0, channel 0:
 Total axes: 1
 Forward link (0): Present
 Backward link (1): Not present
@@ -1070,29 +1070,29 @@ Test commands follow standard error handling:
 3. Consistent error messages
 4. Resource cleanup
 
-### Node Management Commands
+### vertex Management Commands
 
-#### Create Node
+#### Create vertex
 ```
-create-node
+create-vertex
 ```
-Creates a new node with default initialization.
+Creates a new vertex with default initialization.
 
 Example:
 ```
-> create-node
-Successfully created new node at index 5
+> create-vertex
+Successfully created new vertex at index 5
 ```
 
 Error handling:
 ```
-> create-node extra_args
+> create-vertex extra_args
 Error: Invalid arguments
-Usage: create-node
-Example: create-node
+Usage: create-vertex
+Example: create-vertex
 
-> create-node
-Error: Maximum number of nodes (256) reached
+> create-vertex
+Error: Maximum number of vertexs (256) reached
 ```
 
 #### Purpose
@@ -1101,7 +1101,7 @@ Error: Maximum number of nodes (256) reached
 - 자동 인덱스 할당
 
 #### Notes
-1. Node Structure
+1. vertex Structure
    - 16 bytes 초기 할당
    - 1개의 기본 채널
    - 빈 axis 리스트

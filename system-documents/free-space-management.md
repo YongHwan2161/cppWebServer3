@@ -15,16 +15,16 @@ typedef struct {
 typedef struct {
     uint count;          // Number of free blocks
     FreeBlock* blocks;   // Array of free blocks
-    uint* free_indices;  // Array of free node indices
+    uint* free_indices;  // Array of free vertex indices
     uint index_count;    // Number of free indices
 } FreeSpace;
 ```
 
 ## Operations
 
-### Node Space Management
+### vertex Space Management
 ```c
-uchar* resize_node_space(uchar* node, uint required_size, int node_index, uint* new_size);
+uchar* resize_vertex_space(uchar* vertex, uint required_size, int vertex_index, uint* new_size);
 ```
 
 #### Process
@@ -35,8 +35,8 @@ uchar* resize_node_space(uchar* node, uint required_size, int node_index, uint* 
 5. 오프셋 관리
    ```c
    // 올바른 순서
-   long old_offset = CoreMap[node_index].file_offset;  // 기존 오프셋 저장
-   CoreMap[node_index].file_offset = free_block->offset;  // 새 오프셋 설정
+   long old_offset = CoreMap[vertex_index].file_offset;  // 기존 오프셋 저장
+   CoreMap[vertex_index].file_offset = free_block->offset;  // 새 오프셋 설정
    add_free_block(current_size, old_offset);  // 기존 공간 반환
    ```
 
@@ -45,9 +45,9 @@ uchar* resize_node_space(uchar* node, uint required_size, int node_index, uint* 
    - 이전 노드 메모리 해제
 
 #### Parameters
-- node: 현재 노드 데이터
+- vertex: 현재 노드 데이터
 - required_size: 필요한 최소 크기
-- node_index: 노드 인덱스
+- vertex_index: 노드 인덱스
 - new_size: 할당된 새로운 크기 (출력)
 
 #### Returns
@@ -133,12 +133,12 @@ void add_free_index(uint index);
 
 ## Usage Example
 ```c
-// Node resizing
+// vertex resizing
 uint new_size;
-uchar* new_node = resize_node_space(old_node, required_size, node_index, &new_size);
-if (new_node) {
+uchar* new_vertex = resize_vertex_space(old_vertex, required_size, vertex_index, &new_size);
+if (new_vertex) {
     // Update Core and recalculate offsets
-    Core[node_index] = new_node;
+    Core[vertex_index] = new_vertex;
     // ...
 }
 ```
@@ -158,22 +158,22 @@ int handle_print_free_space(void);
 #### Display Format
 1. Summary Information
    - Total number of free blocks
-   - Number of free node indices
+   - Number of free vertex indices
 
 2. Free Block Details
    - Block size in bytes
    - File offset in hexadecimal
    - Sorted by offset
 
-3. Free Node Indices
-   - List of available node indices
-   - Used for new node allocation
+3. Free vertex Indices
+   - List of available vertex indices
+   - Used for new vertex allocation
 
 #### Example Output
 ```
 Free Space Information:
 Total free blocks: 2
-Free node indices: 1
+Free vertex indices: 1
 
 Free Blocks:
 Size (bytes)    Offset
@@ -181,23 +181,23 @@ Size (bytes)    Offset
 16              0x00001000
 32              0x00002000
 
-Free Node Indices:
+Free vertex Indices:
 5
 ```
 
 ### Usage
 - Monitor available space
 - Debug memory allocation
-- Track node deletion
+- Track vertex deletion
 - Verify space reclamation 
 
 ## Testing
 
-### Resize Node Space Testing
-The resize_node_space functionality is tested through a series of operations that verify proper free space management:
+### Resize vertex Space Testing
+The resize_vertex_space functionality is tested through a series of operations that verify proper free space management:
 
 #### Test Setup
-1. Create multiple axes in node 0
+1. Create multiple axes in vertex 0
    ```shell
    create-axis 0 0 1
    create-axis 0 0 2
@@ -213,9 +213,9 @@ The resize_node_space functionality is tested through a series of operations tha
    - Verifies correct block sizes
 
 2. Resize Trigger
-   - Creates axis in node 1
-   - Forces node resize using 32-byte free block
-   - Original 16-byte node space returns to free space
+   - Creates axis in vertex 1
+   - Forces vertex resize using 32-byte free block
+   - Original 16-byte vertex space returns to free space
 
 3. Final State Verification
    - Checks for two 16-byte free blocks
@@ -243,7 +243,7 @@ Size (bytes)    Offset
 
 #### Test Implementation
 ```c
-int test_resize_node_space(void);
+int test_resize_vertex_space(void);
 ```
 - Verifies free block allocation
 - Checks free space reclamation
@@ -298,11 +298,11 @@ This ensures the integrity of the free space management system by preventing:
 - Corruption of free block boundaries
 - Invalid memory access
 
-### Node Size Management
+### vertex Size Management
 
-#### Check and Resize Node
+#### Check and Resize vertex
 ```c
-int check_and_resize_node(uchar** node_ptr, uint required_size, uint node_index);
+int check_and_resize_vertex(uchar** vertex_ptr, uint required_size, uint vertex_index);
 ```
 
 ##### 기능
@@ -311,9 +311,9 @@ int check_and_resize_node(uchar** node_ptr, uint required_size, uint node_index)
 - 노드 포인터 업데이트
 
 ##### Parameters
-- node_ptr: 노드 포인터의 포인터 (resize 시 업데이트됨)
+- vertex_ptr: 노드 포인터의 포인터 (resize 시 업데이트됨)
 - required_size: 필요한 최소 크기
-- node_index: 노드 인덱스
+- vertex_index: 노드 인덱스
 
 ##### Return Values
 - FREE_SPACE_SUCCESS: 크기 조정 불필요
@@ -327,7 +327,7 @@ int check_and_resize_node(uchar** node_ptr, uint required_size, uint node_index)
    - 충분하면 즉시 반환
 
 2. 크기 조정
-   - resize_node_space 호출
+   - resize_vertex_space 호출
    - 새로운 메모리 할당
    - 데이터 복사
 
@@ -338,16 +338,16 @@ int check_and_resize_node(uchar** node_ptr, uint required_size, uint node_index)
 
 ##### Usage Example
 ```c
-uchar* node = Core[node_index];
+uchar* vertex = Core[vertex_index];
 uint required_size = current_size + new_data_size;
 
-int result = check_and_resize_node(&node, required_size, node_index);
+int result = check_and_resize_vertex(&vertex, required_size, vertex_index);
 if (result == FREE_SPACE_ERROR) {
     // Handle error
     return ERROR_CODE;
 }
 
-// node pointer may have been updated if resized
+// vertex pointer may have been updated if resized
 // Continue with operation...
 ```
 

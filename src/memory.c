@@ -1,5 +1,5 @@
 #include "memory.h"
-#include "Graph_structure/node.h"
+#include "Graph_structure/vertex.h"
 #include "../CGDB.h"
 #include "map.h"
 
@@ -82,7 +82,7 @@ int insert_uint(unsigned char* dest, unsigned int insert_pos,
 }
 
 int insert_link(unsigned char* dest, unsigned int insert_pos,
-               unsigned int node_index, unsigned short channel_index,
+               unsigned int vertex_index, unsigned short channel_index,
                unsigned int move_size) {
     
     // Validate parameters
@@ -95,42 +95,42 @@ int insert_link(unsigned char* dest, unsigned int insert_pos,
     
     // Insert link data in one operation using a struct
     struct {
-        unsigned int node;
+        unsigned int vertex;
         unsigned short channel;
-    } __attribute__((packed)) link_data = {node_index, channel_index};
+    } __attribute__((packed)) link_data = {vertex_index, channel_index};
     
     memcpy(dest + insert_pos, &link_data, sizeof(link_data));
     
     return 1;
 }
 
-int unload_node_data(unsigned int node_index) {
-    // Validate node index
-    if (node_index >= 256) {
-        printf("Error: Invalid node index %d\n", node_index);
+int unload_vertex_data(unsigned int vertex_index) {
+    // Validate vertex index
+    if (vertex_index >= 256) {
+        printf("Error: Invalid vertex index %d\n", vertex_index);
         return 0;
     }
     
-    // Get node position
-    int position = get_node_position(node_index);
+    // Get vertex position
+    int position = get_vertex_position(vertex_index);
     if (position < 0) {
-        return 0;  // Error already printed by get_node_position
+        return 0;  // Error already printed by get_vertex_position
     }
     
-    // Free the node memory
+    // Free the vertex memory
     free(Core[position]);
     Core[position] = NULL;
     
     // Update CoreMap
-    CoreMap[node_index].is_loaded = 0;
-    CoreMap[node_index].core_position = -1;
+    CoreMap[vertex_index].is_loaded = 0;
+    CoreMap[vertex_index].core_position = -1;
     
     // Decrement core size
     CoreSize--;
     
     return 1;
 } 
-void load_node_from_file(FILE* data_file, long offset, unsigned int index) {
+void load_vertex_from_file(FILE* data_file, long offset, unsigned int index) {
     fseek(data_file, offset, SEEK_SET);
     
     // Read size power first (2 bytes)
@@ -140,34 +140,34 @@ void load_node_from_file(FILE* data_file, long offset, unsigned int index) {
     // Calculate actual size
     unsigned int actual_size = 1 << size_power;
     
-    // Allocate memory for the node
-    uchar* newNode = (uchar*)malloc(actual_size * sizeof(uchar));
+    // Allocate memory for the vertex
+    uchar* newvertex = (uchar*)malloc(actual_size * sizeof(uchar));
     
     // Move back 2 bytes instead of seeking from start
     fseek(data_file, -2, SEEK_CUR);
-    fread(newNode, sizeof(uchar), actual_size, data_file);
+    fread(newvertex, sizeof(uchar), actual_size, data_file);
     
-    Core[index] = newNode;
+    Core[index] = newvertex;
 }
-int load_node_to_core(unsigned int node_index) {
+int load_vertex_to_core(unsigned int vertex_index) {
 
     FILE* data_file = fopen(DATA_FILE, "rb");
     if (!data_file) return -1;
     
     // Use stored offset directly
-    long offset = CoreMap[node_index].file_offset;
+    long offset = CoreMap[vertex_index].file_offset;
     
-    // Load the node
+    // Load the vertex
     for (uint i = 0; i < MaxCoreSize; i++) {
         if (Core[i] == NULL) {
-            CoreMap[node_index].core_position = i;
-            CoreMap[node_index].is_loaded = 1;
-            load_node_from_file(data_file, offset, i);
+            CoreMap[vertex_index].core_position = i;
+            CoreMap[vertex_index].is_loaded = 1;
+            load_vertex_from_file(data_file, offset, i);
             break;
         }
     }
     CoreSize++;
     
     fclose(data_file);
-    return CoreMap[node_index].core_position;
+    return CoreMap[vertex_index].core_position;
 }

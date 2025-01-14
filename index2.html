@@ -1314,7 +1314,7 @@
     </script>
 
     <script>
-        let user = 0, node = 0, ch = 0;
+        let user = 0, vertex = 0, ch = 0;
         function updateClock() {
             document.getElementById("clock").textContent = new Date().toLocaleTimeString();
         }
@@ -1355,7 +1355,7 @@
             //const textinput = document.getElementById("textinput").value;
             const fileContent = document.getElementById('fileContent').value;
             const additionalContent = textinput === "editHtml" ? `\t${fileContent}` : (textinput === "editcppl" ? `\t${fileContent}` : '');
-            const text = `${user}\t${node}\t${ch}\t${textinput}${additionalContent}`;
+            const text = `${user}\t${vertex}\t${ch}\t${textinput}${additionalContent}`;
             document.getElementById('contents').textContent = textinput;
             const xhr = new XMLHttpRequest();
             //xhr.open('POST', 'http://35.225.102.250:8080', true);
@@ -1378,7 +1378,7 @@
         }
         function updateUI(res) {
             user = res[0];
-            node = res[1];
+            vertex = res[1];
             ch = res[2];
             const contents = document.getElementById("contents");
             const info = document.getElementById("info2");
@@ -1390,7 +1390,7 @@
                 res[3].replace(/\n/g, '<br/>');
                 contents.innerHTML = res[3];
             }
-            info.innerHTML = `user: ${res[0]}, node: ${res[1]}/${res[4]}, ch: ${res[2]}/${res[10]}<br> Last: ${res[6]}, Create: ${res[7]}<br> copy: ${res[11]}-${res[12]}`;
+            info.innerHTML = `user: ${res[0]}, vertex: ${res[1]}/${res[4]}, ch: ${res[2]}/${res[10]}<br> Last: ${res[6]}, Create: ${res[7]}<br> copy: ${res[11]}-${res[12]}`;
             document.getElementById("textinput").innerHTML = res[5]; //innerHTML로 받아야 함!!
             document.getElementById('Log').innerText = res[8];
             document.getElementById('info').innerText = res[9];

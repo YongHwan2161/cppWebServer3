@@ -19,7 +19,7 @@ int check_and_create_directory() {
     return 0;
 }
 void init_core_mapping() {
-    CoreMap = (NodeMapping*)malloc(MaxCoreSize * sizeof(NodeMapping));
+    CoreMap = (vertexMapping*)malloc(MaxCoreSize * sizeof(vertexMapping));
     
     // Initialize with default values
     for (uint i = 0; i < MaxCoreSize; i++) {
@@ -31,12 +31,12 @@ void init_core_mapping() {
     // Read offsets from map.bin
     FILE* map_file = fopen(MAP_FILE, "rb");
     if (map_file) {
-        // Skip number of nodes
-        fread(&CurrentNodeCount, sizeof(uint), 1, map_file);
+        // Skip number of vertexs
+        fread(&CurrentvertexCount, sizeof(uint), 1, map_file);
         fseek(map_file, sizeof(uint), SEEK_SET);
         
         // Read all offsets
-        for (uint i = 0; i < CurrentNodeCount; i++) {
+        for (uint i = 0; i < CurrentvertexCount; i++) {
             fread(&CoreMap[i].file_offset, sizeof(long), 1, map_file);
         }
         fclose(map_file);

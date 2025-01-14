@@ -9,11 +9,11 @@
 #include <string.h>
 
 uchar** Core;
-NodeMapping* CoreMap;
+vertexMapping* CoreMap;
 int CoreSize = 0;
-const unsigned int MaxCoreSize = 1024;  // Maximum nodes in RAM at once
-unsigned int CurrentNodeCount = 0;
-const unsigned int GarbageNodeIndex = 256;
+const unsigned int MaxCoreSize = 1024;  // Maximum vertexs in RAM at once
+unsigned int CurrentvertexCount = 0;
+const unsigned int GarbagevertexIndex = 256;
 
 const char* DATA_DIR = "binary-data";
 const char* DATA_FILE = "binary-data/data.bin";
