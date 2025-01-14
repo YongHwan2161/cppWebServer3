@@ -706,6 +706,7 @@ void print_help() {
     
     printf("  validate-circle <vertex> <ch> <axis>  Check if path forms a circle\n");
     printf("  print-circle <vertex> <ch> <axis>      Print circle information\n");
+    printf("  print-garbage                     Print garbage circle information\n");
 
     printf("  run-tests                           Run all test cases\n");
     printf("  test-resize                         Run resize vertex space tests\n");
@@ -827,6 +828,9 @@ int handle_command(char* command) {
         }
         else if (strcmp(cmd, "delete-vertex") == 0) {
             return handle_delete_vertex(args);
+        }
+        else if (strcmp(cmd, "print-garbage") == 0) {
+            return handle_print_garbage();
         }
         else {
             printf("Unknown command. Type 'help' for available commands.\n");
@@ -975,6 +979,29 @@ int handle_print_circle(char* args) {
     if (info->count == 0) {
         printf("No circle found starting from vertex %d, channel %d, axis %d\n",
                vertex_index, channel_index, axis_number);
+    } else {
+        printf("Found circle with %d vertices:\n", info->count);
+        printf("Path: ");
+        for (int i = 0; i < info->count; i++) {
+            printf("(vertex %u, Ch %u)", info->vertices[i], info->channels[i]);
+            if (i < info->count - 1) {
+                printf(" -> ");
+            }
+        }
+        printf(" -> (vertex %u, Ch %u)\n", info->vertices[0], info->channels[0]);
+    }
+    
+    free_circle_info(info);
+    return CMD_SUCCESS;
+}
+
+int handle_print_garbage() {
+    // Get circle information
+    CircleInfo* info = get_circle_info(GarbagevertexIndex, 0, 0);
+    
+    if (info->count == 0) {
+        printf("No circle found starting from vertex %d, channel %d, axis %d\n",
+               GarbagevertexIndex, 0, 0);
     } else {
         printf("Found circle with %d vertices:\n", info->count);
         printf("Path: ");

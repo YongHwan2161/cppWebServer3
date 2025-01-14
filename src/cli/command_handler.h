@@ -38,5 +38,6 @@ int handle_validate_free_offsets(char* args);
 int handle_validate_circle(char* args);
 
 int handle_print_circle(char* args);
+int handle_print_garbage();
 
 #endif // COMMAND_HANDLER_H 

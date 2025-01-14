@@ -85,7 +85,7 @@ CircleInfo* get_circle_info(unsigned int vertex_index, ushort channel_index, ush
     ushort current_axis = axis_number;
     
     while (visited_count < MAX_CIRCLE_vertices) {
-        printf("visited_count: %d\n", visited_count);
+        // printf("visited_count: %d\n", visited_count);
         uint vertex_position = get_vertex_position(current_vertex);
         if (!Core[vertex_position]) break;
         
