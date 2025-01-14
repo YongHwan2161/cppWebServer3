@@ -31,7 +31,7 @@ void init_core_mapping() {
     // Read offsets from map.bin
     FILE* map_file = fopen(MAP_FILE, "rb");
     if (map_file) {
-        // Skip number of vertexs
+        // Skip number of vertices
         fread(&CurrentvertexCount, sizeof(uint), 1, map_file);
         fseek(map_file, sizeof(uint), SEEK_SET);
         

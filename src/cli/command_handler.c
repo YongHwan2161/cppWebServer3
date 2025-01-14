@@ -607,9 +607,9 @@ int handle_print_coremap(char* args) {
                CoreMap[vertex_index].is_loaded ? "Yes" : "No",
                CoreMap[vertex_index].file_offset);
     } else {
-        // Print summary of loaded vertexs
+        // Print summary of loaded vertices
         printf("\nCoreMap Status:\n");
-        printf("Total Loaded vertexs: %d\n\n", CoreSize);
+        printf("Total Loaded vertices: %d\n\n", CoreSize);
         printf("%-8s %-15s %-15s %-15s\n", 
                "vertex", "Core Position", "Is Loaded", "File Offset");
         printf("--------------------------------------------------------\n");
@@ -649,9 +649,9 @@ int handle_create_vertex(char* args) {
         return CMD_ERROR;
     }
     
-    // Check if we've reached the maximum number of vertexs
+    // Check if we've reached the maximum number of vertices
     if (CurrentvertexCount >= MaxCoreSize) {
-        printf("Error: Maximum number of vertexs (%d) reached\n", MaxCoreSize);
+        printf("Error: Maximum number of vertices (%d) reached\n", MaxCoreSize);
         return CMD_ERROR;
     }
     
@@ -971,15 +971,15 @@ int handle_print_circle(char* args) {
         printf("No circle found starting from vertex %d, channel %d, axis %d\n",
                vertex_index, channel_index, axis_number);
     } else {
-        printf("Found circle with %d vertexs:\n", info->count);
+        printf("Found circle with %d vertices:\n", info->count);
         printf("Path: ");
         for (int i = 0; i < info->count; i++) {
-            printf("(vertex %u, Ch %u)", info->vertexs[i], info->channels[i]);
+            printf("(vertex %u, Ch %u)", info->vertices[i], info->channels[i]);
             if (i < info->count - 1) {
                 printf(" -> ");
             }
         }
-        printf(" -> (vertex %u, Ch %u)\n", info->vertexs[0], info->channels[0]);
+        printf(" -> (vertex %u, Ch %u)\n", info->vertices[0], info->channels[0]);
     }
     
     free_circle_info(info);

@@ -32,7 +32,7 @@ int initialize_database() {
         // Initialize CoreMap and load mapping information
         init_core_mapping();
 
-        // Load initial set of vertexs
+        // Load initial set of vertices
         Core = (uchar **)malloc(MaxCoreSize * sizeof(uchar *));
 
         for (uint i = 0; i < CurrentvertexCount; i++)

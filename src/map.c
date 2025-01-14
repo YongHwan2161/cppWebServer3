@@ -37,9 +37,9 @@ int save_map_all(void) {
         return MAP_ERROR;
     }
     
-    // Write number of vertexs
-    uint num_vertexs = 256;
-    fwrite(&num_vertexs, sizeof(uint), 1, map_file);
+    // Write number of vertices
+    uint num_vertices = 256;
+    fwrite(&num_vertices, sizeof(uint), 1, map_file);
     
     // Write all offsets
     for (int i = 0; i < 256; i++) {
@@ -57,9 +57,9 @@ int load_map(void) {
         return MAP_ERROR;
     }
     
-    // Read and verify number of vertexs
-    uint num_vertexs;
-    if (fread(&num_vertexs, sizeof(uint), 1, map_file) != 1 || num_vertexs != 256) {
+    // Read and verify number of vertices
+    uint num_vertices;
+    if (fread(&num_vertices, sizeof(uint), 1, map_file) != 1 || num_vertices != 256) {
         fclose(map_file);
         return MAP_ERROR;
     }

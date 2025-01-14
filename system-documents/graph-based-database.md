@@ -103,18 +103,18 @@ vertex의 기본 크기는 16 bytes (2^4)이며, 다음과 같은 구조를 가�
 The system provides functionality to detect and analyze circular paths in the vertex graph:
 
 ### Circle Information
-- Circles are detected by following links through vertexs
+- Circles are detected by following links through vertices
 - A circle exists when a path leads back to a previously visited vertex/channel
-- Circle information includes all vertexs and channels in the circle
+- Circle information includes all vertices and channels in the circle
 
 ### Implementation
 1. Path Tracking
-   - Maintains visited vertexs list
+   - Maintains visited vertices list
    - Records vertex and channel information
    - Detects repeated visits
 
 2. Circle Analysis
-   - Counts vertexs in circle
+   - Counts vertices in circle
    - Records path information
    - Provides detailed circle data
 
@@ -130,7 +130,7 @@ bool has_circle = validate_circle(vertex_index, channel_index, axis_number);
 
 // Get detailed circle information
 CircleInfo* info = get_circle_info(vertex_index, channel_index, axis_number);
-printf("Circle contains %d vertexs\n", info->count);
+printf("Circle contains %d vertices\n", info->count);
 free_circle_info(info);
 ```
 
@@ -174,16 +174,16 @@ The system provides several ways to analyze circles in the graph:
 ### Circle Data Structure
 ```c
 typedef struct {
-    uint* vertexs;         // Array of vertexs in circle
+    uint* vertices;         // Array of vertices in circle
     ushort* channels;    // Array of channels in circle
-    int count;          // Number of vertexs in circle
+    int count;          // Number of vertices in circle
 } CircleInfo;
 ```
 
 This structure provides:
 - Complete path information
 - Memory-efficient storage
-- Easy iteration through circle vertexs
+- Easy iteration through circle vertices
 
 ## 파일 저장 구조
 - data.bin 파일에서 각 노드는 2의 제곱수 크기로 저장된다
@@ -237,7 +237,7 @@ This structure provides:
             fclose(map_file);
         }
         
-        // Create 256 vertexs
+        // Create 256 vertices
         for (int i = 0; i < 256; ++i) {
             create_new_vertex(i);
             CoreSize++;
@@ -286,9 +286,9 @@ void save_DB() {
         return;
     }
     
-    // Write number of vertexs at the start of map file
-    uint num_vertexs = 256;
-    fwrite(&num_vertexs, sizeof(uint), 1, map_file);
+    // Write number of vertices at the start of map file
+    uint num_vertices = 256;
+    fwrite(&num_vertices, sizeof(uint), 1, map_file);
     
     // Save each vertex
     for (int i = 0; i < 256; i++) {
@@ -384,15 +384,15 @@ void load_DB() {
         return;
     }
     
-    // Read number of vertexs
-    uint num_vertexs;
-    fread(&num_vertexs, sizeof(uint), 1, map_file);
+    // Read number of vertices
+    uint num_vertices;
+    fread(&num_vertices, sizeof(uint), 1, map_file);
     
     // Allocate Core array
-    Core = (uchar**)malloc(num_vertexs * sizeof(uchar*));
+    Core = (uchar**)malloc(num_vertices * sizeof(uchar*));
     
     // Read each vertex's offset and load the vertex
-    for (int i = 0; i < num_vertexs; i++) {
+    for (int i = 0; i < num_vertices; i++) {
         long offset;
         fread(&offset, sizeof(long), 1, map_file);
         load_vertex_from_file(data_file, offset, i);

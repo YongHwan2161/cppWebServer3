@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_VISITED_vertexS 1000
+#define MAX_VISITED_vertices 1000
 
 typedef struct {
     uint vertex;
@@ -34,9 +34,9 @@ bool validate_circle(int vertex_index, int channel_index, int axis_number) {
     bool has_circle = info->count > 0;
     
     if (has_circle) {
-        printf("Found circle with %d vertexs:\n", info->count);
+        printf("Found circle with %d vertices:\n", info->count);
         for (int i = 0; i < info->count; i++) {
-            printf("vertex %u, Channel %u\n", info->vertexs[i], info->channels[i]);
+            printf("vertex %u, Channel %u\n", info->vertices[i], info->channels[i]);
         }
     }
     

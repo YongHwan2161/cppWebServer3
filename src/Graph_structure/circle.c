@@ -5,7 +5,7 @@
 #include "channel.h"
 #include <stdlib.h>
 
-#define MAX_CIRCLE_vertexS 1000
+#define MAX_CIRCLE_vertices 1000
 
 typedef struct {
     uint vertex;
@@ -14,7 +14,7 @@ typedef struct {
 } Pathvertex;
 
 bool has_circle(int vertex_index, int channel_index, int axis_number) {
-    Pathvertex* visited = malloc(MAX_CIRCLE_vertexS * sizeof(Pathvertex));
+    Pathvertex* visited = malloc(MAX_CIRCLE_vertices * sizeof(Pathvertex));
     int visited_count = 0;
     bool has_circle = false;
     
@@ -28,7 +28,7 @@ bool has_circle(int vertex_index, int channel_index, int axis_number) {
     ushort current_channel = channel_index;
     ushort current_axis = axis_number;
     
-    while (visited_count < MAX_CIRCLE_vertexS) {
+    while (visited_count < MAX_CIRCLE_vertices) {
         uint vertex_position = get_vertex_position(current_vertex);
         if (!Core[vertex_position]) break;
         
@@ -66,10 +66,10 @@ cleanup:
 }
 
 CircleInfo* get_circle_info(int vertex_index, int channel_index, int axis_number) {
-    Pathvertex* visited = malloc(MAX_CIRCLE_vertexS * sizeof(Pathvertex));
+    Pathvertex* visited = malloc(MAX_CIRCLE_vertices * sizeof(Pathvertex));
     CircleInfo* info = malloc(sizeof(CircleInfo));
-    info->vertexs = malloc(MAX_CIRCLE_vertexS * sizeof(uint));
-    info->channels = malloc(MAX_CIRCLE_vertexS * sizeof(ushort));
+    info->vertices = malloc(MAX_CIRCLE_vertices * sizeof(uint));
+    info->channels = malloc(MAX_CIRCLE_vertices * sizeof(ushort));
     info->count = 0;
     
     int visited_count = 0;
@@ -84,7 +84,7 @@ CircleInfo* get_circle_info(int vertex_index, int channel_index, int axis_number
     ushort current_channel = channel_index;
     ushort current_axis = axis_number;
     
-    while (visited_count < MAX_CIRCLE_vertexS) {
+    while (visited_count < MAX_CIRCLE_vertices) {
         uint vertex_position = get_vertex_position(current_vertex);
         if (!Core[vertex_position]) break;
         
@@ -102,10 +102,10 @@ CircleInfo* get_circle_info(int vertex_index, int channel_index, int axis_number
             if (visited[i].vertex == next_vertex && 
                 visited[i].channel == next_channel && 
                 visited[i].axis == current_axis) {
-                // Found circle - collect vertexs in circle
+                // Found circle - collect vertices in circle
                 info->count = visited_count - i;
                 for (int j = 0; j < info->count; j++) {
-                    info->vertexs[j] = visited[i + j].vertex;
+                    info->vertices[j] = visited[i + j].vertex;
                     info->channels[j] = visited[i + j].channel;
                 }
                 goto cleanup;
@@ -128,7 +128,7 @@ cleanup:
 
 void free_circle_info(CircleInfo* info) {
     if (info) {
-        free(info->vertexs);
+        free(info->vertices);
         free(info->channels);
         free(info);
     }

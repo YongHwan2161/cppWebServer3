@@ -16,7 +16,7 @@ typedef struct {
 
 ### Map File Format
 ```
-[Number of vertexs(4)] [vertex 0 Offset(8)] [vertex 1 Offset(8)] ... [vertex 255 Offset(8)]
+[Number of vertices(4)] [vertex 0 Offset(8)] [vertex 1 Offset(8)] ... [vertex 255 Offset(8)]
 ```
 
 ## Operations
@@ -269,7 +269,7 @@ print-coremap [vertex_index]
 # 로드된 노드 전체 표시
 > print-coremap
 CoreMap Status:
-Total Loaded vertexs: 3
+Total Loaded vertices: 3
 
 vertex     Core Position   Is Loaded      File Offset
 --------------------------------------------------------

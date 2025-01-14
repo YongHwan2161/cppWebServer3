@@ -11,7 +11,7 @@
 uchar** Core;
 vertexMapping* CoreMap;
 int CoreSize = 0;
-const unsigned int MaxCoreSize = 1024;  // Maximum vertexs in RAM at once
+const unsigned int MaxCoreSize = 1024;  // Maximum vertices in RAM at once
 unsigned int CurrentvertexCount = 0;
 const unsigned int GarbagevertexIndex = 256;
 

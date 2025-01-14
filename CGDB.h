@@ -17,8 +17,8 @@ typedef struct {
 
 extern uchar** Core;
 extern vertexMapping* CoreMap;
-extern int CoreSize;        // Current number of vertexs loaded in Core
-extern const unsigned int MaxCoreSize;  // Maximum number of vertexs that can be in RAM
+extern int CoreSize;        // Current number of vertices loaded in Core
+extern const unsigned int MaxCoreSize;  // Maximum number of vertices that can be in RAM
 extern const unsigned int GarbagevertexIndex;
 extern unsigned int CurrentvertexCount;
 

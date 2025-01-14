@@ -83,18 +83,18 @@ int test_create_delete_links(uint source_vertex, ushort source_ch, ushort axis_n
     ushort initial_link_count = *(ushort*)(vertex + channel_offset + axis_offset);
     
     // Store link destinations for later deletion
-    uint dest_vertexs[100];
+    uint dest_vertices[100];
     ushort dest_channels[100];
     
     // Create 100 sequential links
     printf("Creating 100 links...\n");
     for (int i = 0; i < 100; i++) {
-        // Use sequential destination vertexs and channels
+        // Use sequential destination vertices and channels
         uint dest_vertex = (source_vertex + i + 1) % 256;  // Wrap around at 256
         ushort dest_ch = i % 5;  // Use channels 0-4
         
         // Store destinations for deletion
-        dest_vertexs[i] = dest_vertex;
+        dest_vertices[i] = dest_vertex;
         dest_channels[i] = dest_ch;
         
         // Create link
@@ -121,7 +121,7 @@ int test_create_delete_links(uint source_vertex, ushort source_ch, ushort axis_n
     // Delete all created links in reverse order
     printf("Deleting all links...\n");
     for (int i = 99; i >= 0; i--) {
-        int result = delete_link(source_vertex, source_ch, dest_vertexs[i], dest_channels[i], axis_number);
+        int result = delete_link(source_vertex, source_ch, dest_vertices[i], dest_channels[i], axis_number);
         if (result != LINK_SUCCESS) {
             printf("Failed to delete link %d\n", i);
             failed++;

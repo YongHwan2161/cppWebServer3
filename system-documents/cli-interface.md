@@ -1,7 +1,7 @@
 # Command Line Interface
 
 ## Overview
-The CGDB system provides a command-line interface for interacting with the database. Users can create axes, manage vertexs, and perform other operations through simple text commands.
+The CGDB system provides a command-line interface for interacting with the database. Users can create axes, manage vertices, and perform other operations through simple text commands.
 
 ## Command Structure
 
@@ -257,7 +257,7 @@ Example: print-free-space
 ```
 delete-link <source_vertex> <source_ch> <dest_vertex> <dest_ch> <axis_number>
 ```
-Deletes an existing link between two vertexs.
+Deletes an existing link between two vertices.
 
 Parameters:
 - source_vertex: Source vertex index (0-255)
@@ -761,7 +761,7 @@ vertex 5 is already loaded at Core position 3
 ```
 print-coremap [vertex_index]
 ```
-Displays the current status of CoreMap. If a vertex index is provided, shows information for that specific vertex. Otherwise, shows all loaded vertexs.
+Displays the current status of CoreMap. If a vertex index is provided, shows information for that specific vertex. Otherwise, shows all loaded vertices.
 
 Parameters:
 - vertex_index: (optional) Target vertex (0-255)
@@ -770,7 +770,7 @@ Example:
 ```
 > print-coremap
 CoreMap Status:
-Total Loaded vertexs: 3
+Total Loaded vertices: 3
 
 vertex     Core Position   Is Loaded      File Offset
 --------------------------------------------------------
@@ -809,7 +809,7 @@ Example: print-coremap 0
    - File offset in data.bin
 
 2. View Options
-   - No argument: Show all loaded vertexs
+   - No argument: Show all loaded vertices
    - vertex index: Show specific vertex info
 
 ### Check Core Size
@@ -947,7 +947,7 @@ Parameters:
 Example:
 ```
 > print-circle 0 0 0
-Found circle with 3 vertexs:
+Found circle with 3 vertices:
 Path: (vertex 0, Ch 0) -> (vertex 1, Ch 1) -> (vertex 2, Ch 0) -> (vertex 0, Ch 0)
 
 > print-circle 1 0 0
@@ -1092,7 +1092,7 @@ Usage: create-vertex
 Example: create-vertex
 
 > create-vertex
-Error: Maximum number of vertexs (256) reached
+Error: Maximum number of vertices (256) reached
 ```
 
 #### Purpose

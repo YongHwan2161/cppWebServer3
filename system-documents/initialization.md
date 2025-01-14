@@ -15,8 +15,8 @@ The initialization process ensures all necessary components are properly set up 
   - Created if doesn't exist
   - Loaded into CoreMap if exists
 - **data.bin**: vertex data storage
-  - Created with initial vertexs if doesn't exist
-  - Used to load existing vertexs if present
+  - Created with initial vertices if doesn't exist
+  - Used to load existing vertices if present
 - **free_space.bin**: Free space management
   - Created with empty state if doesn't exist
   - Loaded into memory if exists
@@ -29,7 +29,7 @@ The initialization process ensures all necessary components are properly set up 
 
 2. Core Array Setup
    - Allocates memory for vertex pointers
-   - Loads initial set of vertexs
+   - Loads initial set of vertices
    - Prepares for dynamic vertex loading
 
 3. Free Space Management

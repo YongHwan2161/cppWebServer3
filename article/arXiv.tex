@@ -101,7 +101,7 @@
 
 \begin{adjustwidth}{20pt}{20pt}
 \small \noindent 
-This paper introduces Channel Graph Theory, a novel approach to graph database management that introduces the concept of channels as independent connection pathways within vertexs. We present a theoretical framework and practical implementation of a graph database system where vertexs can maintain multiple independent sets of connections through distinct channels. The system incorporates axis-based link management, allowing for structured relationship categorization and efficient memory management. We demonstrate the effectiveness of this approach through a detailed analysis of its memory layout, data persistence strategies, and operational characteristics.
+This paper introduces Channel Graph Theory, a novel approach to graph database management that introduces the concept of channels as independent connection pathways within vertices. We present a theoretical framework and practical implementation of a graph database system where vertices can maintain multiple independent sets of connections through distinct channels. The system incorporates axis-based link management, allowing for structured relationship categorization and efficient memory management. We demonstrate the effectiveness of this approach through a detailed analysis of its memory layout, data persistence strategies, and operational characteristics.
 \end{adjustwidth}
 
 
@@ -112,14 +112,14 @@ This paper introduces Channel Graph Theory, a novel approach to graph database m
 
 \vspace{10pt}
 \section{Introduction}\label{Sec:Introduction}
-Graph databases have become increasingly important in managing complex interconnected data structures. Traditional graph databases typically represent relationships through direct edges between vertexs. However, this approach can become limiting when dealing with multiple independent connection patterns between the same vertexs. We present Channel Graph Theory, which introduces an additional layer of abstraction through the concept of channels, allowing vertexs to maintain multiple independent sets of connections.
+Graph databases have become increasingly important in managing complex interconnected data structures. Traditional graph databases typically represent relationships through direct edges between vertices. However, this approach can become limiting when dealing with multiple independent connection patterns between the same vertices. We present Channel Graph Theory, which introduces an additional layer of abstraction through the concept of channels, allowing vertices to maintain multiple independent sets of connections.
 
 \section{Channel Graph Theory}\label{Sec:Theory}
 \subsection{Core Concepts}
 Channel Graph Theory is built upon three fundamental concepts:
 \begin{itemize}
-    \item \textbf{vertexs}: Basic units of data storage, each with a unique index (0-255)
-    \item \textbf{Channels}: Independent connection pathways within vertexs, allowing multiple relationship sets
+    \item \textbf{vertices}: Basic units of data storage, each with a unique index (0-255)
+    \item \textbf{Channels}: Independent connection pathways within vertices, allowing multiple relationship sets
     \item \textbf{Axes}: Connection properties that define the nature of links between channels
 \end{itemize}
 

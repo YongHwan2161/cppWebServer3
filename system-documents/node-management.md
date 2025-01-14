@@ -163,7 +163,7 @@ Successfully created new vertex at index 5
 
 # 최대 개수 초과 시
 > create-vertex
-Error: Maximum number of vertexs (256) reached
+Error: Maximum number of vertices (256) reached
 ```
 
 ##### 주의사항

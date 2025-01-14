@@ -5,9 +5,9 @@
 #include "../../CGDB.h"
 // Structure to store circle information
 typedef struct {
-    uint* vertexs;         // Array of vertexs in circle
+    uint* vertices;         // Array of vertices in circle
     ushort* channels;    // Array of channels in circle
-    int count;          // Number of vertexs in circle
+    int count;          // Number of vertices in circle
 } CircleInfo;
 
 // Check if there is a circle starting from given vertex/channel/axis
