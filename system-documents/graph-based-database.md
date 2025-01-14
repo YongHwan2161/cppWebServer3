@@ -99,6 +99,41 @@ Node의 기본 크기는 16 bytes (2^4)이며, 다음과 같은 구조를 가진
 
 [Rest of the document remains the same...]
 
+## Circle Detection
+The system provides functionality to detect and analyze circular paths in the node graph:
+
+### Circle Information
+- Circles are detected by following links through nodes
+- A circle exists when a path leads back to a previously visited node/channel
+- Circle information includes all nodes and channels in the circle
+
+### Implementation
+1. Path Tracking
+   - Maintains visited nodes list
+   - Records node and channel information
+   - Detects repeated visits
+
+2. Circle Analysis
+   - Counts nodes in circle
+   - Records path information
+   - Provides detailed circle data
+
+3. Memory Management
+   - Dynamic allocation for path tracking
+   - Cleanup of temporary structures
+   - Resource management for large circles
+
+### Usage
+```c
+// Check for circle
+bool has_circle = validate_circle(node_index, channel_index, axis_number);
+
+// Get detailed circle information
+CircleInfo* info = get_circle_info(node_index, channel_index, axis_number);
+printf("Circle contains %d nodes\n", info->count);
+free_circle_info(info);
+```
+
 ```c
 uchar initValues[16] = {
     4,  0,     // data size (2^4 = 16 bytes)
@@ -108,6 +143,47 @@ uchar initValues[16] = {
     0,  0, 0, 0, 0, 0    // remaining bytes
 };
 ```
+
+### Circle Analysis Tools
+The system provides several ways to analyze circles in the graph:
+
+1. Basic Detection
+   ```c
+   bool has_circle = has_circle(node_index, channel_index, axis_number);
+   ```
+   - Simple yes/no circle detection
+   - Fast execution
+   - Minimal memory usage
+
+2. Detailed Information
+   ```c
+   CircleInfo* info = get_circle_info(node_index, channel_index, axis_number);
+   ```
+   - Complete path information
+   - Node and channel lists
+   - Circle size calculation
+
+3. Visual Representation
+   ```shell
+   > print-circle <node> <channel> <axis>
+   ```
+   - Human-readable output
+   - Path visualization
+   - Connection details
+
+### Circle Data Structure
+```c
+typedef struct {
+    uint* nodes;         // Array of nodes in circle
+    ushort* channels;    // Array of channels in circle
+    int count;          // Number of nodes in circle
+} CircleInfo;
+```
+
+This structure provides:
+- Complete path information
+- Memory-efficient storage
+- Easy iteration through circle nodes
 
 ## 파일 저장 구조
 - data.bin 파일에서 각 노드는 2의 제곱수 크기로 저장된다

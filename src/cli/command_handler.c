@@ -11,6 +11,7 @@
 #include "command_handler.h"
 #include "test_command_handler.h"
 #include "validate_command_handler.h"
+#include "../Graph_structure/circle.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -713,6 +714,9 @@ void print_help() {
     printf("  get-node-position <node>             Get node's position in Core array\n");
     printf("  print-coremap [node_index]          Print CoreMap status (with optional node index)\n");
     printf("  check-core-size                    Show Core memory usage statistics\n");
+    
+    printf("  validate-circle <node> <ch> <axis>  Check if path forms a circle\n");
+    printf("  print-circle <node> <ch> <axis>      Print circle information\n");
 
     printf("  run-tests                           Run all test cases\n");
     printf("  test-resize                         Run resize node space tests\n");
@@ -911,10 +915,13 @@ int handle_command(char* command) {
 // Update handle_command to include new commands:
 else if (strcmp(cmd, "validate-free-offsets") == 0) {
     return handle_validate_free_offsets(args);
-}
-else if (strcmp(cmd, "validate-circle") == 0) {
-    return handle_validate_circle(args);
-} 
+    }
+    else if (strcmp(cmd, "validate-circle") == 0) {
+        return handle_validate_circle(args);
+    } 
+    else if (strcmp(cmd, "print-circle") == 0) {
+        return handle_print_circle(args);
+    }
     else {
         printf("Unknown command. Type 'help' for available commands.\n");
         return CMD_ERROR;
@@ -944,5 +951,37 @@ int handle_validate_circle(char* args) {
            node_index, channel_index, axis_number,
            has_circle ? "forms" : "does not form");
            
+    return CMD_SUCCESS;
+}
+
+int handle_print_circle(char* args) {
+    int node_index, channel_index, axis_number;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &axis_number);
+    if (parsed != 3) {
+        print_argument_error("print-circle", "<node_index> <channel_index> <axis_number>", false);
+        return CMD_ERROR;
+    }
+    
+    // Get circle information
+    CircleInfo* info = get_circle_info(node_index, channel_index, axis_number);
+    
+    if (info->count == 0) {
+        printf("No circle found starting from node %d, channel %d, axis %d\n",
+               node_index, channel_index, axis_number);
+    } else {
+        printf("Found circle with %d nodes:\n", info->count);
+        printf("Path: ");
+        for (int i = 0; i < info->count; i++) {
+            printf("(Node %u, Ch %u)", info->nodes[i], info->channels[i]);
+            if (i < info->count - 1) {
+                printf(" -> ");
+            }
+        }
+        printf(" -> (Node %u, Ch %u)\n", info->nodes[0], info->channels[0]);
+    }
+    
+    free_circle_info(info);
     return CMD_SUCCESS;
 }

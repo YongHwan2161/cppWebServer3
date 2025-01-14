@@ -931,6 +931,40 @@ Error: Invalid arguments
 Usage: validate-circle <node_index> <channel_index> <axis_number>
 ```
 
+### Circle Analysis Commands
+
+#### Print Circle Information
+```
+print-circle <node_index> <channel_index> <axis_number>
+```
+Prints detailed information about any circle found starting from the specified node/channel/axis.
+
+Parameters:
+- node_index: Starting node (0-255)
+- channel_index: Starting channel
+- axis_number: Axis to follow
+
+Example:
+```
+> print-circle 0 0 0
+Found circle with 3 nodes:
+Path: (Node 0, Ch 0) -> (Node 1, Ch 1) -> (Node 2, Ch 0) -> (Node 0, Ch 0)
+
+> print-circle 1 0 0
+No circle found starting from node 1, channel 0, axis 0
+```
+
+Error handling:
+```
+> print-circle
+Error: Missing arguments
+Usage: print-circle <node_index> <channel_index> <axis_number>
+
+> print-circle 0
+Error: Invalid arguments
+Usage: print-circle <node_index> <channel_index> <axis_number>
+```
+
 ## Error Handling
 
 ### Missing Arguments
