@@ -169,7 +169,8 @@ int test_multi_channel_links(uint vertex_index) {
     // }
     
     // Store initial state
-    uchar* vertex = Core[vertex_index];
+    uint vertex_position = get_vertex_position(vertex_index);
+    uchar* vertex = Core[vertex_position];
     uint ch0_offset = get_channel_offset(vertex, 0);
     uint ch1_offset = get_channel_offset(vertex, 1);
     
@@ -218,7 +219,8 @@ int test_multi_channel_links(uint vertex_index) {
         }
         
         // Verify link counts
-        vertex = Core[vertex_index];  // Reload vertex pointer as it might have changed
+        vertex_position = get_vertex_position(vertex_index);
+        vertex = Core[vertex_position];  // Reload vertex pointer as it might have changed
         ch0_offset = get_channel_offset(vertex, 0);
         ch1_offset = get_channel_offset(vertex, 1);
         axis0_offset = get_axis_offset(vertex, 0, 0);
@@ -255,7 +257,8 @@ int test_multi_channel_links(uint vertex_index) {
         }
         
         // Verify link counts
-        vertex = Core[vertex_index];
+        vertex_position = get_vertex_position(vertex_index);
+        vertex = Core[vertex_position];
         ch0_offset = get_channel_offset(vertex, 0);
         ch1_offset = get_channel_offset(vertex, 1);
         axis0_offset = get_axis_offset(vertex, 0, 0);
@@ -277,7 +280,8 @@ int test_multi_channel_links(uint vertex_index) {
     }
     
     // Verify final state
-    vertex = Core[vertex_index];
+    vertex_position = get_vertex_position(vertex_index);
+    vertex = Core[vertex_position];
     ch0_offset = get_channel_offset(vertex, 0);
     ch1_offset = get_channel_offset(vertex, 1);
     axis0_offset = get_axis_offset(vertex, 0, 0);

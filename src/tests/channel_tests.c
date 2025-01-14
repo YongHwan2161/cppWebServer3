@@ -1,6 +1,7 @@
 #include "channel_tests.h"
 #include "../Graph_structure/channel.h"
 #include "../Graph_structure/axis.h"
+#include "../map.h"
 #include <stdio.h>
 
 int test_sequential_channel_creation(uint vertex_index) {
@@ -9,7 +10,8 @@ int test_sequential_channel_creation(uint vertex_index) {
     printf("Target vertex: %d\n", vertex_index);
     
     // Store initial state
-    uchar* vertex = Core[vertex_index];
+    uint vertex_position = get_vertex_position(vertex_index);
+    uchar* vertex = Core[vertex_position];
     ushort initial_channel_count = get_channel_count(vertex);
     
     // Create channels until we reach maximum (or fail)
@@ -25,7 +27,8 @@ int test_sequential_channel_creation(uint vertex_index) {
         }
         
         // Verify channel count
-        vertex = Core[vertex_index];  // Reload vertex pointer as it might have changed
+        vertex_position = get_vertex_position(vertex_index);
+        vertex = Core[vertex_position];  // Reload vertex pointer as it might have changed
         ushort current_count = get_channel_count(vertex);
         if (current_count != i + 1) {
             printf("Channel count mismatch after creation %d: expected %d, got %d\n",
@@ -49,7 +52,8 @@ int test_sequential_channel_creation(uint vertex_index) {
     }
     
     // Verify final state
-    vertex = Core[vertex_index];
+    vertex_position = get_vertex_position(vertex_index);
+    vertex = Core[vertex_position];
     ushort final_count = get_channel_count(vertex);
     printf("Final channel count: %d\n", final_count);
     

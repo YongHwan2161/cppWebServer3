@@ -71,7 +71,6 @@ int handle_create_axis(char* args) {
 
 int handle_check_axis(char* args) {
     int vertex_index, channel_index, axis_number;
-    
 
     // Parse arguments
     int parsed = sscanf(args, "%d %d %d", &vertex_index, &channel_index, &axis_number);
@@ -80,20 +79,15 @@ int handle_check_axis(char* args) {
         return CMD_ERROR;
     }
     
-    // Validate input
-    if (vertex_index < 0 || vertex_index >= 256) {
-        printf("Error: vertex index must be between 0 and 255\n");
-        return CMD_ERROR;
-    }
-    
+    uint vertex_position = CoreMap[vertex_index].core_position;
     // Get vertex and check if it exists
-    if (!Core[vertex_index]) {
+    if (!Core[vertex_position]) {
         printf("Error: vertex %d does not exist\n", vertex_index);
         return CMD_ERROR;
     }
     
     // Check if axis exists
-    bool exists = has_axis(Core[vertex_index], channel_index, axis_number);
+    bool exists = has_axis(Core[vertex_position], channel_index, axis_number);
     printf("Axis %d %s in vertex %d, channel %d\n",
            axis_number,
            exists ? "exists" : "does not exist",
@@ -112,24 +106,18 @@ int handle_list_axes(char* args) {
         print_argument_error("list-axes", "<vertex_index> <channel_index>", false);
         return CMD_ERROR;
     }
-    
-    // Validate input
-    if (vertex_index < 0 || vertex_index >= 256) {
-        printf("Error: vertex index must be between 0 and 255\n");
-        return CMD_ERROR;
-    }
-    
+    uint vertex_position = CoreMap[vertex_index].core_position;
     // Get vertex and check if it exists
-    if (!Core[vertex_index]) {
+    if (!Core[vertex_position]) {
         printf("Error: vertex %d does not exist\n", vertex_index);
         return CMD_ERROR;
     }
     
     // Get channel offset
-    uint channel_offset = get_channel_offset(Core[vertex_index], channel_index);
+    uint channel_offset = get_channel_offset(Core[vertex_position], channel_index);
     
     // Get axis count
-    ushort axis_count = *(ushort*)(Core[vertex_index] + channel_offset);
+    ushort axis_count = *(ushort*)(Core[vertex_position] + channel_offset);
     
     printf("\nAxes in vertex %d, channel %d:\n", vertex_index, channel_index);
     if (axis_count == 0) {
@@ -148,7 +136,7 @@ int handle_list_axes(char* args) {
     
     // Read all axis numbers
     for (int i = 0; i < axis_count; i++) {
-        axis_numbers[i] = *(ushort*)(Core[vertex_index] + axis_data_offset + (i * 6));
+        axis_numbers[i] = *(ushort*)(Core[vertex_position] + axis_data_offset + (i * 6));
     }
     
     // Optional: Sort axis numbers for better readability
@@ -191,13 +179,6 @@ int handle_delete_axis(char* args) {
         print_argument_error("delete-axis", "<vertex_index> <channel_index> <axis_number>", false);
         return CMD_ERROR;
     }
-    
-    // Validate input
-    if (vertex_index < 0 || vertex_index >= 256) {
-        printf("Error: vertex index must be between 0 and 255\n");
-        return CMD_ERROR;
-    }
-    
     // Delete the axis
     int result = delete_axis(vertex_index, channel_index, axis_number);
     return (result == AXIS_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
@@ -290,11 +271,11 @@ int handle_print_vertex(char* args) {
         print_argument_error("print-vertex", "<vertex_index>", false);
         return CMD_ERROR;
     }
-    if (!CoreMap[vertex_index].is_loaded) {
+    uint vertex_position = get_vertex_position(vertex_index);
+    if (!CoreMap[vertex_position].is_loaded) {
         printf("Error: vertex %d is not loaded in memory\n", vertex_index);
         return CMD_ERROR;
     }
-    uint vertex_position = get_vertex_position(vertex_index);
     printf("vertex %d is at Core position %d\n", vertex_index, vertex_position);
     // Check if vertex exists
     if (!Core[vertex_position]) {
@@ -324,7 +305,7 @@ int handle_print_vertex(char* args) {
         // Print ASCII representation
         printf("   ");
         for (int j = 0; j < 16 && i + j < vertex_size; j++) {
-            char c = Core[vertex_index][i + j];
+            char c = Core[vertex_position][i + j];
             printf("%c", (c >= 32 && c <= 126) ? c : '.');
         }
         printf("\n");
@@ -490,21 +471,15 @@ int handle_get_channel_offset(char* args) {
         print_argument_error("get-channel-offset", "<vertex_index> <channel_index>", false);
         return CMD_ERROR;
     }
-    
-    // Validate input
-    if (vertex_index < 0 || vertex_index >= 256) {
-        printf("Error: vertex index must be between 0 and 255\n");
-        return CMD_ERROR;
-    }
-    
+    uint vertex_position = get_vertex_position(vertex_index);
     // Get vertex and check if it exists
-    if (!Core[vertex_index]) {
+    if (!Core[vertex_position]) {
         printf("Error: vertex %d does not exist\n", vertex_index);
         return CMD_ERROR;
     }
     
     // Get channel offset
-    uint channel_offset = get_channel_offset(Core[vertex_index], channel_index);
+    uint channel_offset = get_channel_offset(Core[vertex_position], channel_index);
     printf("Channel %d offset in vertex %d: 0x%04X\n", 
            channel_index, vertex_index, channel_offset);
            
@@ -541,13 +516,6 @@ int handle_unload_vertex(char* args) {
         print_argument_error("unload-vertex", "<vertex_index>", false);
         return CMD_ERROR;
     }
-    
-    // Validate input
-    if (vertex_index < 0 || vertex_index >= 256) {
-        printf("Error: vertex index must be between 0 and 255\n");
-        return CMD_ERROR;
-    }
-    
     // Unload the vertex
     if (unload_vertex_data(vertex_index)) {
         printf("Successfully unloaded vertex %d from memory\n", vertex_index);

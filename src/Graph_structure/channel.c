@@ -27,7 +27,8 @@ uint get_channel_end_offset(uchar* vertex, ushort channel_index) {
     return 0; // This should never happen
 }
 int create_channel(uint vertex_index) {
-    uchar* vertex = Core[vertex_index];
+    uint vertex_position = get_vertex_position(vertex_index);
+    uchar* vertex = Core[vertex_position];
     // Get current actual size and calculate required size
     uint current_actual_size = *(uint*)(vertex + 2);
     uint required_size = current_actual_size + 6;  // channel entry(4) + axis count(2)
@@ -36,7 +37,8 @@ int create_channel(uint vertex_index) {
         printf("Error: Failed to resize vertex\n");
         return CHANNEL_ERROR;
     }
-    vertex = Core[vertex_index];
+    vertex_position = get_vertex_position(vertex_index);
+    vertex = Core[vertex_position];
     ushort* channel_count = (ushort*)(vertex + 6);  // Skip size power(2) and actual size(4)
     printf("channel_count: %d\n", *channel_count);
     uint current_offset = 8 + ((uint)*channel_count * 4);  // Header + existing channel offsets
@@ -64,7 +66,8 @@ int create_channel(uint vertex_index) {
     return CHANNEL_SUCCESS;
 }
 int clear_channel(uint vertex_index, ushort channel_index) {
-    uchar* vertex = Core[vertex_index];
+    uint vertex_position = get_vertex_position(vertex_index);
+    uchar* vertex = Core[vertex_position];
     uint channel_offset = get_channel_offset(vertex, channel_index);
     uint channel_end_offset = get_channel_end_offset(vertex, channel_index);
     uint move_dest = channel_end_offset + 2;

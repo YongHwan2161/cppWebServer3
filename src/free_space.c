@@ -267,7 +267,6 @@ int check_and_resize_vertex(uchar* vertex, uint required_size, uint vertex_index
         }
         uint vertex_position = CoreMap[vertex_index].core_position;
         Core[vertex_position] = new_vertex;
-        // printf("Core[vertex_index]: %p\n", Core[vertex_index]);
         return FREE_SPACE_RESIZED;
     }
     

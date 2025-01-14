@@ -63,12 +63,12 @@ bool has_axis(uchar* vertex, ushort channel_index, ushort axis_number) {
 }
 
 int create_axis(uint vertex_index, ushort channel_index, ushort axis_number) {
+    uint vertex_position = get_vertex_position(vertex_index);
     // Validate vertex
-    if (!Core[vertex_index]) {
+    if (!Core[vertex_position]) {
         printf("Error: Invalid vertex index\n");
         return AXIS_ERROR;
     }
-    uint vertex_position = CoreMap[vertex_index].core_position;
     uchar* vertex = Core[vertex_position];
     uint channel_offset = get_channel_offset(vertex, channel_index);
         
@@ -139,9 +139,10 @@ int create_axis(uint vertex_index, ushort channel_index, ushort axis_number) {
 }
 
 int delete_axis(uint vertex_index, ushort channel_index, ushort axis_number) {
-    if (!Core[vertex_index]) return AXIS_ERROR;
+    uint vertex_position = get_vertex_position(vertex_index);
+    if (!Core[vertex_position]) return AXIS_ERROR;
     
-    uchar* vertex = Core[vertex_index];
+    uchar* vertex = Core[vertex_position];
     uint channel_offset = get_channel_offset(vertex, channel_index);
     
     // Get current axis count
@@ -222,8 +223,8 @@ uint get_last_axis_offset(uchar* vertex, ushort channel_index) {
  * @return AXIS_SUCCESS if axis exists or was created successfully, AXIS_ERROR otherwise
  */
 bool ensure_axis_exists(uint vertex_index, ushort channel_index, ushort axis_number) {
-
-    uchar* vertex = Core[vertex_index];
+    uint vertex_position = get_vertex_position(vertex_index);
+    uchar* vertex = Core[vertex_position];
     // Check if axis exists
     if (!has_axis(vertex, channel_index, axis_number)) {
         int result = create_axis(vertex_index, channel_index, axis_number);

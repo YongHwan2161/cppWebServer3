@@ -24,7 +24,8 @@ static uchar initValues[16] = {
  */
 bool validate_vertex(unsigned int vertex_index) {
     // Check if vertex exists in Core
-    if (!Core[vertex_index]) {
+    uint vertex_position = get_vertex_position(vertex_index);
+    if (!Core[vertex_position]) {
         printf("Error: Invalid vertex index %u\n", vertex_index);
         return false;
     }
