@@ -19,4 +19,7 @@ CircleInfo* get_circle_info(int vertex_index, int channel_index, int axis_number
 // Free circle info structure
 void free_circle_info(CircleInfo* info);
 
+// Add this function declaration
+bool is_in_garbage_circle(uint vertex_index);
+
 #endif // CIRCLE_H 

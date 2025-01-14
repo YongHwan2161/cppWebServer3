@@ -132,4 +132,21 @@ void free_circle_info(CircleInfo* info) {
         free(info->channels);
         free(info);
     }
+}
+
+bool is_in_garbage_circle(uint vertex_index) {
+    // Start from garbage vertex (0)
+    CircleInfo* info = get_circle_info(0, 0, 0);
+    bool found = false;
+    
+    // Check if vertex_index exists in the circle
+    for (int i = 0; i < info->count; i++) {
+        if (info->vertices[i] == vertex_index) {
+            found = true;
+            break;
+        }
+    }
+    
+    free_circle_info(info);
+    return found;
 } 

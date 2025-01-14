@@ -601,3 +601,46 @@ int some_function(uint vertex_index, ushort channel_index) {
    - 필요한 검증만 수행
    - 중복 검증 방지
    - 검증 비용 최소화
+```
+
+### Garbage Management
+
+#### Garbage Circle Detection
+The system provides functionality to detect and protect vertices in the garbage circle:
+
+1. Detection Function
+```c
+bool is_in_garbage_circle(uint vertex_index);
+```
+- Checks if a vertex is part of garbage circle
+- Starts from garbage vertex (0)
+- Follows garbage chain links
+
+2. Protection Mechanism
+- Prevents deletion of vertices in garbage circle
+- Maintains garbage chain integrity
+- Ensures data consistency
+
+3. Usage in Vertex Deletion
+```c
+// Check before deletion
+if (is_in_garbage_circle(vertex_index)) {
+    return VERTEX_ERROR_IN_GARBAGE_CIRCLE;
+}
+```
+
+#### Benefits
+1. Data Integrity
+   - Prevents corruption of garbage chain
+   - Maintains valid deletion states
+   - Protects system stability
+
+2. Error Prevention
+   - Early detection of invalid deletions
+   - Clear error messages
+   - Proper error handling
+
+3. System Reliability
+   - Consistent garbage management
+   - Protected garbage circle
+   - Safe vertex deletion

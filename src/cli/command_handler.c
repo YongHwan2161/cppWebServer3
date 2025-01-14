@@ -683,8 +683,15 @@ int handle_delete_vertex(char* args) {
     }
     
     // Delete the vertex
-    delete_vertex(vertex_index);
-    printf("Successfully deleted vertex %d\n", vertex_index);
+    if (delete_vertex(vertex_index) == VERTEX_SUCCESS) {
+        printf("Successfully deleted vertex %d\n", vertex_index);
+    } else if (delete_vertex(vertex_index) == VERTEX_ERROR_GARBAGE) {
+        printf("Error: Cannot delete garbage vertex (index %d)\n", GarbagevertexIndex);
+    } else if (delete_vertex(vertex_index) == VERTEX_ERROR_IN_GARBAGE_CIRCLE) {
+        printf("Error: Vertex %d is in garbage circle\n", vertex_index);
+    } else {
+        printf("Failed to delete vertex %d\n", vertex_index);
+    }
     
     return CMD_SUCCESS;
 }

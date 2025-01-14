@@ -1,4 +1,5 @@
 #include "map.h"
+#include "memory.h"
 #include <stdio.h>
 
 int save_map(uint vertex_index) {
@@ -89,8 +90,11 @@ int get_vertex_position(unsigned int vertex_index) {
     
     // Check if vertex is loaded
     if (!CoreMap[vertex_index].is_loaded) {
-        printf("Error: vertex %d is not loaded in memory\n", vertex_index);
-        return -1;
+        int position = load_vertex_to_core(vertex_index);
+        if (position == -1) {
+            printf("Error: vertex %d is not loaded in memory\n", vertex_index);
+            return -1;
+        }
     }
     
     return CoreMap[vertex_index].core_position;

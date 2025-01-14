@@ -8,6 +8,11 @@
 bool validate_vertex(unsigned int vertex_index);
 bool save_vertex_to_file(unsigned int vertex_index);
 void create_new_vertex();
-void delete_vertex(unsigned int vertex_index);
+int delete_vertex(unsigned int vertex_index);
+
+// Add these error code definitions
+#define VERTEX_SUCCESS 0
+#define VERTEX_ERROR_GARBAGE 1
+#define VERTEX_ERROR_IN_GARBAGE_CIRCLE 2
 
 #endif // vertex_H 

@@ -4,6 +4,7 @@
 #include "axis.h"
 #include <stdio.h>
 #include "link.h"  // For Core array access
+#include "circle.h"
 
 // Initial vertex values
 static uchar initValues[16] = {
@@ -148,8 +149,19 @@ void create_new_vertex() {
     save_vertex_to_file(CurrentvertexCount - 1);
     printf("vertex created at index %d\n", CurrentvertexCount - 1);
 }
-void delete_vertex(unsigned int vertex_index) {
+int delete_vertex(uint vertex_index) {
+    // Check if trying to delete garbage vertex
+    if (vertex_index == GarbagevertexIndex) {
+        return VERTEX_ERROR_GARBAGE;
+    }
+    
+    // Check if vertex is in garbage circle
+    if (is_in_garbage_circle(vertex_index)) {
+        return VERTEX_ERROR_IN_GARBAGE_CIRCLE;
+    }
+    
     uint vertex_position = CoreMap[vertex_index].core_position;
+    
     initialize_vertex(&Core[vertex_position]);
 
     uint channel_offset = get_channel_offset(Core[GarbagevertexIndex], 0);
@@ -165,4 +177,5 @@ void delete_vertex(unsigned int vertex_index) {
     CoreMap[vertex_index].is_loaded = 0;
 
     CoreSize--;
+    return VERTEX_SUCCESS;
 }
