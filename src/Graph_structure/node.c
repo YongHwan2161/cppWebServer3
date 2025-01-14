@@ -122,12 +122,15 @@ bool save_current_node_count() {
     fclose(map_file);
     return true;
 }
+void initialize_node(uchar** node) {
+    for (int i = 0; i < 16; ++i) {
+        (*node)[i] = initValues[i];
+    }
+}
 void create_new_node() {
     uchar* newNode = (uchar*)malloc(16 * sizeof(uchar));  // Always allocate 16 bytes initially
     // printf("Creating new node at index %d\n", CurrentNodeCount);
-    for (int i = 0; i < 16; ++i) {
-        newNode[i] = initValues[i];
-    }
+    initialize_node(&newNode);
     CurrentNodeCount++;
     save_current_node_count();
     Core[CurrentNodeCount - 1] = newNode;
@@ -147,12 +150,11 @@ void create_new_node() {
 }
 void delete_node(unsigned int node_index) {
     uint node_position = CoreMap[node_index].core_position;
-    for (uint i = 0; i < 16; i++) {
-        Core[node_position][i] = initValues[i];
-    }
+    initialize_node(&Core[node_position]);
+
     uint channel_offset = get_channel_offset(Core[GarbageNodeIndex], 0);
     uint axis_offset = get_axis_offset(Core[GarbageNodeIndex], 0, 0);
-    uint first_garbage_node = *(uint*)(Core[GarbageNodeIndex] + channel_offset + axis_offset);
+    uint first_garbage_node = *(uint*)(Core[GarbageNodeIndex] + channel_offset + axis_offset + 2);
     printf("First garbage node: %d\n", first_garbage_node);
     delete_link(GarbageNodeIndex, 0, first_garbage_node, 0, 0);
     create_link(GarbageNodeIndex, 0, node_index, 0, 0);

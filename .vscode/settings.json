@@ -59,7 +59,8 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "channel.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "free_space.h": "c"
     },
     "makefile.launchConfigurations": [
         {

@@ -882,6 +882,55 @@ Error: Cannot delete garbage node (index 0)
    - CoreMap 상태 업데이트
    - 메모리 해제
 
+### Validation Commands
+
+#### Validate Free Offsets
+```
+validate-free-offsets
+```
+Validates that free block offsets are unique and non-overlapping.
+
+Example:
+```
+> validate-free-offsets
+Free block offsets validated successfully - no overlaps found
+
+> validate-free-offsets extra_args
+Error: Invalid arguments
+Usage: validate-free-offsets
+```
+
+#### Validate Circle
+```
+validate-circle <node_index> <channel_index> <axis_number>
+```
+Checks if there is a circle (cyclic path) starting from the given node/channel/axis.
+
+Parameters:
+- node_index: Starting node (0-255)
+- channel_index: Starting channel
+- axis_number: Axis to follow
+
+Example:
+```
+> validate-circle 0 0 0
+Path from node 0, channel 0, axis 0 does not form a circle
+
+> validate-circle 1 0 0
+Path from node 1, channel 0, axis 0 forms a circle
+```
+
+Error handling:
+```
+> validate-circle
+Error: Missing arguments
+Usage: validate-circle <node_index> <channel_index> <axis_number>
+
+> validate-circle 0
+Error: Invalid arguments
+Usage: validate-circle <node_index> <channel_index> <axis_number>
+```
+
 ## Error Handling
 
 ### Missing Arguments

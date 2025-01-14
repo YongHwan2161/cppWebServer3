@@ -34,4 +34,7 @@ void print_help(void);
 void print_command_usage(const char* command, const char* args_desc);
 void print_argument_error(const char* command, const char* args_desc, bool is_missing);
 
+int handle_validate_free_offsets(char* args);
+int handle_validate_circle(char* args);
+
 #endif // COMMAND_HANDLER_H 

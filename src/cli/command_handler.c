@@ -10,6 +10,7 @@
 #include "../memory.h"
 #include "command_handler.h"
 #include "test_command_handler.h"
+#include "validate_command_handler.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -230,9 +231,6 @@ int handle_create_loop(char* args) {
     }    
     // Validate input
     if (!validate_node(node_index)) {
-        return CMD_ERROR;
-    }
-    if (!ensure_axis_exists(node_index, channel_index, axis_number)) {
         return CMD_ERROR;
     }
     return create_loop(node_index, channel_index, axis_number);
@@ -719,7 +717,6 @@ void print_help() {
     printf("  run-tests                           Run all test cases\n");
     printf("  test-resize                         Run resize node space tests\n");
     printf("  test-axis-create-delete <node> <ch> <max>  Test axis creation/deletion\n");
-    printf("  test-free-offsets                    Test free block offset uniqueness\n");
     printf("  test-multiple-link <node> <ch> <axis>  Test multiple link creation\n");
     printf("  test-create-delete-links <node> <ch> <axis>  Test link creation/deletion cycle\n");
     printf("  test-multi-channel-links <node>      Test link creation/deletion across multiple channels\n");
@@ -732,6 +729,9 @@ void print_help() {
     printf("  0: Forward link\n");
     printf("  1: Backward link\n");
     printf("  3: Time axis\n\n");
+
+    printf("  validate-free-offsets               Validate free block offsets\n");
+    printf("  validate-circle <node> <ch> <axis>  Check if path forms a circle\n");
 }
 
 int handle_command(char* command) {
@@ -743,7 +743,7 @@ int handle_command(char* command) {
     // Common argument validation
     if (strcmp(cmd, "help") == 0 || strcmp(cmd, "exit") == 0 || 
         strcmp(cmd, "print-free-space") == 0 || strcmp(cmd, "run-tests") == 0 ||
-        strcmp(cmd, "test-resize") == 0 || strcmp(cmd, "test-free-offsets") == 0 ||
+        strcmp(cmd, "test-resize") == 0 || strcmp(cmd, "validate-free-offsets") == 0 ||
         strcmp(cmd, "create-node") == 0) {
         // These commands don't need arguments
         if (strcmp(cmd, "help") == 0) {
@@ -759,11 +759,12 @@ int handle_command(char* command) {
         else if (strcmp(cmd, "test-resize") == 0) {
             return handle_test_resize(args);
         }
-        else if (strcmp(cmd, "test-free-offsets") == 0) {
-            return handle_test_free_offsets(args);
-        }    else if (strcmp(cmd, "create-node") == 0) {
-        return handle_create_node(args);
-    }
+        else if (strcmp(cmd, "validate-free-offsets") == 0) {
+            return handle_validate_free_offsets(args);
+        }
+        else if (strcmp(cmd, "create-node") == 0) {
+            return handle_create_node(args);
+        }
         return CMD_EXIT;
     }
     
@@ -865,9 +866,6 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "test-axis-create-delete") == 0) {
         return handle_test_axis_create_delete(args);
     }
-    else if (strcmp(cmd, "test-free-offsets") == 0) {
-        return handle_test_free_offsets(args);
-    }
     else if (strcmp(cmd, "test-multiple-link") == 0) {
         return handle_test_multiple_link_creation(args);
     }
@@ -910,8 +908,41 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "delete-node") == 0) {
         return handle_delete_node(args);
     }
+// Update handle_command to include new commands:
+else if (strcmp(cmd, "validate-free-offsets") == 0) {
+    return handle_validate_free_offsets(args);
+}
+else if (strcmp(cmd, "validate-circle") == 0) {
+    return handle_validate_circle(args);
+} 
     else {
         printf("Unknown command. Type 'help' for available commands.\n");
         return CMD_ERROR;
     }
-} 
+}
+
+int handle_validate_free_offsets(char* args) {
+    if (args) {
+        print_argument_error("validate-free-offsets", "", false);
+        return CMD_ERROR;
+    }
+    return validate_free_offsets(args) ? CMD_SUCCESS : CMD_ERROR;
+}
+
+int handle_validate_circle(char* args) {
+    int node_index, channel_index, axis_number;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &axis_number);
+    if (parsed != 3) {
+        print_argument_error("validate-circle", "<node_index> <channel_index> <axis_number>", false);
+        return CMD_ERROR;
+    }    
+
+    bool has_circle = validate_circle(node_index, channel_index, axis_number);
+    printf("Path from node %d, channel %d, axis %d %s a circle\n",
+           node_index, channel_index, axis_number,
+           has_circle ? "forms" : "does not form");
+           
+    return CMD_SUCCESS;
+}

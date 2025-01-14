@@ -1,6 +1,6 @@
-#include "../axis.h"
+#include "../Graph_structure/axis.h"
 #include "../free_space.h"
-#include "../channel.h"
+#include "../Graph_structure/channel.h"
 #include <stdio.h>
 
 int test_axis_creation() {
