@@ -216,7 +216,6 @@ int handle_create_link(char* args) {
             false);
         return CMD_ERROR;
     }
-
     // Create the link
     int result = create_link(source_vertex, source_ch, 
                            dest_vertex, dest_ch, 
@@ -235,6 +234,19 @@ int handle_create_loop(char* args) {
         return CMD_ERROR;
     }
     return create_loop(vertex_index, channel_index, axis_number);
+}
+int handle_create_bidirectional_link(char* args) {
+    int source_vertex, source_ch, dest_vertex, dest_ch;
+    int parsed = sscanf(args, "%d %d %d %d", 
+                       &source_vertex, &source_ch, 
+                       &dest_vertex, &dest_ch);
+    if (parsed != 4) {
+        print_argument_error("create-bidirectional-link", 
+            "<source_vertex> <source_ch> <dest_vertex> <dest_ch>", 
+            false);
+        return CMD_ERROR;
+    }
+    return create_bidirectional_link(source_vertex, source_ch, dest_vertex, dest_ch);
 }
 int handle_delete_link(char* args) {
     int source_vertex, source_ch, dest_vertex, dest_ch, axis_number;
@@ -799,6 +811,9 @@ int handle_command(char* command) {
         else if (strcmp(cmd, "create-loop") == 0) {
             print_argument_error(cmd, "<vertex_index> <channel_index> <axis_number>", true);
         }
+        else if (strcmp(cmd, "create-bidirectional-link") == 0) {
+            print_argument_error(cmd, "<source_vertex> <source_ch> <dest_vertex> <dest_ch>", true);
+        }
         else if (strcmp(cmd, "print-vertex") == 0) {
             print_argument_error(cmd, "<vertex_index>", true);
         }
@@ -867,6 +882,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "create-loop") == 0) {
         return handle_create_loop(args);
+    }
+    else if (strcmp(cmd, "create-bidirectional-link") == 0) {
+        return handle_create_bidirectional_link(args);
     }
     else if (strcmp(cmd, "print-vertex") == 0) {
         return handle_print_vertex(args);

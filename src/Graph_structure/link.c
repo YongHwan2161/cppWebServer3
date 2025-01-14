@@ -6,16 +6,20 @@
 #include <stdio.h>
 #include <string.h>
 
-int create_link(uint source_vertex, ushort source_ch, 
-                uint dest_vertex, ushort dest_ch, 
-                ushort axis_number) {
-    printf("axis_number: %d\n", axis_number);
+int create_link(uint source_vertex, ushort source_ch,
+                uint dest_vertex, ushort dest_ch,
+                ushort axis_number)
+{
+    if (!ensure_axis_exists(source_vertex, source_ch, axis_number))
+    {
+        printf("Error: Axis %d does not exist in vertex %d, channel %d\n",
+               axis_number, source_vertex, source_ch);
+        return LINK_ERROR;
+    }
     uint vertex_position = CoreMap[source_vertex].core_position;
     uchar* vertex = Core[vertex_position];
     uint channel_offset = get_channel_offset(vertex, source_ch);
-    printf("channel_offset: %d\n", channel_offset);
     uint axis_offset = get_axis_offset(vertex, source_ch, axis_number);
-    printf("axis_offset: %d\n", axis_offset);
     uint current_actual_size = *(uint*)(vertex + 2);
     uint required_size = current_actual_size + 6;  // Add 6 bytes for new link
     // Check and resize if needed using the new function
@@ -27,11 +31,8 @@ int create_link(uint source_vertex, ushort source_ch,
     vertex = Core[vertex_position];
     
     ushort channel_count = get_channel_count(vertex);  // Get channel count
-    printf("channel_count: %d\n", channel_count);
     ushort* current_link_count = (ushort*)(vertex + channel_offset + axis_offset);
-    printf("current_link_count: %d\n", *current_link_count);
     uint link_insert_offset = channel_offset + axis_offset + 2 + (*current_link_count * 6);
-    printf("link_insert_offset: %d\n", link_insert_offset);
     uint move_size = current_actual_size - link_insert_offset;  // Move all remaining data
     insert_link(vertex, link_insert_offset, dest_vertex, dest_ch, move_size);
     // Update offsets in current channel
@@ -64,6 +65,16 @@ int create_link(uint source_vertex, ushort source_ch,
     }
     return LINK_SUCCESS;
 }
+int create_forward_link(uint source_vertex, ushort source_ch,
+                        uint dest_vertex, ushort dest_ch) {
+    create_link(source_vertex, source_ch, dest_vertex, dest_ch, 0);
+    return LINK_SUCCESS;
+}
+int create_backward_link(uint source_vertex, ushort source_ch,
+                        uint dest_vertex, ushort dest_ch) {
+    create_link(source_vertex, source_ch, dest_vertex, dest_ch, 1);
+    return LINK_SUCCESS;
+}
 /**
  * @brief Create a loop link between a vertex and itself
  * 
@@ -75,6 +86,12 @@ int create_link(uint source_vertex, ushort source_ch,
  */
 int create_loop(uint source_vertex, ushort source_ch, ushort axis_number) {
     create_link(source_vertex, source_ch, source_vertex, source_ch, axis_number);
+    return LINK_SUCCESS;
+}
+int create_bidirectional_link(uint source_vertex, ushort source_ch, 
+                        uint dest_vertex, ushort dest_ch) {
+    create_forward_link(source_vertex, source_ch, dest_vertex, dest_ch);
+    create_backward_link(dest_vertex, dest_ch, source_vertex, source_ch);
     return LINK_SUCCESS;
 }
 int delete_link(uint source_vertex, ushort source_ch, 
