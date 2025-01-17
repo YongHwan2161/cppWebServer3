@@ -18,6 +18,7 @@ int handle_list_axes(char* args);
 int handle_delete_axis(char* args);
 
 int handle_create_link(char* args);
+int handle_create_cycle(char* args);
 
 int handle_create_channel(char* args);
 int handle_clear_channel(char* args);

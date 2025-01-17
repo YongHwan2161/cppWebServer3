@@ -607,3 +607,63 @@ if (is_in_garbage_cycle(vertex_index)) {
    - Consistent garbage management
    - Protected garbage cycle
    - Safe vertex deletion
+
+## cycle Management
+
+### cycle Creation
+The system provides functionality to create cycles by connecting a series of vertices:
+
+```c
+int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number);
+```
+
+#### Parameters
+- vertices: Array of vertex indices to connect
+- channels: Array of channel indices corresponding to vertices
+- count: Number of vertices/channels in the cycle
+- axis_number: Axis to use for connections
+
+#### Process
+1. Input Validation
+   - Check for valid arrays
+   - Minimum 2 vertices required
+   - Arrays must match in size
+
+2. Link Creation
+   - Connect consecutive vertices
+   - Create final link to close cycle
+   - Use specified axis for all links
+
+3. Error Handling
+   - Return LINK_ERROR if any link fails
+   - Return LINK_SUCCESS on completion
+   - Validate all parameters
+
+#### Usage Example
+```c
+uint vertices[] = {1, 2, 3};
+ushort channels[] = {0, 0, 0};
+int count = 3;
+
+// Create cycle using forward links (axis 0)
+int result = create_cycle(vertices, channels, count, 0);
+if (result == LINK_SUCCESS) {
+    printf("Successfully created cycle\n");
+}
+```
+
+#### Notes
+1. cycle Structure
+   - Each vertex connects to next in array
+   - Last vertex connects to first
+   - All links use same axis
+
+2. Memory Management
+   - No dynamic allocation
+   - Arrays must be pre-allocated
+   - Caller manages memory
+
+3. Error Cases
+   - NULL array pointers
+   - Count less than 2
+   - Link creation failure

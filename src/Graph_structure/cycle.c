@@ -3,6 +3,7 @@
 #include "../map.h"
 #include "axis.h"
 #include "channel.h"
+#include "link.h"
 #include <stdlib.h>
 
 #define MAX_cycle_vertices 1000
@@ -12,21 +13,6 @@ typedef struct {
     ushort channel;
     ushort axis;
 } Pathvertex;
-
-bool create_cycle(unsigned int vertex_index, ushort channel_index, ushort axis_number) {
-    Pathvertex* visited = malloc(MAX_cycle_vertices * sizeof(Pathvertex));
-    int visited_count = 0;
-    bool has_cycle = false;
-
-    visited[visited_count].vertex = vertex_index;
-    visited[visited_count].channel = channel_index;
-    visited[visited_count].axis = axis_number;
-    visited_count++;
-
-    uint current_vertex = vertex_index;
-    ushort current_channel = channel_index;
-    ushort current_axis = axis_number;
-}
 
 bool has_cycle(unsigned int vertex_index, ushort channel_index, ushort axis_number) {
     Pathvertex* visited = malloc(MAX_cycle_vertices * sizeof(Pathvertex));
@@ -165,4 +151,28 @@ bool is_in_garbage_cycle(unsigned int vertex_index) {
     
     free_cycle_info(info);
     return found;
+}
+
+int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number) {
+    if (!vertices || !channels || count < 2) {
+        return LINK_ERROR;
+    }
+
+    // Create links between consecutive vertices
+    for (int i = 0; i < count - 1; i++) {
+        if (create_link(vertices[i], channels[i], 
+                       vertices[i + 1], channels[i + 1], 
+                       axis_number) != LINK_SUCCESS) {
+            return LINK_ERROR;
+        }
+    }
+
+    // Create final link to close the cycle
+    if (create_link(vertices[count - 1], channels[count - 1],
+                   vertices[0], channels[0],
+                   axis_number) != LINK_SUCCESS) {
+        return LINK_ERROR;
+    }
+
+    return LINK_SUCCESS;
 } 

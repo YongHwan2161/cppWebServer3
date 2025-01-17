@@ -991,6 +991,80 @@ Error: Invalid arguments
 Usage: print-cycle <vertex_index> <channel_index> <axis_number>
 ```
 
+### Create cycle Command
+
+#### Command Interface
+```shell
+create-cycle <vertex1> <ch1> <vertex2> <ch2> ... <axis>
+```
+
+##### Purpose
+Creates a cycle by connecting multiple vertices and channels using the specified axis, after verifying that none of the vertices are already part of a cycle.
+
+##### Parameters
+- vertex1, vertex2, ...: Vertex indices to connect
+- ch1, ch2, ...: Corresponding channel indices
+- axis: Axis number to use for connections
+
+##### Process
+1. Input Parsing
+   - Parse vertex/channel pairs
+   - Extract axis number
+   - Validate all parameters
+
+2. cycle Validation
+   - Check minimum vertex count
+   - Verify no existing cycles
+   - Validate all vertices/channels
+
+3. cycle Creation
+   - Create links between consecutive vertices
+   - Connect last vertex back to first
+   - Use specified axis for all links
+
+##### Usage Examples
+```shell
+# Create a 3-vertex cycle using forward links (axis 0)
+> create-cycle 1 0 2 0 3 0 0
+Successfully created cycle with 3 vertices
+
+# Attempt to create cycle with vertex already in cycle
+> create-cycle 1 0 4 0 0
+Error: vertex 1 channel 0 already belongs to a cycle on axis 0
+
+# Create a 2-vertex cycle using backward links (axis 1)
+> create-cycle 5 0 6 0 1
+Successfully created cycle with 2 vertices
+
+# Error cases
+> create-cycle 1 0 1
+Error: At least 2 vertices are required to create a cycle
+
+> create-cycle 1 0 256 0 0
+Error: Invalid vertex index
+```
+
+##### Notes
+1. Limitations
+   - Maximum 100 vertices per cycle
+   - All links use same axis
+   - Vertices must be valid
+   - No overlapping cycles on same axis
+
+2. Error Conditions
+   - Invalid vertex indices
+   - Invalid channel indices
+   - Invalid axis number
+   - Too few vertices
+   - Missing parameters
+   - Existing cycles detected
+
+3. Success Criteria
+   - No existing cycles found
+   - All links created successfully
+   - cycle properly closed
+   - All vertices accessible
+
 ## Error Handling
 
 ### Missing Arguments

@@ -22,4 +22,7 @@ void free_cycle_info(cycleInfo* info);
 // Add this function declaration
 bool is_in_garbage_cycle(unsigned int vertex_index);
 
+// Add this function declaration
+int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number);
+
 #endif // cycle_H 
