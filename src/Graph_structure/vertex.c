@@ -6,6 +6,13 @@
 #include "link.h"  // For Core array access
 #include "cycle.h"
 #include "../map.h"
+#include <string.h>
+#include <stdlib.h>
+#include "../data_structures/stack.h"
+
+#define MAX_STACK_SIZE 1000
+#define TOKEN_DATA_AXIS 2
+
 // Initial vertex values
 static uchar initValues[16] = {
     4,  0,     // allocated size power (2^4 = 16 bytes)
@@ -181,4 +188,68 @@ int delete_vertex(unsigned int vertex_index) {
 
     CoreSize--;
     return VERTEX_SUCCESS;
+}
+
+char* get_token_data(unsigned int vertex_index) {
+    if (!validate_vertex(vertex_index)) {
+        return NULL;
+    }
+
+    // Initialize stack
+    Stack* stack = create_stack(MAX_STACK_SIZE);
+    if (!stack) {
+        printf("Error: Failed to create stack\n");
+        return NULL;
+    }
+
+    // Initialize result buffer
+    char* result = malloc(1024);  // Adjust size as needed
+    if (!result) {
+        destroy_stack(stack);
+        return NULL;
+    }
+    int result_len = 0;
+
+    // Push initial vertex
+    if (!stack_push(stack, vertex_index, 0, 0)) {
+        free(result);
+        destroy_stack(stack);
+        return NULL;
+    }
+
+    StackEntry current;
+    while (stack_pop(stack, &current)) {
+        // If vertex is a leaf node (0-255)
+        if (current.vertex_index < 256) {
+            result[result_len++] = (char)current.vertex_index;
+            continue;
+        }
+
+        // Get children from axis 2
+        uint vertex_position = get_vertex_position(current.vertex_index);
+        uint channel_offset = get_channel_offset(Core[vertex_position], current.channel);
+        uint axis_offset = get_axis_offset(Core[vertex_position], current.channel, TOKEN_DATA_AXIS);
+        
+        // Get link count
+        ushort link_count = *(ushort*)(Core[vertex_position] + channel_offset + axis_offset);
+        
+        // Process links in reverse order (for correct data order)
+        for (int i = link_count - 1; i >= 0; i--) {
+            uint link_offset = channel_offset + axis_offset + 2 + (i * 6);
+            uint child_vertex = *(uint*)(Core[vertex_position] + link_offset);
+            ushort child_channel = *(ushort*)(Core[vertex_position] + link_offset + 4);
+
+            // Push child to stack
+            if (!stack_push(stack, child_vertex, child_channel, current.depth + 1)) {
+                printf("Error: Stack overflow\n");
+                free(result);
+                destroy_stack(stack);
+                return NULL;
+            }
+        }
+    }
+
+    destroy_stack(stack);
+    result[result_len] = '\0';
+    return result;
 }

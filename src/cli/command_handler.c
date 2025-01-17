@@ -927,6 +927,9 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "create-cycle") == 0) {
         return handle_create_cycle(args);
     }
+    else if (strcmp(cmd, "get-token") == 0) {
+        return handle_get_token_data(args);
+    }
     else
     {
         printf("Unknown command. Type 'help' for available commands.\n");
@@ -1095,4 +1098,28 @@ int handle_create_cycle(char* args) {
         printf("Failed to create cycle\n");
         return CMD_ERROR;
     }
+}
+
+int handle_get_token_data(char* args) {
+    unsigned int vertex_index;
+    
+    // Parse vertex index
+    if (sscanf(args, "%u", &vertex_index) != 1) {
+        print_argument_error("get-token", "<vertex_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Get token data
+    char* data = get_token_data(vertex_index);
+    if (!data) {
+        printf("Error: Failed to get token data from vertex %u\n", vertex_index);
+        return CMD_ERROR;
+    }
+    
+    // Print the data
+    printf("Token data from vertex %u: %s\n", vertex_index, data);
+    
+    // Clean up
+    free(data);
+    return CMD_SUCCESS;
 }

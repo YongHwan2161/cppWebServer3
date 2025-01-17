@@ -29,6 +29,9 @@ int handle_load_vertex(char* args);
 
 int handle_print_vertex(char* args);
 int handle_print_free_space(char* args);
+
+int handle_get_token_data(char* args);
+
 void print_help(void);
 
 // Error handling utilities

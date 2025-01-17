@@ -667,3 +667,89 @@ if (result == LINK_SUCCESS) {
    - NULL array pointers
    - Count less than 2
    - Link creation failure
+
+## Token Data Management
+
+### Token vertex Structure
+Token vertices store data in a hierarchical tree structure:
+
+1. Data Organization
+   - Each token vertex represents a data unit
+   - Data is split across child vertices
+   - Leaf nodes (0-255) contain actual byte values
+
+2. Tree Structure
+   - Root: Token vertex
+   - Internal Nodes: Intermediate data vertices
+   - Leaves: Byte values (0-255)
+   - Links: Axis 2 connections
+
+### Data Retrieval
+The system provides functionality to retrieve token data:
+
+```c
+char* get_token_data(uint vertex_index);
+```
+
+#### Process
+1. Stack-based Traversal
+   - Push root vertex to stack
+   - Process vertices depth-first
+   - Collect leaf node values
+
+2. Data Assembly
+   - Leaf nodes (0-255) provide bytes
+   - Bytes concatenated in traversal order
+   - Result forms complete token data
+
+3. Memory Management
+   - Dynamic result allocation
+   - Stack-based processing
+   - Proper cleanup on errors
+
+#### Implementation Details
+1. Stack Structure
+   ```c
+   typedef struct {
+       uint vertex_index;
+       ushort channel;
+       int depth;
+   } StackEntry;
+   ```
+
+2. Traversal Rules
+   - Follow axis 2 links
+   - Process children right-to-left
+   - Stop at leaf nodes (0-255)
+
+3. Data Collection
+   - Leaf nodes provide bytes
+   - Internal nodes guide traversal
+   - Result assembled in order
+
+#### Usage Example
+```c
+// Get data from token vertex
+char* data = get_token_data(token_vertex_index);
+if (data) {
+    printf("Token data: %s\n", data);
+    free(data);  // Remember to free the result
+}
+```
+
+#### Notes
+1. Performance
+   - Stack-based for efficiency
+   - No recursion overhead
+   - Minimal memory usage
+
+2. Error Handling
+   - NULL return on errors
+   - Stack overflow protection
+   - Invalid vertex detection
+
+3. Memory Management
+   - Caller owns returned string
+   - Must free result when done
+   - Stack cleaned up internally
+```
