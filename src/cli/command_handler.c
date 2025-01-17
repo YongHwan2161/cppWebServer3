@@ -11,7 +11,7 @@
 #include "command_handler.h"
 #include "test_command_handler.h"
 #include "validate_command_handler.h"
-#include "../Graph_structure/circle.h"
+#include "../Graph_structure/cycle.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -669,8 +669,8 @@ int handle_delete_vertex(char* args) {
         printf("Successfully deleted vertex %d\n", vertex_index);
     } else if (result == VERTEX_ERROR_GARBAGE) {
         printf("Error: Cannot delete garbage vertex (index %d)\n", GarbagevertexIndex);
-    } else if (result == VERTEX_ERROR_IN_GARBAGE_CIRCLE) {
-        printf("Error: Vertex %d is in garbage circle\n", vertex_index);
+    } else if (result == VERTEX_ERROR_IN_GARBAGE_cycle) {
+        printf("Error: Vertex %d is in garbage cycle\n", vertex_index);
     } else {
         printf("Failed to delete vertex %d\n", vertex_index);
     }
@@ -704,9 +704,9 @@ void print_help() {
     printf("  print-coremap [vertex_index]          Print CoreMap status (with optional vertex index)\n");
     printf("  check-core-size                    Show Core memory usage statistics\n");
     
-    printf("  validate-circle <vertex> <ch> <axis>  Check if path forms a circle\n");
-    printf("  print-circle <vertex> <ch> <axis>      Print circle information\n");
-    printf("  print-garbage                     Print garbage circle information\n");
+    printf("  validate-cycle <vertex> <ch> <axis>  Check if path forms a cycle\n");
+    printf("  print-cycle <vertex> <ch> <axis>      Print cycle information\n");
+    printf("  print-garbage                     Print garbage cycle information\n");
 
     printf("  run-tests                           Run all test cases\n");
     printf("  test-resize                         Run resize vertex space tests\n");
@@ -725,7 +725,7 @@ void print_help() {
     printf("  3: Time axis\n\n");
 
     printf("  validate-free-offsets               Validate free block offsets\n");
-    printf("  validate-circle <vertex> <ch> <axis>  Check if path forms a circle\n");
+    printf("  validate-cycle <vertex> <ch> <axis>  Check if path forms a cycle\n");
 }
 
 int handle_command(char* command) {
@@ -916,13 +916,13 @@ int handle_command(char* command) {
     {
         return handle_validate_free_offsets(args);
     }
-    else if (strcmp(cmd, "validate-circle") == 0)
+    else if (strcmp(cmd, "validate-cycle") == 0)
     {
-        return handle_validate_circle(args);
+        return handle_validate_cycle(args);
     }
-    else if (strcmp(cmd, "print-circle") == 0)
+    else if (strcmp(cmd, "print-cycle") == 0)
     {
-        return handle_print_circle(args);
+        return handle_print_cycle(args);
     }
     else
     {
@@ -939,13 +939,13 @@ int handle_validate_free_offsets(char* args) {
     return validate_free_offsets(args) ? CMD_SUCCESS : CMD_ERROR;
 }
 
-int handle_validate_circle(char* args) {
+int handle_validate_cycle(char* args) {
     int vertex_index, channel_index, axis_number;
     
     // Parse arguments
     int parsed = sscanf(args, "%d %d %d", &vertex_index, &channel_index, &axis_number);
     if (parsed != 3) {
-        print_argument_error("validate-circle", "<vertex_index> <channel_index> <axis_number>", false);
+        print_argument_error("validate-cycle", "<vertex_index> <channel_index> <axis_number>", false);
         return CMD_ERROR;
     }
     
@@ -955,32 +955,32 @@ int handle_validate_circle(char* args) {
         return CMD_ERROR;
     }
     
-    bool has_circle = validate_circle(vertex_index, channel_index, axis_number);
-    printf("Path from vertex %d, channel %d, axis %d %s a circle\n",
+    bool has_cycle = validate_cycle(vertex_index, channel_index, axis_number);
+    printf("Path from vertex %d, channel %d, axis %d %s a cycle\n",
            vertex_index, channel_index, axis_number,
-           has_circle ? "forms" : "does not form");
+           has_cycle ? "forms" : "does not form");
            
     return CMD_SUCCESS;
 }
 
-int handle_print_circle(char* args) {
+int handle_print_cycle(char* args) {
     int vertex_index, channel_index, axis_number;
     
     // Parse arguments
     int parsed = sscanf(args, "%d %d %d", &vertex_index, &channel_index, &axis_number);
     if (parsed != 3) {
-        print_argument_error("print-circle", "<vertex_index> <channel_index> <axis_number>", false);
+        print_argument_error("print-cycle", "<vertex_index> <channel_index> <axis_number>", false);
         return CMD_ERROR;
     }
     
-    // Get circle information
-    CircleInfo* info = get_circle_info(vertex_index, channel_index, axis_number);
+    // Get cycle information
+    cycleInfo* info = get_cycle_info(vertex_index, channel_index, axis_number);
     
     if (info->count == 0) {
-        printf("No circle found starting from vertex %d, channel %d, axis %d\n",
+        printf("No cycle found starting from vertex %d, channel %d, axis %d\n",
                vertex_index, channel_index, axis_number);
     } else {
-        printf("Found circle with %d vertices:\n", info->count);
+        printf("Found cycle with %d vertices:\n", info->count);
         printf("Path: ");
         for (int i = 0; i < info->count; i++) {
             printf("(vertex %u, Ch %u)", info->vertices[i], info->channels[i]);
@@ -991,19 +991,19 @@ int handle_print_circle(char* args) {
         printf(" -> (vertex %u, Ch %u)\n", info->vertices[0], info->channels[0]);
     }
     
-    free_circle_info(info);
+    free_cycle_info(info);
     return CMD_SUCCESS;
 }
 
 int handle_print_garbage() {
-    // Get circle information
-    CircleInfo* info = get_circle_info(GarbagevertexIndex, 0, 0);
+    // Get cycle information
+    cycleInfo* info = get_cycle_info(GarbagevertexIndex, 0, 0);
     
     if (info->count == 0) {
-        printf("No circle found starting from vertex %d, channel %d, axis %d\n",
+        printf("No cycle found starting from vertex %d, channel %d, axis %d\n",
                GarbagevertexIndex, 0, 0);
     } else {
-        printf("Found circle with %d vertices:\n", info->count);
+        printf("Found cycle with %d vertices:\n", info->count);
         printf("Path: ");
         for (int i = 0; i < info->count; i++) {
             printf("(vertex %u, Ch %u)", info->vertices[i], info->channels[i]);
@@ -1014,6 +1014,6 @@ int handle_print_garbage() {
         printf(" -> (vertex %u, Ch %u)\n", info->vertices[0], info->channels[0]);
     }
     
-    free_circle_info(info);
+    free_cycle_info(info);
     return CMD_SUCCESS;
 }

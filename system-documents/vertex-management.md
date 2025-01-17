@@ -38,7 +38,7 @@ Error: Cannot delete garbage vertex (index 0)
 
 # 가비지 순환에 포함된 노드 삭제 시도
 > delete-vertex 3
-Error: Cannot delete vertex in garbage circle
+Error: Cannot delete vertex in garbage cycle
 ```
 
 ##### 주의사항

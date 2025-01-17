@@ -1,11 +1,11 @@
-#include "circle.h"
+#include "cycle.h"
 #include "../memory.h"
 #include "../map.h"
 #include "axis.h"
 #include "channel.h"
 #include <stdlib.h>
 
-#define MAX_CIRCLE_vertices 1000
+#define MAX_cycle_vertices 1000
 
 typedef struct {
     uint vertex;
@@ -13,10 +13,25 @@ typedef struct {
     ushort axis;
 } Pathvertex;
 
-bool has_circle(unsigned int vertex_index, ushort channel_index, ushort axis_number) {
-    Pathvertex* visited = malloc(MAX_CIRCLE_vertices * sizeof(Pathvertex));
+bool create_cycle(unsigned int vertex_index, ushort channel_index, ushort axis_number) {
+    Pathvertex* visited = malloc(MAX_cycle_vertices * sizeof(Pathvertex));
     int visited_count = 0;
-    bool has_circle = false;
+    bool has_cycle = false;
+
+    visited[visited_count].vertex = vertex_index;
+    visited[visited_count].channel = channel_index;
+    visited[visited_count].axis = axis_number;
+    visited_count++;
+
+    uint current_vertex = vertex_index;
+    ushort current_channel = channel_index;
+    ushort current_axis = axis_number;
+}
+
+bool has_cycle(unsigned int vertex_index, ushort channel_index, ushort axis_number) {
+    Pathvertex* visited = malloc(MAX_cycle_vertices * sizeof(Pathvertex));
+    int visited_count = 0;
+    bool has_cycle = false;
     
     // Add starting point
     visited[visited_count].vertex = vertex_index;
@@ -28,7 +43,7 @@ bool has_circle(unsigned int vertex_index, ushort channel_index, ushort axis_num
     ushort current_channel = channel_index;
     ushort current_axis = axis_number;
     
-    while (visited_count < MAX_CIRCLE_vertices) {
+    while (visited_count < MAX_cycle_vertices) {
         uint vertex_position = get_vertex_position(current_vertex);
         if (!Core[vertex_position]) break;
         
@@ -46,7 +61,7 @@ bool has_circle(unsigned int vertex_index, ushort channel_index, ushort axis_num
             if (visited[i].vertex == next_vertex && 
                 visited[i].channel == next_channel && 
                 visited[i].axis == current_axis) {
-                has_circle = true;
+                has_cycle = true;
                 goto cleanup;
             }
         }
@@ -62,14 +77,14 @@ bool has_circle(unsigned int vertex_index, ushort channel_index, ushort axis_num
     
 cleanup:
     free(visited);
-    return has_circle;
+    return has_cycle;
 }
 
-CircleInfo* get_circle_info(unsigned int vertex_index, ushort channel_index, ushort axis_number) {
-    Pathvertex* visited = malloc(MAX_CIRCLE_vertices * sizeof(Pathvertex));
-    CircleInfo* info = malloc(sizeof(CircleInfo));
-    info->vertices = malloc(MAX_CIRCLE_vertices * sizeof(uint));
-    info->channels = malloc(MAX_CIRCLE_vertices * sizeof(ushort));
+cycleInfo* get_cycle_info(unsigned int vertex_index, ushort channel_index, ushort axis_number) {
+    Pathvertex* visited = malloc(MAX_cycle_vertices * sizeof(Pathvertex));
+    cycleInfo* info = malloc(sizeof(cycleInfo));
+    info->vertices = malloc(MAX_cycle_vertices * sizeof(uint));
+    info->channels = malloc(MAX_cycle_vertices * sizeof(ushort));
     info->count = 0;
     
     int visited_count = 0;
@@ -84,7 +99,7 @@ CircleInfo* get_circle_info(unsigned int vertex_index, ushort channel_index, ush
     ushort current_channel = channel_index;
     ushort current_axis = axis_number;
     
-    while (visited_count < MAX_CIRCLE_vertices) {
+    while (visited_count < MAX_cycle_vertices) {
         // printf("visited_count: %d\n", visited_count);
         uint vertex_position = get_vertex_position(current_vertex);
         if (!Core[vertex_position]) break;
@@ -103,7 +118,7 @@ CircleInfo* get_circle_info(unsigned int vertex_index, ushort channel_index, ush
             if (visited[i].vertex == next_vertex && 
                 visited[i].channel == next_channel && 
                 visited[i].axis == current_axis) {
-                // Found circle - collect vertices in circle
+                // Found cycle - collect vertices in cycle
                 info->count = visited_count - i;
                 for (int j = 0; j < info->count; j++) {
                     info->vertices[j] = visited[i + j].vertex;
@@ -127,7 +142,7 @@ cleanup:
     return info;
 }
 
-void free_circle_info(CircleInfo* info) {
+void free_cycle_info(cycleInfo* info) {
     if (info) {
         free(info->vertices);
         free(info->channels);
@@ -135,12 +150,12 @@ void free_circle_info(CircleInfo* info) {
     }
 }
 
-bool is_in_garbage_circle(unsigned int vertex_index) {
+bool is_in_garbage_cycle(unsigned int vertex_index) {
     // Start from garbage vertex (0)
-    CircleInfo* info = get_circle_info(GarbagevertexIndex, 0, 0);
+    cycleInfo* info = get_cycle_info(GarbagevertexIndex, 0, 0);
     bool found = false;
     
-    // Check if vertex_index exists in the circle
+    // Check if vertex_index exists in the cycle
     for (int i = 0; i < info->count; i++) {
         if (info->vertices[i] == vertex_index) {
             found = true;
@@ -148,6 +163,6 @@ bool is_in_garbage_circle(unsigned int vertex_index) {
         }
     }
     
-    free_circle_info(info);
+    free_cycle_info(info);
     return found;
 } 

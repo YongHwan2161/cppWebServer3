@@ -900,11 +900,11 @@ Error: Invalid arguments
 Usage: validate-free-offsets
 ```
 
-#### Validate Circle
+#### Validate cycle
 ```
-validate-circle <vertex_index> <channel_index> <axis_number>
+validate-cycle <vertex_index> <channel_index> <axis_number>
 ```
-Checks if there is a circle (cyclic path) starting from the given vertex/channel/axis.
+Checks if there is a cycle (cyclic path) starting from the given vertex/channel/axis.
 
 Parameters:
 - vertex_index: Starting vertex (0-255)
@@ -913,33 +913,33 @@ Parameters:
 
 Example:
 ```
-> validate-circle 0 0 0
-Path from vertex 0, channel 0, axis 0 does not form a circle
+> validate-cycle 0 0 0
+Path from vertex 0, channel 0, axis 0 does not form a cycle
 
-> validate-circle 1 0 0
-Path from vertex 1, channel 0, axis 0 forms a circle
+> validate-cycle 1 0 0
+Path from vertex 1, channel 0, axis 0 forms a cycle
 ```
 
 Error handling:
 ```
-> validate-circle
+> validate-cycle
 Error: Missing arguments
-Usage: validate-circle <vertex_index> <channel_index> <axis_number>
+Usage: validate-cycle <vertex_index> <channel_index> <axis_number>
 
-> validate-circle 0
+> validate-cycle 0
 Error: Invalid arguments
-Usage: validate-circle <vertex_index> <channel_index> <axis_number>
+Usage: validate-cycle <vertex_index> <channel_index> <axis_number>
 ```
 
-### Circle Analysis Commands
+### cycle Analysis Commands
 
-#### Validate Circle
+#### Validate cycle
 ```shell
-validate-circle <vertex_index> <channel_index> <axis_number>
+validate-cycle <vertex_index> <channel_index> <axis_number>
 ```
 
 ##### Purpose
-Checks if there is a circle (cyclic path) starting from the given vertex/channel/axis.
+Checks if there is a cycle (cyclic path) starting from the given vertex/channel/axis.
 
 ##### Parameters
 - vertex_index: Starting vertex (0-255)
@@ -948,20 +948,20 @@ Checks if there is a circle (cyclic path) starting from the given vertex/channel
 
 ##### Example
 ```shell
-> validate-circle 0 0 0
-Path from vertex 0, channel 0, axis 0 does not form a circle
+> validate-cycle 0 0 0
+Path from vertex 0, channel 0, axis 0 does not form a cycle
 
-> validate-circle 1 0 0
-Path from vertex 1, channel 0, axis 0 forms a circle
+> validate-cycle 1 0 0
+Path from vertex 1, channel 0, axis 0 forms a cycle
 ```
 
-#### Print Circle Information
+#### Print cycle Information
 ```shell
-print-circle <vertex_index> <channel_index> <axis_number>
+print-cycle <vertex_index> <channel_index> <axis_number>
 ```
 
 ##### Purpose
-Prints detailed information about any circle found starting from the specified vertex/channel/axis.
+Prints detailed information about any cycle found starting from the specified vertex/channel/axis.
 
 ##### Parameters
 - vertex_index: Starting vertex (0-255)
@@ -969,26 +969,26 @@ Prints detailed information about any circle found starting from the specified v
 - axis_number: Axis to follow
 
 ##### Output Format
-1. No Circle Found:
+1. No cycle Found:
 ```
-No circle found starting from vertex 1, channel 0, axis 0
+No cycle found starting from vertex 1, channel 0, axis 0
 ```
 
-2. Circle Found:
+2. cycle Found:
 ```
-Found circle with 3 vertices:
+Found cycle with 3 vertices:
 Path: (vertex 0, Ch 0) -> (vertex 1, Ch 1) -> (vertex 2, Ch 0) -> (vertex 0, Ch 0)
 ```
 
 ##### Error Handling
 ```shell
-> print-circle
+> print-cycle
 Error: Missing arguments
-Usage: print-circle <vertex_index> <channel_index> <axis_number>
+Usage: print-cycle <vertex_index> <channel_index> <axis_number>
 
-> print-circle 0
+> print-cycle 0
 Error: Invalid arguments
-Usage: print-circle <vertex_index> <channel_index> <axis_number>
+Usage: print-cycle <vertex_index> <channel_index> <axis_number>
 ```
 
 ## Error Handling

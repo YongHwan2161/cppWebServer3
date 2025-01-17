@@ -99,13 +99,13 @@ vertex의 기본 크기는 16 bytes (2^4)이며, 다음과 같은 구조를 가�
 
 [Rest of the document remains the same...]
 
-## Circle Detection
+## cycle Detection
 The system provides functionality to detect and analyze circular paths in the vertex graph:
 
-### Circle Information
-- Circles are detected by following links through vertices
-- A circle exists when a path leads back to a previously visited vertex/channel
-- Circle information includes all vertices and channels in the circle
+### cycle Information
+- cycles are detected by following links through vertices
+- A cycle exists when a path leads back to a previously visited vertex/channel
+- cycle information includes all vertices and channels in the cycle
 
 ### Implementation
 1. Path Tracking
@@ -113,40 +113,40 @@ The system provides functionality to detect and analyze circular paths in the ve
    - Records vertex and channel information
    - Detects repeated visits
 
-2. Circle Analysis
-   - Counts vertices in circle
+2. cycle Analysis
+   - Counts vertices in cycle
    - Records path information
-   - Provides detailed circle data
+   - Provides detailed cycle data
 
 3. Memory Management
    - Dynamic allocation for path tracking
    - Cleanup of temporary structures
-   - Resource management for large circles
+   - Resource management for large cycles
 
 ### Usage
 ```c
-// Check for circle
-bool has_circle = validate_circle(vertex_index, channel_index, axis_number);
+// Check for cycle
+bool has_cycle = validate_cycle(vertex_index, channel_index, axis_number);
 
-// Get detailed circle information
-CircleInfo* info = get_circle_info(vertex_index, channel_index, axis_number);
-printf("Circle contains %d vertices\n", info->count);
-free_circle_info(info);
+// Get detailed cycle information
+cycleInfo* info = get_cycle_info(vertex_index, channel_index, axis_number);
+printf("cycle contains %d vertices\n", info->count);
+free_cycle_info(info);
 ```
 
-### Circle Data Structure
+### cycle Data Structure
 ```c
 typedef struct {
-    uint* vertices;         // Array of vertices in circle
-    ushort* channels;    // Array of channels in circle
-    int count;          // Number of vertices in circle
-} CircleInfo;
+    uint* vertices;         // Array of vertices in cycle
+    ushort* channels;    // Array of channels in cycle
+    int count;          // Number of vertices in cycle
+} cycleInfo;
 ```
 
 This structure provides:
 - Complete path information
 - Memory-efficient storage
-- Easy iteration through circle vertices
+- Easy iteration through cycle vertices
 
 ## 파일 저장 구조
 - data.bin 파일에서 각 노드는 2의 제곱수 크기로 저장된다
@@ -568,27 +568,27 @@ int some_function(uint vertex_index, ushort channel_index) {
 
 ### Garbage Management
 
-#### Garbage Circle Detection
-The system provides functionality to detect and protect vertices in the garbage circle:
+#### Garbage cycle Detection
+The system provides functionality to detect and protect vertices in the garbage cycle:
 
 1. Detection Function
 ```c
-bool is_in_garbage_circle(uint vertex_index);
+bool is_in_garbage_cycle(uint vertex_index);
 ```
-- Checks if a vertex is part of garbage circle
+- Checks if a vertex is part of garbage cycle
 - Starts from garbage vertex (0)
 - Follows garbage chain links
 
 2. Protection Mechanism
-- Prevents deletion of vertices in garbage circle
+- Prevents deletion of vertices in garbage cycle
 - Maintains garbage chain integrity
 - Ensures data consistency
 
 3. Usage in Vertex Deletion
 ```c
 // Check before deletion
-if (is_in_garbage_circle(vertex_index)) {
-    return VERTEX_ERROR_IN_GARBAGE_CIRCLE;
+if (is_in_garbage_cycle(vertex_index)) {
+    return VERTEX_ERROR_IN_GARBAGE_cycle;
 }
 ```
 
@@ -605,5 +605,5 @@ if (is_in_garbage_circle(vertex_index)) {
 
 3. System Reliability
    - Consistent garbage management
-   - Protected garbage circle
+   - Protected garbage cycle
    - Safe vertex deletion

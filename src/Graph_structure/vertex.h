@@ -13,6 +13,6 @@ int delete_vertex(unsigned int vertex_index);
 // Add these error code definitions
 #define VERTEX_SUCCESS 0
 #define VERTEX_ERROR_GARBAGE 1
-#define VERTEX_ERROR_IN_GARBAGE_CIRCLE 2
+#define VERTEX_ERROR_IN_GARBAGE_cycle 2
 
 #endif // vertex_H 

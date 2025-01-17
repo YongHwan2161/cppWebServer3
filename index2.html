@@ -1133,7 +1133,7 @@
             RADIUS = canvas2.width / 2 - MARGIN,
             HAND_RADIUS = RADIUS + NUMERAL_SPACING;
 
-        function drawCircle() {
+        function drawcycle() {
             context.beginPath();
             context.arc(canvas2.width / 2, canvas2.height / 2, RADIUS, 0, Math.PI * 2, true);
             context.lineWidth = 5;
@@ -1191,7 +1191,7 @@
             context.clearRect(0, 0, canvas2.width, canvas2.height);
             context.fillStyle = '#dddddd';
             context.fillRect(0, 0, canvas2.width, canvas2.height);
-            drawCircle();
+            drawcycle();
             drawCenter();
             drawHands();
             drawNumerals();

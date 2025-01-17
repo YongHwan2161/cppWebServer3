@@ -4,7 +4,7 @@
 #include "axis.h"
 #include <stdio.h>
 #include "link.h"  // For Core array access
-#include "circle.h"
+#include "cycle.h"
 #include "../map.h"
 // Initial vertex values
 static uchar initValues[16] = {
@@ -157,9 +157,9 @@ int delete_vertex(unsigned int vertex_index) {
         return VERTEX_ERROR_GARBAGE;
     }
     
-    // Check if vertex is in garbage circle
-    if (is_in_garbage_circle(vertex_index)) {
-        return VERTEX_ERROR_IN_GARBAGE_CIRCLE;
+    // Check if vertex is in garbage cycle
+    if (is_in_garbage_cycle(vertex_index)) {
+        return VERTEX_ERROR_IN_GARBAGE_cycle;
     }
     
     uint vertex_position = CoreMap[vertex_index].core_position;
