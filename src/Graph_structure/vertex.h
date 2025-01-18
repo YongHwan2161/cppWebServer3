@@ -27,4 +27,6 @@ int create_token_vertex(unsigned int first_vertex, unsigned int second_vertex);
 
 int handle_create_token(char* args);
 int handle_get_token_data(char* args);
+int handle_search_token(char* args);
+
 #endif // vertex_H 

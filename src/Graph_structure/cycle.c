@@ -511,6 +511,7 @@ int handle_create_sentence_from_string(char* args) {
             free(tokens);
             return ERROR;
         }
+        
         tokens[count++] = token_vertex;
     }
 

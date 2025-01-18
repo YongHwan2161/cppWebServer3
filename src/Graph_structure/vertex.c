@@ -8,6 +8,7 @@
 #include "../map.h"
 #include <string.h>
 #include <stdlib.h>
+#include <locale.h>
 #include "../data_structures/stack.h"
 #include "../cli/command_handler.h"
 
@@ -389,5 +390,138 @@ int handle_create_token(char* args) {
     }
     
     printf("Warning: Created token vertex %d but failed to read data\n", new_vertex);
+    return CMD_SUCCESS;
+}
+
+// Structure to hold search result
+typedef struct {
+    uint vertex_index;    // Found vertex index
+    char* token_data;     // Token data at vertex
+    int matched_length;   // Length of matched data
+} TokenSearchResult;
+
+TokenSearchResult* search_token(const char* data, size_t length) {
+    if (!data || length == 0) {
+        printf("Error: Invalid search data\n");
+        return NULL;
+    }
+
+    TokenSearchResult* result = malloc(sizeof(TokenSearchResult));
+    if (!result) {
+        printf("Error: Failed to allocate result structure\n");
+        return NULL;
+    }
+
+    // Start with first byte as vertex index
+    uint current_vertex = (unsigned char)data[0];
+    size_t matched_pos = 0;
+    
+    // Get token data for current vertex
+    char* token_data = get_token_data(current_vertex);
+    if (!token_data) {
+        printf("Error: Failed to get token data from vertex %u\n", current_vertex);
+        free(result);
+        return NULL;
+    }
+
+    // Search through token search axis (axis 0)
+    while (matched_pos < length) {
+        bool found_match = false;
+        // Get links from current vertex
+        uint vertex_position = get_vertex_position(current_vertex);
+        printf("vertex_position: %d\n", vertex_position);
+        if (!Core[vertex_position]) break;
+
+        uint channel_offset = get_channel_offset(Core[vertex_position], 0);  // Use channel 0
+        if (!has_axis(Core[vertex_position], 0, TOKEN_SEARCH_AXIS)) {
+            break;
+        }
+        uint axis_offset = get_axis_offset(Core[vertex_position], 0, TOKEN_SEARCH_AXIS);
+        ushort link_count = *(ushort*)(Core[vertex_position] + channel_offset + axis_offset);
+        printf("link_count: %d\n", link_count);
+        int link_offset = channel_offset + axis_offset + 2;
+
+        // Check each link's destination vertex
+        for (int i = 0; i < link_count; i++) {
+            uint next_vertex = *(uint*)(Core[vertex_position] + link_offset + (i * 6));
+            printf("next_vertex: %d\n", next_vertex);
+            char* next_token = get_token_data(next_vertex);
+            printf("next_token: %s\n", next_token);
+            if (!next_token) continue;
+
+            // Check if next token matches remaining data
+            size_t next_len = strlen(next_token);
+            printf("next_len: %ld\n", next_len);
+            if (next_len <= length && 
+                memcmp(data, next_token, next_len) == 0) {
+                // Found matching next token
+                free(token_data);
+                token_data = next_token;
+                current_vertex = next_vertex;
+                matched_pos = next_len;
+                found_match = true;
+                break;
+            }
+            free(next_token);
+        }
+
+        if (!found_match) break;
+    }
+
+    // Store final result
+    result->vertex_index = current_vertex;
+    result->token_data = token_data;
+    result->matched_length = matched_pos;
+    
+    return result;
+}
+
+// Helper function to free search result
+void free_search_result(TokenSearchResult* result) {
+    if (result) {
+        free(result->token_data);
+        free(result);
+    }
+}
+
+int handle_search_token(char* args) {
+    // Set locale to support UTF-8
+    setlocale(LC_ALL, "en_US.UTF-8");
+    
+    if (!args || !*args) {
+        print_argument_error("search-token", "<text>", false);
+        return CMD_ERROR;
+    }
+
+    // Search for matching token
+    TokenSearchResult* result = search_token(args, strlen(args));
+    if (!result) {
+        printf("Error: Search failed\n");
+        return CMD_ERROR;
+    }
+
+    // Print results
+    printf("Search results for: %s\n", args);
+    printf("Matched length: %d bytes\n", result->matched_length);
+    printf("Final vertex: %u\n", result->vertex_index);
+    
+    // Print token data in multiple formats
+    printf("Token data:\n");
+    printf("Raw: %s\n", result->token_data);
+    
+    // Print hexadecimal format
+    printf("HEX: ");
+    for (size_t i = 0; result->token_data[i] != '\0'; i++) {
+        printf("%02X ", (unsigned char)result->token_data[i]);
+    }
+    printf("\n");
+
+    // Print UTF-8 format
+    printf("UTF-8: ");
+    fflush(stdout);  // Ensure proper output ordering
+    fwrite(result->token_data, 1, strlen(result->token_data), stdout);
+    printf("\n");
+
+    free_search_result(result);
     return CMD_SUCCESS;
 }

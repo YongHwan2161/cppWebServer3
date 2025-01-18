@@ -650,6 +650,11 @@ void print_help() {
     printf("  create-sentence 65 66 67             Create sentence from token vertices\n");
     printf("  create-sentence-str ABC              Same as above, using ASCII text\n");
     printf("  get-sentence 42 1                    Get sentence data in ASCII and HEX\n");
+
+    printf("\nToken Search:\n");
+    printf("  search-token <text>              Search for matching token sequence\n");
+    printf("                                   Returns longest matching token found\n");
+    printf("  Example: search-token AABBCCDD   Search for token starting with AABBCCDD\n");
 }
 
 int handle_command(char* command) {
@@ -865,6 +870,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "create-sentence-str") == 0) {
         return handle_create_sentence_from_string(args);
+    }
+    else if (strcmp(cmd, "search-token") == 0) {
+        return handle_search_token(args);
     }
     else
     {
