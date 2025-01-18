@@ -48,5 +48,6 @@ int handle_print_cycle(char* args);
 // Create a sentence from an ASCII string
 // Returns SUCCESS or ERROR
 int handle_create_sentence_from_string(char* args);
+int handle_insert_path(char* args);
 
 #endif // cycle_H 

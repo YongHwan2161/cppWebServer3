@@ -655,6 +655,11 @@ void print_help() {
     printf("  search-token <text>              Search for matching token sequence\n");
     printf("                                   Returns longest matching token found\n");
     printf("  Example: search-token AABBCCDD   Search for token starting with AABBCCDD\n");
+
+    printf("\nPath Operations:\n");
+    printf("  insert-path <vertex> <ch> <axis> <path>  Insert path into existing cycle\n");
+    printf("                                           Path format: <vertex1> <ch1> <vertex2> <ch2>...\n");
+    printf("  Example: insert-path 42 1 2 55 3 66 4    Insert 2-vertex path at vertex 42\n");
 }
 
 int handle_command(char* command) {
@@ -873,6 +878,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "search-token") == 0) {
         return handle_search_token(args);
+    }
+    else if (strcmp(cmd, "insert-path") == 0) {
+        return handle_insert_path(args);
     }
     else
     {

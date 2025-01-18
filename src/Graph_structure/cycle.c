@@ -545,3 +545,140 @@ int handle_create_sentence_from_string(char* args) {
     printf("Error: Failed to create sentence cycle\n");
     return ERROR;
 }
+
+// Insert a path into an existing cycle at specified position
+int insert_path_into_cycle(uint insert_vertex, ushort insert_channel, 
+                          uint* path_vertices, ushort* path_channels, int path_length,
+                          ushort axis_number) {
+    if (!path_vertices || !path_channels || path_length < 1) {
+        printf("Error: Invalid path data\n");
+        return LINK_ERROR;
+    }
+
+    // Get cycle info at insertion point
+    cycleInfo* cycle = get_cycle_info(insert_vertex, insert_channel, axis_number);
+    if (!cycle || cycle->count < 2) {
+        printf("Error: No valid cycle found at insertion point\n");
+        if (cycle) free_cycle_info(cycle);
+        return LINK_ERROR;
+    }
+
+    // Find insertion position in cycle
+    int insert_pos = -1;
+    for (int i = 0; i < cycle->count; i++) {
+        if (cycle->vertices[i] == insert_vertex && 
+            cycle->channels[i] == insert_channel) {
+            insert_pos = i;
+            break;
+        }
+    }
+
+    if (insert_pos == -1) {
+        printf("Error: Insertion point not found in cycle\n");
+        free_cycle_info(cycle);
+        return LINK_ERROR;
+    }
+
+    // Break cycle at insertion point
+    uint next_vertex = cycle->vertices[(insert_pos + 1) % cycle->count];
+    ushort next_channel = cycle->channels[(insert_pos + 1) % cycle->count];
+    
+    // Remove link at insertion point
+    if (delete_link(insert_vertex, insert_channel, next_vertex, next_channel, axis_number) != LINK_SUCCESS) {
+        printf("Error: Failed to break cycle at insertion point\n");
+        free_cycle_info(cycle);
+        return LINK_ERROR;
+    }
+
+    // Link path start to insertion point
+    if (create_link(insert_vertex, insert_channel,
+                   path_vertices[0], path_channels[0],
+                   axis_number) != LINK_SUCCESS) {
+        printf("Error: Failed to link path start\n");
+        free_cycle_info(cycle);
+        return LINK_ERROR;
+    }
+
+    // Create links along the path
+    for (int i = 0; i < path_length - 1; i++) {
+        if (create_link(path_vertices[i], path_channels[i],
+                       path_vertices[i + 1], path_channels[i + 1],
+                       axis_number) != LINK_SUCCESS) {
+            printf("Error: Failed to link path vertices\n");
+            free_cycle_info(cycle);
+            return LINK_ERROR;
+        }
+    }
+
+    // Link path end to next vertex in original cycle
+    if (create_link(path_vertices[path_length - 1], path_channels[path_length - 1],
+                   next_vertex, next_channel,
+                   axis_number) != LINK_SUCCESS) {
+        printf("Error: Failed to link path end\n");
+        free_cycle_info(cycle);
+        return LINK_ERROR;
+    }
+
+    free_cycle_info(cycle);
+    return LINK_SUCCESS;
+}
+
+// Command handler for inserting path into cycle
+int handle_insert_path(char* args) {
+    uint insert_vertex;
+    ushort insert_channel, axis_number;
+    uint path_vertices[MAX_cycle_vertices];
+    ushort path_channels[MAX_cycle_vertices];
+    int path_length = 0;
+
+    // Parse insertion point and axis
+    char* token = strtok(args, " ");
+    if (!token || sscanf(token, "%u", &insert_vertex) != 1) {
+        print_argument_error("insert-path", "<vertex> <channel> <axis> <path_vertices_and_channels...>", false);
+        return CMD_ERROR;
+    }
+
+    token = strtok(NULL, " ");
+    if (!token || sscanf(token, "%hu", &insert_channel) != 1) {
+        print_argument_error("insert-path", "<vertex> <channel> <axis> <path_vertices_and_channels...>", false);
+        return CMD_ERROR;
+    }
+
+    token = strtok(NULL, " ");
+    if (!token || sscanf(token, "%hu", &axis_number) != 1) {
+        print_argument_error("insert-path", "<vertex> <channel> <axis> <path_vertices_and_channels...>", false);
+        return CMD_ERROR;
+    }
+
+    // Parse path vertices and channels
+    while ((token = strtok(NULL, " ")) != NULL && path_length < MAX_cycle_vertices) {
+        if (sscanf(token, "%u", &path_vertices[path_length]) != 1) {
+            printf("Error: Invalid vertex index in path\n");
+            return CMD_ERROR;
+        }
+
+        token = strtok(NULL, " ");
+        if (!token || sscanf(token, "%hu", &path_channels[path_length]) != 1) {
+            printf("Error: Missing channel for vertex %u\n", path_vertices[path_length]);
+            return CMD_ERROR;
+        }
+
+        path_length++;
+    }
+
+    if (path_length == 0) {
+        printf("Error: No path vertices provided\n");
+        return CMD_ERROR;
+    }
+
+    // Insert path into cycle
+    if (insert_path_into_cycle(insert_vertex, insert_channel,
+                              path_vertices, path_channels, path_length,
+                              axis_number) == LINK_SUCCESS) {
+        printf("Successfully inserted path of length %d into cycle\n", path_length);
+        return CMD_SUCCESS;
+    }
+
+    printf("Error: Failed to insert path into cycle\n");
+    return CMD_ERROR;
+}
