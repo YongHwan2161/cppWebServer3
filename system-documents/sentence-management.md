@@ -6,39 +6,107 @@ The system provides functionality to create sentences by linking token vertices 
 ## Sentence Creation
 
 ### Process
-1. Channel Creation
+1. Tokenization
+   - Input text is tokenized using search_token
+   - Each token maps to existing vertex
+   - Tokens found sequentially from input
+
+2. Channel Creation
    - New channel created for each token
    - Prevents path overlap with existing sentences
    - Maintains sentence independence
 
-2. Cycle Formation
+3. Cycle Formation
    - Tokens linked sequentially
    - Last token links to first
    - Uses sentence axis (2)
 
 ### Command Interface
 ```shell
-create-sentence <token1> <token2> [token3...]
+create-sentence <text>
 ```
 
 #### Parameters
-- token1, token2, etc: Token vertex indices to form sentence
-- Minimum 2 tokens required
-- Maximum 100 tokens per sentence
+- text: Text to be tokenized and formed into sentence
+- System automatically finds matching tokens
+- Creates cycle from found token vertices
 
 #### Examples
 ```shell
-# Create sentence from 3 tokens
-> create-sentence 42 43 44
-Successfully created sentence cycle with 3 tokens
+# Create sentence from text
+> create-sentence "Hello World"
+Tokenizing: Found 2 tokens
+- Token 1: vertex 72 ("Hello")
+- Token 2: vertex 87 ("World")
+Successfully created sentence cycle with 2 tokens
+
+# Create sentence with longer text
+> create-sentence "This is a test"
+Tokenizing: Found 4 tokens
+- Token 1: vertex 84 ("This")
+- Token 2: vertex 32 ("is")
+- Token 3: vertex 97 ("a")
+- Token 4: vertex 116 ("test")
+Successfully created sentence cycle with 4 tokens
 
 # Error cases
-> create-sentence 42
-Error: At least 2 tokens required for a sentence
+> create-sentence
+Error: Missing arguments
+Usage: create-sentence <text>
 
-> create-sentence 256 42
-Error: Invalid token vertex index
+> create-sentence "未知の文字列"
+Error: Failed to tokenize at position 0: '未知の文字列'
 ```
+
+### Implementation Details
+
+#### Tokenization Process
+```c
+// Tokenize input using search_token
+while (remaining_len > 0 && count < MAX_SENTENCE_TOKENS) {
+    TokenSearchResult* result = search_token(current_pos, remaining_len);
+    if (!result || result->matched_length == 0) {
+        printf("Error: Failed to tokenize at position %ld\n", 
+               current_pos - args);
+        return ERROR;
+    }
+    tokens[count++] = result->vertex_index;
+    current_pos += result->matched_length;
+    remaining_len -= result->matched_length;
+}
+```
+
+#### Channel Management
+```c
+// Create new channel for each token vertex
+for (int i = 0; i < count; i++) {
+    if (create_channel(token_vertices[i]) != CHANNEL_SUCCESS) {
+        return LINK_ERROR;
+    }
+    channels[i] = get_channel_count(Core[vertex_position]) - 1;
+}
+```
+
+### Notes
+1. Token Handling
+   - Uses search_token for finding tokens
+   - Matches longest possible tokens
+   - Sequential tokenization
+
+2. Channel Independence
+   - New channels for each sentence
+   - Prevents cycle overlap
+   - Clean path separation
+
+3. Error Handling
+   - Tokenization failures
+   - Minimum token count
+   - Channel creation errors
+
+4. Performance
+   - Efficient token search
+   - Minimal memory usage
+   - Sequential processing
 
 ## String-Based Sentence Creation
 

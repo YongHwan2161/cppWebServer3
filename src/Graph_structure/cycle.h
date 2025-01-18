@@ -7,6 +7,8 @@
 #define SUCCESS 0
 #define ERROR -1
 
+#define MAX_TOKEN_LENGTH 100
+
 // Structure to store cycle information
 typedef struct {
     uint* vertices;         // Array of vertices in cycle

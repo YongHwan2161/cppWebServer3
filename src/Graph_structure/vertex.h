@@ -4,6 +4,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+
+// Structure to hold search result
+typedef struct {
+    unsigned int vertex_index;    // Found vertex index
+    char* token_data;     // Token data at vertex
+    int matched_length;   // Length of matched data
+} TokenSearchResult;
+
 // Function declarations
 bool validate_vertex(unsigned int vertex_index);
 bool save_vertex_to_file(unsigned int vertex_index);
@@ -28,5 +36,7 @@ int create_token_vertex(unsigned int first_vertex, unsigned int second_vertex);
 int handle_create_token(char* args);
 int handle_get_token_data(char* args);
 int handle_search_token(char* args);
+TokenSearchResult* search_token(const char* data, size_t length);
+void free_search_result(TokenSearchResult* result);
 
 #endif // vertex_H 

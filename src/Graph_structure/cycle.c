@@ -263,36 +263,51 @@ char* get_sentence_data(uint vertex_index, ushort channel_index) {
 #define MAX_SENTENCE_TOKENS 100
 
 int handle_create_sentence(char* args) {
+    if (!args || !*args) {
+        print_argument_error("create-sentence", "<text>", false);
+        return ERROR;
+    }
+
     uint tokens[MAX_SENTENCE_TOKENS];
     int count = 0;
-    char* token = strtok(args, " ");
-    
-    // Parse token vertex indices
-    while (token && count < MAX_SENTENCE_TOKENS) {
-        if (sscanf(token, "%u", &tokens[count]) != 1) {
-            printf("Error: Invalid token vertex index\n");
-            printf("token: %s\n", token);
+    const char* current_pos = args;
+    size_t remaining_len = strlen(args);
+    printf("remaining_len: %ld\n", remaining_len);
+
+    // Tokenize input using search_token
+    while (remaining_len > 0 && count < MAX_SENTENCE_TOKENS) {
+        TokenSearchResult* result = search_token(current_pos, remaining_len);
+        if (!result || result->matched_length == 0) {
+            printf("Error: Failed to tokenize at position %ld: '%s'\n", 
+                   current_pos - args, current_pos);
+            if (result) free_search_result(result);
             return ERROR;
         }
-        count++;
-        token = strtok(NULL, " ");
+        printf("result->matched_length: %d\n", result->matched_length);
+        // Add found token to array
+        tokens[count++] = result->vertex_index;
+        
+        // Move to next position
+        current_pos += result->matched_length;
+        remaining_len -= result->matched_length;
+        
+        free_search_result(result);
     }
-    
+
     if (count < 2) {
         printf("Error: At least 2 tokens required for a sentence\n");
         return ERROR;
     }
-    
-    // Create sentence cycle
+
+    // Create sentence cycle using the tokens
     if (create_sentence_cycle(tokens, count) == LINK_SUCCESS) {
         printf("Successfully created sentence cycle with %d tokens\n", count);
         return SUCCESS;
     }
-    
+
     printf("Error: Failed to create sentence cycle\n");
     return ERROR;
 }
-
 int handle_get_sentence(char* args) {
     // Set locale to support UTF-8
     setlocale(LC_ALL, "en_US.UTF-8");
@@ -484,9 +499,6 @@ int handle_print_cycle(char* args) {
     free_cycle_info(info);
     return CMD_SUCCESS;
 }
-
-#define MAX_TOKEN_LENGTH 100
-
 int handle_create_sentence_from_string(char* args) {
     if (!args || !*args) {
         print_argument_error("create-sentence-str", "<text>", false);

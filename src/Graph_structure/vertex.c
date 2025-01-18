@@ -393,19 +393,13 @@ int handle_create_token(char* args) {
     return CMD_SUCCESS;
 }
 
-// Structure to hold search result
-typedef struct {
-    uint vertex_index;    // Found vertex index
-    char* token_data;     // Token data at vertex
-    int matched_length;   // Length of matched data
-} TokenSearchResult;
 
 TokenSearchResult* search_token(const char* data, size_t length) {
     if (!data || length == 0) {
         printf("Error: Invalid search data\n");
         return NULL;
     }
-
+    printf("data: %s\n", data);
     TokenSearchResult* result = malloc(sizeof(TokenSearchResult));
     if (!result) {
         printf("Error: Failed to allocate result structure\n");
@@ -414,10 +408,12 @@ TokenSearchResult* search_token(const char* data, size_t length) {
 
     // Start with first byte as vertex index
     uint current_vertex = (unsigned char)data[0];
-    size_t matched_pos = 0;
+    printf("current_vertex: %d\n", current_vertex);
+    size_t matched_pos = 1;
     
     // Get token data for current vertex
     char* token_data = get_token_data(current_vertex);
+    printf("token_data: %s\n", token_data);
     if (!token_data) {
         printf("Error: Failed to get token data from vertex %u\n", current_vertex);
         free(result);
@@ -438,20 +434,16 @@ TokenSearchResult* search_token(const char* data, size_t length) {
         }
         uint axis_offset = get_axis_offset(Core[vertex_position], 0, TOKEN_SEARCH_AXIS);
         ushort link_count = *(ushort*)(Core[vertex_position] + channel_offset + axis_offset);
-        printf("link_count: %d\n", link_count);
         int link_offset = channel_offset + axis_offset + 2;
 
         // Check each link's destination vertex
         for (int i = 0; i < link_count; i++) {
             uint next_vertex = *(uint*)(Core[vertex_position] + link_offset + (i * 6));
-            printf("next_vertex: %d\n", next_vertex);
             char* next_token = get_token_data(next_vertex);
-            printf("next_token: %s\n", next_token);
             if (!next_token) continue;
 
             // Check if next token matches remaining data
             size_t next_len = strlen(next_token);
-            printf("next_len: %ld\n", next_len);
             if (next_len <= length && 
                 memcmp(data, next_token, next_len) == 0) {
                 // Found matching next token
@@ -472,7 +464,7 @@ TokenSearchResult* search_token(const char* data, size_t length) {
     result->vertex_index = current_vertex;
     result->token_data = token_data;
     result->matched_length = matched_pos;
-    
+    printf("result->matched_length: %d\n", result->matched_length);
     return result;
 }
 
