@@ -275,7 +275,7 @@ int handle_create_sentence(char* args) {
     size_t remaining_len = strlen(args);
 
     TokenSearchResult *result_first = search_token(current_pos, remaining_len);
-    if (!result_first)
+    if (!result_first) 
     {
         printf("Error: Failed to search token\n");
         return ERROR; 
