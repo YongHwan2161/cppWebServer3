@@ -7,6 +7,7 @@
 #include "vertex.h"
 #include "../cli/command_handler.h"
 #include <stdlib.h>
+#include <locale.h>
 
 #define MAX_cycle_vertices 1000
 
@@ -248,13 +249,9 @@ char* get_sentence_data(uint vertex_index, ushort channel_index) {
             return NULL;
         }
 
-        strcpy(sentence + sentence_len, token_data);
+        // Copy token data without adding spaces
+        memcpy(sentence + sentence_len, token_data, token_len);
         sentence_len += token_len;
-
-        // Add space between tokens
-        if (i < info->count - 1) {
-            sentence[sentence_len++] = ' ';
-        }
 
         free(token_data);
     }
@@ -274,6 +271,7 @@ int handle_create_sentence(char* args) {
     while (token && count < MAX_SENTENCE_TOKENS) {
         if (sscanf(token, "%u", &tokens[count]) != 1) {
             printf("Error: Invalid token vertex index\n");
+            printf("token: %s\n", token);
             return ERROR;
         }
         count++;
@@ -296,36 +294,49 @@ int handle_create_sentence(char* args) {
 }
 
 int handle_get_sentence(char* args) {
+    // Set locale to support UTF-8
+    setlocale(LC_ALL, "en_US.UTF-8");
+    
     uint vertex_index;
     ushort channel_index;
     
     // Parse arguments
     if (sscanf(args, "%u %hu", &vertex_index, &channel_index) != 2) {
         print_argument_error("get-sentence", "<vertex_index> <channel_index>", false);
-        return ERROR;
+        return CMD_ERROR;
     }
     
     // Get sentence data
     char* data = get_sentence_data(vertex_index, channel_index);
     if (!data) {
         printf("Error: Failed to get sentence data\n");
-        return ERROR;
+        return CMD_ERROR;
     }
     
-    // Print the data in both formats
+    // Print the data in multiple formats
     printf("Sentence data starting from vertex %u, channel %u:\n", vertex_index, channel_index);
-    printf("ASCII: %s\n", data);
+    
+    // Print raw data as stored
+    printf("Raw: %s\n", data);
     
     // Print hexadecimal format
     printf("HEX: ");
-    for (int i = 0; data[i] != '\0'; i++) {
+    for (size_t i = 0; data[i] != '\0'; i++) {
         printf("%02X ", (unsigned char)data[i]);
     }
+    printf("\n");
+
+    // Print UTF-8 format with proper handling
+    printf("UTF-8: ");
+    fflush(stdout);  // Ensure proper output ordering
+    
+    // Write the entire string at once for proper UTF-8 handling
+    fwrite(data, 1, strlen(data), stdout);
     printf("\n");
     
     // Clean up
     free(data);
-    return SUCCESS;
+    return CMD_SUCCESS;
 }
 int handle_create_cycle(char* args) {
     // Maximum vertices in a cycle for command parsing

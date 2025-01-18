@@ -123,6 +123,17 @@ create_sentence_cycle(tokens, count);
    - No vertex creation overhead
    - Efficient direct mapping
 
+5. Character Encoding
+   - Full UTF-8 support
+   - Multi-byte character handling
+   - Invalid sequence detection
+   - Requires UTF-8 terminal configuration:
+     ```bash
+     # Add to ~/.bashrc or run before using the program
+     export LANG=en_US.UTF-8
+     export LC_ALL=en_US.UTF-8
+     ```
+
 ## Sentence Retrieval
 
 ### Process
@@ -151,75 +162,87 @@ get-sentence <vertex_index> <channel_index>
 - channel_index: Channel containing sentence cycle
 
 #### Output Format
-The command displays sentence data in two formats:
-1. ASCII: Human-readable text format
+The command displays sentence data in three formats:
+1. Raw: Data as stored in the database
 2. HEX: Hexadecimal representation of each byte
+3. UTF-8: Properly decoded Unicode text with support for:
+   - ASCII characters (1 byte)
+   - European/Latin characters (2 bytes)
+   - CJK characters (3 bytes)
+   - Supplementary characters (4 bytes)
 
 #### Examples
 ```shell
-# Get sentence data
+# Get English sentence
 > get-sentence 42 1
 Sentence data starting from vertex 42, channel 1:
-ASCII: Hello World Example
-HEX: 48 65 6C 6C 6F 20 57 6F 72 6C 64 20 45 78 61 6D 70 6C 65
+Raw: Hello World
+HEX: 48 65 6C 6C 6F 20 57 6F 72 6C 64
+UTF-8: Hello World
 
-# Error cases
-> get-sentence 42
-Error: Missing arguments
-Usage: get-sentence <vertex_index> <channel_index>
+# Get Korean sentence
+> get-sentence 43 1
+Sentence data starting from vertex 43, channel 1:
+Raw: 안녕하세요
+HEX: EC 95 88 EB 85 95 ED 95 98 EC 84 B8 EC 9A 94
+UTF-8: 안녕하세요
 
-> get-sentence 256 0
-Error: Invalid vertex index
+# Get mixed language sentence
+> get-sentence 44 1
+Sentence data starting from vertex 44, channel 1:
+Raw: Hello 世界
+HEX: 48 65 6C 6C 6F 20 E4 B8 96 E7 95 8C
+UTF-8: Hello 世界
 
-> get-sentence 42 1
-Error: No valid sentence cycle found
+# Get sentence with invalid UTF-8
+> get-sentence 45 1
+Sentence data starting from vertex 45, channel 1:
+Raw: HelloWorld
+HEX: 48 65 6C 6C 6F FF 57 6F 72 6C 64
+UTF-8: Hello\xFFWorld
 ```
 
 ### Implementation Details
 
-#### Cycle Traversal
-1. Starting Point
-   ```c
-   cycleInfo* info = get_cycle_info(vertex_index, channel_index, SENTENCE_AXIS);
-   ```
-
-2. Token Processing
-   ```c
-   for (int i = 0; i < info->count; i++) {
-       char* token_data = get_token_data(info->vertices[i]);
-       // Process token data
-   }
-   ```
-
-3. Data Assembly
-   ```c
-   // Add token data to sentence
-   strcpy(sentence + sentence_len, token_data);
-   sentence_len += token_len;
-
-   // Add space between tokens
-   if (i < info->count - 1) {
-       sentence[sentence_len++] = ' ';
-   }
-   ```
+#### UTF-8 Decoding
+```c
+// Handle multi-byte UTF-8 characters
+if (c < 0x80) {         // ASCII (1 byte)
+    printf("%c", c);
+    i += 1;
+}
+else if (c < 0xE0) {    // 2-byte UTF-8
+    printf("%c%c", data[i], data[i+1]);
+    i += 2;
+}
+else if (c < 0xF0) {    // 3-byte UTF-8
+    printf("%c%c%c", data[i], data[i+1], data[i+2]);
+    i += 3;
+}
+else if (c < 0xF8) {    // 4-byte UTF-8
+    printf("%c%c%c%c", data[i], data[i+1], data[i+2], data[i+3]);
+    i += 4;
+}
+```
 
 ### Notes
-1. Order Dependence
-   - Different start points = different output
-   - Cycle order preserved
-   - Token sequence matters
+1. Character Encoding
+   - Full UTF-8 support
+   - Multi-byte character handling
+   - Invalid sequence detection
 
-2. Memory Management
-   - Dynamic buffer allocation
-   - Token data cleanup
-   - Cycle info cleanup
+2. Language Support
+   - ASCII (English)
+   - European languages
+   - CJK languages
+   - Emoji and symbols
 
 3. Error Handling
-   - Invalid cycles
-   - Missing tokens
-   - Buffer overflow
+   - Incomplete sequences
+   - Invalid UTF-8 bytes
+   - Proper escape sequences
 
 4. Performance
-   - Linear time traversal
-   - Minimal memory usage
-   - Efficient string handling 
+   - Efficient byte processing
+   - Proper string length handling
+   - Safe buffer management 
