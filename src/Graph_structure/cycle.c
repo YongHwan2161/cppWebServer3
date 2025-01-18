@@ -473,3 +473,51 @@ int handle_print_cycle(char* args) {
     free_cycle_info(info);
     return CMD_SUCCESS;
 }
+
+#define MAX_TOKEN_LENGTH 100
+
+int handle_create_sentence_from_string(char* args) {
+    if (!args || !*args) {
+        print_argument_error("create-sentence-str", "<text>", false);
+        return ERROR;
+    }
+
+    // Count characters and allocate token array
+    uint* tokens = malloc(MAX_SENTENCE_TOKENS * sizeof(uint));
+    if (!tokens) {
+        printf("Error: Failed to allocate memory\n");
+        return ERROR;
+    }
+    int count = 0;
+
+    // Convert each character to token vertex index (0-255)
+    for (int i = 0; args[i] != '\0' && count < MAX_SENTENCE_TOKENS; i++) {
+        // Each character's ASCII value maps directly to a token vertex
+        uint token_vertex = (unsigned char)args[i];
+        printf("token_vertex: %u\n", token_vertex);
+        if (token_vertex > 255) {
+            printf("Error: Invalid character (outside ASCII range)\n");
+            free(tokens);
+            return ERROR;
+        }
+        tokens[count++] = token_vertex;
+    }
+
+    if (count < 2) {
+        printf("Error: At least 2 characters required for a sentence\n");
+        free(tokens);
+        return ERROR;
+    }
+
+    // Create sentence cycle from token vertices
+    int result = create_sentence_cycle(tokens, count);
+    free(tokens);
+
+    if (result == LINK_SUCCESS) {
+        printf("Successfully created sentence with %d characters\n", count);
+        return SUCCESS;
+    }
+
+    printf("Error: Failed to create sentence cycle\n");
+    return ERROR;
+}

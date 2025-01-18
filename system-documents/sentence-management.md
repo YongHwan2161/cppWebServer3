@@ -40,6 +40,89 @@ Error: At least 2 tokens required for a sentence
 Error: Invalid token vertex index
 ```
 
+## String-Based Sentence Creation
+
+### Process
+1. Character Processing
+   - Convert each character to token vertex index
+   - Use ASCII value as vertex index (0-255)
+   - Each character maps to existing token vertex
+
+2. Token Mapping
+   - No new vertex creation needed
+   - Direct ASCII to vertex mapping
+   - Uses pre-existing token vertices
+
+3. Sentence Formation
+   - Create cycle from mapped tokens
+   - Link tokens sequentially
+   - Maintain character order
+
+### Command Interface
+```shell
+create-sentence-str <text>
+```
+
+#### Parameters
+- text: ASCII text to form sentence
+- Each character maps to vertex 0-255
+- Minimum 2 characters required
+
+#### Examples
+```shell
+# Create sentence from text
+> create-sentence-str Hello
+Successfully created sentence with 5 characters
+
+# Error cases
+> create-sentence-str
+Error: Missing arguments
+Usage: create-sentence-str <text>
+Example: create-sentence-str Hello
+
+> create-sentence-str H
+Error: At least 2 characters required for a sentence
+
+> create-sentence-str Hello©World
+Error: Invalid character (outside ASCII range)
+```
+
+### Implementation Details
+
+#### Character Mapping
+```c
+// Map each character to token vertex
+uint token_vertex = (unsigned char)args[i];  // ASCII value 0-255
+tokens[count++] = token_vertex;
+```
+
+#### Sentence Assembly
+```c
+// Create cycle using existing token vertices
+create_sentence_cycle(tokens, count);
+```
+
+### Notes
+1. Token Usage
+   - Uses existing vertices 0-255
+   - No vertex creation needed
+   - Direct ASCII mapping
+
+2. Memory Management
+   - Only token array allocation
+   - Minimal memory usage
+   - Simple cleanup
+
+3. Error Handling
+   - ASCII range validation
+   - Character count check
+   - Invalid character detection
+
+4. Performance
+   - O(n) character processing
+   - No vertex creation overhead
+   - Efficient direct mapping
+
 ## Sentence Retrieval
 
 ### Process

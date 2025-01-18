@@ -636,6 +636,20 @@ void print_help() {
 
     printf("  validate-free-offsets               Validate free block offsets\n");
     printf("  validate-cycle <vertex> <ch> <axis>  Check if path forms a cycle\n");
+
+    printf("  create-sentence-str <text>           Create sentence from ASCII text\n");
+
+    // Update the help text for sentence-related commands
+    printf("\nSentence Management:\n");
+    printf("  create-sentence <v1> <v2> ...        Create sentence from token vertices\n");
+    printf("  create-sentence-str <text>           Create sentence from ASCII text (0-255)\n");
+    printf("  get-sentence <vertex> <channel>      Get sentence data from cycle\n");
+
+    // Example usage text
+    printf("\nExample sentence creation:\n");
+    printf("  create-sentence 65 66 67             Create sentence from token vertices\n");
+    printf("  create-sentence-str ABC              Same as above, using ASCII text\n");
+    printf("  get-sentence 42 1                    Get sentence data in ASCII and HEX\n");
 }
 
 int handle_command(char* command) {
@@ -849,6 +863,9 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "get-sentence") == 0) {
         return handle_get_sentence(args);
     }
+    else if (strcmp(cmd, "create-sentence-str") == 0) {
+        return handle_create_sentence_from_string(args);
+    }
     else
     {
         printf("Unknown command. Type 'help' for available commands.\n");
@@ -885,5 +902,93 @@ int handle_print_garbage() {
     }
     
     free_cycle_info(info);
+    return CMD_SUCCESS;
+}
+
+int handle_load_vertex(char* args) {
+    unsigned int vertex_index;
+    
+    // Parse arguments
+    if (!args || sscanf(args, "%u", &vertex_index) != 1) {
+        print_argument_error("load-vertex", "<vertex_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate vertex index
+    if (vertex_index >= CurrentvertexCount) {
+        printf("Error: Invalid vertex index %u\n", vertex_index);
+        return CMD_ERROR;
+    }
+
+    // Check if vertex is already loaded
+    if (CoreMap[vertex_index].is_loaded) {
+        printf("Vertex %u is already loaded at Core position %u\n", 
+               vertex_index, CoreMap[vertex_index].core_position);
+        return CMD_SUCCESS;
+    }
+
+    // Check if we have space in Core array
+    if (CoreSize >= (int)MaxCoreSize) {
+        printf("Error: Core array is full (max size: %u)\n", MaxCoreSize);
+        return CMD_ERROR;
+    }
+
+    // Try to load vertex data
+    FILE* data_file = fopen(DATA_FILE, "rb");
+    if (!data_file) {
+        printf("Error: Could not open data.bin\n");
+        return CMD_ERROR;
+    }
+
+    // Seek to vertex data
+    if (fseek(data_file, CoreMap[vertex_index].file_offset, SEEK_SET) != 0) {
+        printf("Error: Failed to seek to vertex data\n");
+        fclose(data_file);
+        return CMD_ERROR;
+    }
+
+    // Read size power first to allocate buffer
+    ushort size_power;
+    if (fread(&size_power, sizeof(ushort), 1, data_file) != 1) {
+        printf("Error: Failed to read vertex size\n");
+        fclose(data_file);
+        return CMD_ERROR;
+    }
+
+    // Calculate actual size and allocate buffer
+    size_t vertex_size = 1 << size_power;
+    uchar* vertex_data = malloc(vertex_size);
+    if (!vertex_data) {
+        printf("Error: Failed to allocate memory for vertex\n");
+        fclose(data_file);
+        return CMD_ERROR;
+    }
+
+    // Seek back to start of vertex data
+    fseek(data_file, CoreMap[vertex_index].file_offset, SEEK_SET);
+
+    // Read entire vertex data
+    if (fread(vertex_data, 1, vertex_size, data_file) != vertex_size) {
+        printf("Error: Failed to read vertex data\n");
+        free(vertex_data);
+        fclose(data_file);
+        return CMD_ERROR;
+    }
+
+    fclose(data_file);
+
+    // Find free slot in Core array
+    unsigned int slot = 0;
+    while (slot < MaxCoreSize && Core[slot] != NULL) {
+        slot++;
+    }
+
+    // Store vertex data
+    Core[slot] = vertex_data;
+    CoreMap[vertex_index].core_position = slot;
+    CoreMap[vertex_index].is_loaded = 1;
+    CoreSize++;
+
+    printf("Successfully loaded vertex %d into Core position %d\n", vertex_index, slot);
     return CMD_SUCCESS;
 }
