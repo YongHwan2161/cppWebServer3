@@ -5,6 +5,7 @@
 #include "channel.h"
 #include "link.h"
 #include "vertex.h"
+#include "../cli/command_handler.h"
 #include <stdlib.h>
 
 #define MAX_cycle_vertices 1000
@@ -262,3 +263,213 @@ char* get_sentence_data(uint vertex_index, ushort channel_index) {
     free_cycle_info(info);
     return sentence;
 } 
+#define MAX_SENTENCE_TOKENS 100
+
+int handle_create_sentence(char* args) {
+    uint tokens[MAX_SENTENCE_TOKENS];
+    int count = 0;
+    char* token = strtok(args, " ");
+    
+    // Parse token vertex indices
+    while (token && count < MAX_SENTENCE_TOKENS) {
+        if (sscanf(token, "%u", &tokens[count]) != 1) {
+            printf("Error: Invalid token vertex index\n");
+            return ERROR;
+        }
+        count++;
+        token = strtok(NULL, " ");
+    }
+    
+    if (count < 2) {
+        printf("Error: At least 2 tokens required for a sentence\n");
+        return ERROR;
+    }
+    
+    // Create sentence cycle
+    if (create_sentence_cycle(tokens, count) == LINK_SUCCESS) {
+        printf("Successfully created sentence cycle with %d tokens\n", count);
+        return SUCCESS;
+    }
+    
+    printf("Error: Failed to create sentence cycle\n");
+    return ERROR;
+}
+
+int handle_get_sentence(char* args) {
+    uint vertex_index;
+    ushort channel_index;
+    
+    // Parse arguments
+    if (sscanf(args, "%u %hu", &vertex_index, &channel_index) != 2) {
+        print_argument_error("get-sentence", "<vertex_index> <channel_index>", false);
+        return ERROR;
+    }
+    
+    // Get sentence data
+    char* data = get_sentence_data(vertex_index, channel_index);
+    if (!data) {
+        printf("Error: Failed to get sentence data\n");
+        return ERROR;
+    }
+    
+    // Print the data in both formats
+    printf("Sentence data starting from vertex %u, channel %u:\n", vertex_index, channel_index);
+    printf("ASCII: %s\n", data);
+    
+    // Print hexadecimal format
+    printf("HEX: ");
+    for (int i = 0; data[i] != '\0'; i++) {
+        printf("%02X ", (unsigned char)data[i]);
+    }
+    printf("\n");
+    
+    // Clean up
+    free(data);
+    return SUCCESS;
+}
+int handle_create_cycle(char* args) {
+    // Maximum vertices in a cycle for command parsing
+    #define MAX_CMD_CYCLE_VERTICES 100
+    
+    uint vertices[MAX_CMD_CYCLE_VERTICES];
+    ushort channels[MAX_CMD_CYCLE_VERTICES];
+    int count = 0;
+    int axis_number;
+    
+    // Parse the axis number first (it's the last argument)
+    char* last_space = strrchr(args, ' ');
+    if (!last_space) {
+        print_argument_error("create-cycle", "<vertex1> <ch1> <vertex2> <ch2> ... <axis>", false);
+        return CMD_ERROR;
+    }
+    
+    // Parse axis number
+    if (sscanf(last_space + 1, "%d", &axis_number) != 1) {
+        printf("Error: Invalid axis number\n");
+        return CMD_ERROR;
+    }
+    
+    // Null terminate the vertex/channel list for parsing
+    *last_space = '\0';
+    
+    // Parse vertex and channel pairs
+    char* token = strtok(args, " ");
+    while (token && count < MAX_CMD_CYCLE_VERTICES) {
+        // Parse vertex
+        if (sscanf(token, "%u", &vertices[count]) != 1) {
+            printf("Error: Invalid vertex index\n");
+            return CMD_ERROR;
+        }
+        
+        // Get next token for channel
+        token = strtok(NULL, " ");
+        if (!token) {
+            printf("Error: Missing channel for vertex %u\n", vertices[count]);
+            return CMD_ERROR;
+        }
+        
+        // Parse channel
+        if (sscanf(token, "%hu", &channels[count]) != 1) {
+            printf("Error: Invalid channel index\n");
+            return CMD_ERROR;
+        }
+        
+        count++;
+        token = strtok(NULL, " ");
+    }
+    
+    if (count < 2) {
+        printf("Error: At least 2 vertices are required to create a cycle\n");
+        return CMD_ERROR;
+    }
+
+    // Check if any vertex in the proposed cycle already has a cycle
+    for (int i = 0; i < count; i++) {
+        if (has_cycle(vertices[i], channels[i], axis_number)) {
+            printf("Error: vertex %u channel %u already belongs to a cycle on axis %d\n", 
+                   vertices[i], channels[i], axis_number);
+            return CMD_ERROR;
+        }
+    }
+    
+    // Create the cycle
+    int result = create_cycle(vertices, channels, count, axis_number);
+    if (result == LINK_SUCCESS) {
+        printf("Successfully created cycle with %d vertices\n", count);
+        return CMD_SUCCESS;
+    } else {
+        printf("Failed to create cycle\n");
+        return CMD_ERROR;
+    }
+}
+
+bool validate_cycle(int vertex_index, int channel_index, int axis_number) {
+    cycleInfo* info = get_cycle_info(vertex_index, channel_index, axis_number);
+    bool has_cycle = info->count > 0;
+    
+    if (has_cycle) {
+        printf("Found cycle with %d vertices:\n", info->count);
+        for (int i = 0; i < info->count; i++) {
+            printf("vertex %u, Channel %u\n", info->vertices[i], info->channels[i]);
+        }
+    }
+    
+    free_cycle_info(info);
+    return has_cycle;
+}
+
+int handle_validate_cycle(char* args) {
+    int vertex_index, channel_index, axis_number;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d %d %d", &vertex_index, &channel_index, &axis_number);
+    if (parsed != 3) {
+        print_argument_error("validate-cycle", "<vertex_index> <channel_index> <axis_number>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (!validate_vertex(vertex_index)) {
+        printf("Error: vertex %d does not exist\n", vertex_index);
+        return CMD_ERROR;
+    }
+    
+    bool has_cycle = validate_cycle(vertex_index, channel_index, axis_number);
+    printf("Path from vertex %d, channel %d, axis %d %s a cycle\n",
+           vertex_index, channel_index, axis_number,
+           has_cycle ? "forms" : "does not form");
+           
+    return CMD_SUCCESS;
+}
+
+int handle_print_cycle(char* args) {
+    int vertex_index, channel_index, axis_number;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d %d %d", &vertex_index, &channel_index, &axis_number);
+    if (parsed != 3) {
+        print_argument_error("print-cycle", "<vertex_index> <channel_index> <axis_number>", false);
+        return CMD_ERROR;
+    }
+    
+    // Get cycle information
+    cycleInfo* info = get_cycle_info(vertex_index, channel_index, axis_number);
+    
+    if (info->count == 0) {
+        printf("No cycle found starting from vertex %d, channel %d, axis %d\n",
+               vertex_index, channel_index, axis_number);
+    } else {
+        printf("Found cycle with %d vertices:\n", info->count);
+        printf("Path: ");
+        for (int i = 0; i < info->count; i++) {
+            printf("(vertex %u, Ch %u)", info->vertices[i], info->channels[i]);
+            if (i < info->count - 1) {
+                printf(" -> ");
+            }
+        }
+        printf(" -> (vertex %u, Ch %u)\n", info->vertices[0], info->channels[0]);
+    }
+    
+    free_cycle_info(info);
+    return CMD_SUCCESS;
+}

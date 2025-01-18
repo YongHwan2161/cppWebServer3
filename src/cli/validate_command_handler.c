@@ -28,18 +28,3 @@ int validate_free_offsets(char* args) {
     int failed = test_free_block_offsets();
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
-
-bool validate_cycle(int vertex_index, int channel_index, int axis_number) {
-    cycleInfo* info = get_cycle_info(vertex_index, channel_index, axis_number);
-    bool has_cycle = info->count > 0;
-    
-    if (has_cycle) {
-        printf("Found cycle with %d vertices:\n", info->count);
-        for (int i = 0; i < info->count; i++) {
-            printf("vertex %u, Channel %u\n", info->vertices[i], info->channels[i]);
-        }
-    }
-    
-    free_cycle_info(info);
-    return has_cycle;
-}

@@ -3,6 +3,10 @@
 
 #include <stdbool.h>
 #include "../../CGDB.h"
+
+#define SUCCESS 0
+#define ERROR -1
+
 // Structure to store cycle information
 typedef struct {
     uint* vertices;         // Array of vertices in cycle
@@ -32,5 +36,11 @@ int create_sentence_cycle(uint* token_vertices, int count);
 // Get sentence data starting from given vertex/channel
 // Returns allocated string containing sentence data or NULL on error
 char* get_sentence_data(uint vertex_index, ushort channel_index);
+int handle_get_sentence(char* args);
+int handle_create_sentence(char* args);
+int handle_create_cycle(char* args);
+bool validate_cycle(int vertex_index, int channel_index, int axis_number);
+int handle_validate_cycle(char* args);
+int handle_print_cycle(char* args);
 
 #endif // cycle_H 

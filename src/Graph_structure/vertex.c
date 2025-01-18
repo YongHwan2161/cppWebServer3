@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "../data_structures/stack.h"
+#include "../cli/command_handler.h"
 
 #define MAX_STACK_SIZE 1000
 
@@ -156,6 +157,26 @@ void create_new_vertex() {
     save_vertex_to_file(CurrentvertexCount - 1);
     printf("vertex created at index %d\n", CurrentvertexCount - 1);
 }
+
+int handle_create_vertex(char* args) {
+    // No arguments needed, but check if any were provided
+    if (args && *args != '\0') {
+        print_argument_error("create-vertex", "", false);
+        return CMD_ERROR;
+    }
+    
+    // Check if we've reached the maximum number of vertices
+    if (CurrentvertexCount >= MaxCoreSize) {
+        printf("Error: Maximum number of vertices (%d) reached\n", MaxCoreSize);
+        return CMD_ERROR;
+    }
+    
+    // Create new vertex
+    create_new_vertex();
+    printf("Successfully created new vertex at index %d\n", CurrentvertexCount - 1);
+    return CMD_SUCCESS;
+}
+
 int delete_vertex(unsigned int vertex_index) {
     printf("calling delete_vertex: %d\n", vertex_index);
     // Check if trying to delete garbage vertex
@@ -188,7 +209,42 @@ int delete_vertex(unsigned int vertex_index) {
     CoreSize--;
     return VERTEX_SUCCESS;
 }
+int handle_delete_vertex(char* args) {
+    int vertex_index;
+    
+    // Parse arguments
+    if (!args || sscanf(args, "%d", &vertex_index) != 1) {
+        print_argument_error("delete-vertex", "<vertex_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate vertex index
+    if (vertex_index < 0) {
+        printf("Error: vertex index must be between 0 and 255\n");
+        return CMD_ERROR;
+    }
 
+    // Can't delete garbage vertex
+    if ((unsigned int)vertex_index == GarbagevertexIndex) {
+        printf("Error: Cannot delete garbage vertex (index %d)\n", GarbagevertexIndex);
+        return CMD_ERROR;
+    }
+    // printf("vertex_index: %d\n", vertex_index);
+    // Delete the vertex
+    int result = delete_vertex(vertex_index);
+    // int result = VERTEX_SUCCESS;
+    if (result == VERTEX_SUCCESS) {
+        printf("Successfully deleted vertex %d\n", vertex_index);
+    } else if (result == VERTEX_ERROR_GARBAGE) {
+        printf("Error: Cannot delete garbage vertex (index %d)\n", GarbagevertexIndex);
+    } else if (result == VERTEX_ERROR_IN_GARBAGE_cycle) {
+        printf("Error: Vertex %d is in garbage cycle\n", vertex_index);
+    } else {
+        printf("Failed to delete vertex %d\n", vertex_index);
+    }
+    
+    return CMD_SUCCESS;
+}
 char* get_token_data(unsigned int vertex_index) {
     if (!validate_vertex(vertex_index)) {
         return NULL;
@@ -283,4 +339,55 @@ int create_token_vertex(unsigned int first_vertex, unsigned int second_vertex) {
     }
 
     return new_vertex;
+}
+int handle_get_token_data(char* args) {
+    unsigned int vertex_index;
+    
+    // Parse vertex index
+    if (sscanf(args, "%u", &vertex_index) != 1) {
+        print_argument_error("get-token", "<vertex_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Get token data
+    char* data = get_token_data(vertex_index);
+    if (!data) {
+        printf("Error: Failed to get token data from vertex %u\n", vertex_index);
+        return CMD_ERROR;
+    }
+    
+    // Print the data
+    printf("Token data from vertex %u: %s\n", vertex_index, data);
+    
+    // Clean up
+    free(data);
+    return CMD_SUCCESS;
+}
+
+int handle_create_token(char* args) {
+    unsigned int first_vertex, second_vertex;
+    
+    // Parse vertex indices
+    if (sscanf(args, "%u %u", &first_vertex, &second_vertex) != 2) {
+        print_argument_error("create-token", "<first_vertex> <second_vertex>", false);
+        return CMD_ERROR;
+    }
+    
+    // Create token vertex
+    int new_vertex = create_token_vertex(first_vertex, second_vertex);
+    if (new_vertex < 0) {
+        printf("Error: Failed to create token vertex\n");
+        return CMD_ERROR;
+    }
+    
+    // Get and display the token data
+    char* data = get_token_data(new_vertex);
+    if (data) {
+        printf("Successfully created token vertex %d with data: %s\n", new_vertex, data);
+        free(data);
+        return CMD_SUCCESS;
+    }
+    
+    printf("Warning: Created token vertex %d but failed to read data\n", new_vertex);
+    return CMD_SUCCESS;
 }

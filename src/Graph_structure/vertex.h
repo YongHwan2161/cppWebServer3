@@ -8,7 +8,9 @@
 bool validate_vertex(unsigned int vertex_index);
 bool save_vertex_to_file(unsigned int vertex_index);
 void create_new_vertex();
+int handle_create_vertex(char* args);
 int delete_vertex(unsigned int vertex_index);
+int handle_delete_vertex(char* args);
 
 // Get token data from a token vertex
 // Returns the concatenated data from all leaf nodes
@@ -23,4 +25,6 @@ char* get_token_data(unsigned int vertex_index);
 // Returns the new vertex index or -1 on error
 int create_token_vertex(unsigned int first_vertex, unsigned int second_vertex);
 
+int handle_create_token(char* args);
+int handle_get_token_data(char* args);
 #endif // vertex_H 
