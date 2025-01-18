@@ -1,0 +1,2226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Title</title>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        #clock {
+            color: green;
+            display: inline-block;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 10px;
+        }
+
+        .form-style {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: 10px auto;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .form-group input {
+            width: 90%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-actions {
+            text-align: right;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn.login {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn.signup {
+            background-color: #28a745;
+            color: white;
+            margin-left: 10px;
+        }
+
+        /* Extra styles for placeholders */
+        ::placeholder {
+            color: #bbb;
+        }
+
+
+        #filecontent {
+            display: none;
+        }
+
+        #saveFileChanges {
+            display: none;
+        }
+
+        #contents,
+        #info {
+            display: inline-block;
+            max-width: 500px;
+            overflow-wrap: break-word;
+        }
+
+        textarea {
+            width: 40%;
+            margin-bottom: 10px;
+        }
+
+        .button {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 2px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 11px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 1px;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .home-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 15px;
+            text-align: center;
+            line-height: 30px;
+            text-decoration: none;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .home-button:hover {
+            background-color: #0056b3;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+        }
+
+        #canvas2 {
+            position: absolute;
+            display: none;
+        }
+
+        #ui {
+            width: 200px;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        #overlay {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            background-color: rgba(247, 247, 247, 0.941);
+            color: rgb(10, 9, 9);
+            font-family: monospace;
+            padding: 1em;
+            border-radius: 0.5em;
+            border: 1px solid rgba(255, 0, 0, 0.425);
+            overflow: hidden;
+            /* text-shadow: 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white; */
+        }
+
+        #control-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 10%;
+            transform: translateX(-50%);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 10px;
+            width: 120px;
+            text-align: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .direction-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            border: none;
+            border-radius: 50%;
+            background-color: #007BFF;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: manipulation;
+            /* Improves responsiveness for touch by disabling double-tap zoom */
+        }
+
+        .direction-btn.forward {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+        }
+
+        .direction-btn.left {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+        }
+
+        .direction-btn.right {
+            grid-column: 3 / 4;
+            grid-row: 2 / 3;
+        }
+
+        .direction-btn.backward {
+            grid-column: 2 / 3;
+            grid-row: 3 / 4;
+        }
+
+        .LogInfo {
+            padding: 0 5px;
+            display: none;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            background-color: #f1f1f1;
+            margin-top: 0;
+        }
+
+        .collapsible {
+            background-color: #777;
+            color: white;
+            cursor: pointer;
+            padding: 5px;
+            width: 90%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 10px;
+            margin-bottom: 0;
+        }
+
+        .collapsible:hover {
+            background-color: #555;
+        }
+
+        #textinput {
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 100px;
+            max-width: 500px;
+            /* 최대 너비 설정 */
+            word-wrap: break-word;
+            /* 긴 단어도 줄바꿈 */
+            overflow-wrap: break-word;
+            /* 긴 단어 줄바꿈 호환성 */
+            margin-bottom: 10px;
+        }
+
+        #tools {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #tools button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        #tools svg {
+            fill: #333;
+            width: 24px;
+            height: 24px;
+        }
+
+        #htmlView {
+            display: none;
+            white-space: pre-wrap;
+            background-color: #f4f4f4;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        #resizeHandle {
+            width: 10px;
+            height: 10px;
+            background-color: darkblue;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            cursor: nwse-resize;
+            /* 대각선 화살표 커서 */
+        }
+    </style>
+</head>
+
+<body onload="start()">
+    <button id="toggleButton" onclick="toggleContainer()">Minimize</button>
+    <div class="container">
+        <div id="content" style="display: block;">
+            <canvas id="canvas"></canvas>
+            <div id="overlay">
+                <div id="resizeHandle"></div>
+                <a href="#" class="home-button" onclick="home()"><i class="fas fa-home"></i></a>
+                <label for="colorPicker2">색상:</label>
+                <input type="color" id="colorPicker2">
+                <label for="opacityRange">투명도:</label>
+                <input type="range" id="opacityRange" min="0" max="100" value="100"><br>
+                <div id="clock"></div><br />
+                <form id="loginForm" class="form-style">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn login">Login</button>
+                        <button type="button" id="showSignUpForm" class="btn signup">Sign Up</button>
+                    </div>
+                </form>
+
+                <form id="signupForm" class="form-style" action="/signup" method="POST"
+                    onsubmit="return validatePassword()" style="display: none;">
+                    <div class="form-group">
+                        <label for="newUsername">Username:</label>
+                        <input type="text" id="newUsername" name="username" placeholder="Choose a username" required>
+                        <button type="button" id="checkDuplicate">Check Duplicate</button>
+                        <span id="usernameValidationMessage"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" placeholder="Your email address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Password:</label>
+                        <input type="password" id="newPassword" name="password" placeholder="Create a password"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password:</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn signup" id="signupButton" disabled>Sign Up</button>
+                    </div>
+                </form>
+
+                <div id="contents"></div><br />
+                <!-- <textarea id="textinput" placeholder="Enter text..."></textarea><br /> -->
+                <div id="tools">
+                    <button onclick="applyStyle('bold')"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" class="feather feather-bold">
+                            <text x="3" y="18" font-size="16" font-weight="bold">B</text>
+                        </svg></button>
+                    <button onclick="applyStyle('underline')"><svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24" fill="black" width="24px" height="24px">
+                            <path d="M0 0h24v24H0z" fill="none" />
+                            <path
+                                d="M12 17c3.31 0 6-2.69 6-6V3h-3v8c0 1.66-1.34 3-3 3s-3-1.34-3-3V3H6v8c0 3.31 2.69 6 6 6zm-6 2v2h12v-2H6z" />
+                        </svg></button>
+                    <button onclick="applyStyle('italic')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            fill="black" width="24px" height="24px">
+                            <path d="M0 0h24v24H0z" fill="none" />
+                            <path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z" />
+                        </svg> </button>
+                    <button onclick="applyStyle('strikeThrough')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-strikethrough">
+                            <text x="3" y="18" font-size="16" text-decoration="line-through">가</text>
+                        </svg>
+                    </button>
+
+                    <button onclick="changeColor()"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            fill="none" stroke="red" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-strikethrough">
+                            <text x="3" y="18" font-size="16" fill="red">A</text>
+                        </svg>
+                    </button>
+                    <button onclick="changeFontSize()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            fill="black" width="24px" height="24px">
+                            <path d="M0 0h24v24H0z" fill="none" />
+                            <path d="M4 4v3h4v12h3V7h4V4zm10 7v2h9v-2zm0 7h9v-2h-9z" />
+                        </svg>
+                    </button>
+                    <input type="color" id="colorPicker">
+                    <input type="number" id="fontSizePicker" value="3" min="1" max="7">
+                    <button onclick="applyStyle('insertUnorderedList')"><svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24" fill="black" width="24px" height="24px">
+                            <path d="M0 0h24v24H0V0z" fill="none" />
+                            <path
+                                d="M4 10.5c0 .83.67 1.5 1.5 1.5S7 11.33 7 10.5 6.33 9 5.5 9 4 9.67 4 10.5zM4 6.5C4 7.33 4.67 8 5.5 8S7 7.33 7 6.5 6.33 5 5.5 5 4 5.67 4 6.5zM4 14.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5S4 13.67 4 14.5zM9 6h11v2H9zM9 10h11v2H9zM9 14h11v2H9z" />
+                        </svg>
+                    </button>
+                    <button onclick="applyStyle('insertOrderedList')"> <svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
+                            stroke-linecap="round" stroke-linejoin="round" class="feather feather-strikethrough">
+                            <text x="3" y="18" font-size="16">1.\r\n2.\r\n3.</text>
+                        </svg>
+                    </button>
+                    <button onclick="applyStyle('justifyLeft')"><svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24" fill="black" width="24px" height="24px">
+                            <path d="M0 0h24v24H0V0z" fill="none" />
+                            <path d="M3 3h18v2H3zM3 8h12v2H3zM3 13h18v2H3zM3 18h12v2H3z" />
+                        </svg>
+                    </button>
+                    <button onclick="applyStyle('justifyCenter')"><svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24" fill="black" width="24px" height="24px">
+                            <path d="M0 0h24v24H0z" fill="none" />
+                            <path d="M3 3h18v2H3zM5 8h14v2H5zM3 13h18v2H3zM5 18h14v2H5z" />
+                        </svg>
+                    </button>
+                    <button onclick="applyStyle('justifyRight')"><svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24" fill="black" width="24px" height="24px">
+                            <path d="M0 0h24v24H0z" fill="none" />
+                            <path d="M3 3h18v2H3zM3 8h18v2H3zM3 13h18v2H3zM3 18h18v2H3z" />
+                        </svg>
+                    </button>
+                    <button onclick="insertLink()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            fill="black" width="24px" height="24px">
+                            <path d="M0 0h24v24H0z" fill="none" />
+                            <path
+                                d="M3.9 12c0 1.16.94 2.1 2.1 2.1h4V10H6c-1.16 0-2.1.94-2.1 2.1zM20.1 12c0-1.16-.94-2.1-2.1-2.1h-4v4.2h4c1.16 0 2.1-.94 2.1-2.1zM15 12c0 .55-.45 1-1 1s-1-.45-1-1 .45-1 1-1 1 .45 1 1zM8 14h2v-4H8v4zm10 0h2v-4h-2v4z" />
+                        </svg>
+                    </button>
+                    <button onclick="toggleHTMLView()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            fill="black" width="24px" height="24px">
+                            <path d="M0 0h24v24H0V0z" fill="none" />
+                            <path
+                                d="M13 12h7v1.5h-7zM5 7h5v1.5H5zM13 16h7v1.5h-7zM5 11h5v1.5H5zM13 8h7v1.5h-7zM5 15h5v1.5H5z" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="textinput" contenteditable="true">
+                    Start typing here or paste your styled text...
+                </div>
+                <div id="htmlView"></div>
+                <button class="button" id="Button_Enter"
+                    onclick="sendTextToServer(document.getElementById('textinput').innerHTML)">Enter</button> <!-- innerHTML로 보내야 함!! -->
+                <button class="button" id="Button_Review" onclick="sendTextToServer('98')">Review</button>
+                <button class="button" id="Button_Copy" onclick="sendTextToServer('99')">Copy</button>
+                <button class="button" id="Button_Paste" onclick="sendTextToServer('100')">Paste</button>
+                <button class="button" id="Button_Save" onclick="sendTextToServer('save')">Save</button>
+                <button class="button" id="Button_Paste" onclick="sendTextToServer('backUp')">backUp</button>
+                <button class="button" id="Button_ch+" onclick="sendTextToServer('ch+')">ch+</button>
+                <button class="button" id="Button_ch-" onclick="sendTextToServer('ch-')">ch-</button><br />
+                <p id="info2"></p>
+                <p class="collapsible">Log</p>
+                <p class="LogInfo" id="Log"> </p>
+                <p class="collapsible">Info</p>
+                <p class="LogInfo" id="info"> </p> <br />
+                <textarea id="fileContent" rows="1"></textarea><br />
+                <button id="saveFileChanges" onclick="saveFileChanges()">Save Changes</button>
+                <div>coordinates: <span id="readout"></span></div>
+                <canvas id="canvas2" width="150" height="150"></canvas>
+                <p id="deviceInfo"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="control-buttons">
+        <button id="moveForward" class="direction-btn forward">&#9650;</button>
+        <button id="moveLeft" class="direction-btn left">&#9664;</button>
+        <button id="moveRight" class="direction-btn right">&#9654;</button>
+        <button id="moveBackward" class="direction-btn backward">&#9660;</button>
+    </div>
+
+
+    <!--
+  for most samples webgl-utils only provides shader compiling/linking and
+  canvas resizing because why clutter the examples with code that's the same in every sample.
+  See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
+  and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+  for webgl-utils, m3, m4, and webgl-lessons-ui.
+  -->
+    <script src="https://webgl2fundamentals.org/webgl/resources/webgl-lessons-ui.js"></script>
+    <script src="https://webgl2fundamentals.org/webgl/resources/twgl-full.min.js"></script>
+    <script src="https://webgl2fundamentals.org/webgl/resources/m4.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gl-matrix@2.8.1/dist/gl-matrix-min.js"></script>
+    <script src="https://webgl2fundamentals.org/webgl/resources/flattened-primitives.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <!-- stats.js -->
+    <script>
+        // stats.js - http://github.com/mrdoob/stats.js
+        (function (f, e) { "object" === typeof exports && "undefined" !== typeof module ? module.exports = e() : "function" === typeof define && define.amd ? define(e) : f.Stats = e() })(this, function () {
+            var f = function () {
+                function e(a) { c.appendChild(a.dom); return a } function u(a) { for (var d = 0; d < c.children.length; d++)c.children[d].style.display = d === a ? "block" : "none"; l = a } var l = 0, c = document.createElement("div"); c.style.cssText = "position:fixed;top:0;right:0;cursor:pointer;opacity:0.9;z-index:10000"; c.addEventListener("click", function (a) {
+                    a.preventDefault();
+                    u(++l % c.children.length)
+                }, !1); var k = (performance || Date).now(), g = k, a = 0, r = e(new f.Panel("FPS", "#0ff", "#002")), h = e(new f.Panel("MS", "#0f0", "#020")); if (self.performance && self.performance.memory) var t = e(new f.Panel("MB", "#f08", "#201")); u(0); return {
+                    REVISION: 16, dom: c, addPanel: e, showPanel: u, begin: function () { k = (performance || Date).now() }, end: function () {
+                        a++; var c = (performance || Date).now(); h.update(c - k, 200); if (c > g + 1E3 && (r.update(1E3 * a / (c - g), 100), g = c, a = 0, t)) {
+                            var d = performance.memory; t.update(d.usedJSHeapSize /
+                                1048576, d.jsHeapSizeLimit / 1048576)
+                        } return c
+                    }, update: function () { k = this.end() }, domElement: c, setMode: u
+                }
+            }; f.Panel = function (e, f, l) {
+                var c = Infinity, k = 0, g = Math.round, a = g(window.devicePixelRatio || 1), r = 80 * a, h = 48 * a, t = 3 * a, v = 2 * a, d = 3 * a, m = 15 * a, n = 74 * a, p = 30 * a, q = document.createElement("canvas"); q.width = r; q.height = h; q.style.cssText = "width:80px;height:48px"; var b = q.getContext("2d"); b.font = "bold " + 9 * a + "px Helvetica,Arial,sans-serif"; b.textBaseline = "top"; b.fillStyle = l; b.fillRect(0, 0, r, h); b.fillStyle = f; b.fillText(e, t, v);
+                b.fillRect(d, m, n, p); b.fillStyle = l; b.globalAlpha = .9; b.fillRect(d, m, n, p); return { dom: q, update: function (h, w) { c = Math.min(c, h); k = Math.max(k, h); b.fillStyle = l; b.globalAlpha = 1; b.fillRect(0, 0, r, m); b.fillStyle = f; b.fillText(g(h) + " " + e + " (" + g(c) + "-" + g(k) + ")", t, v); b.drawImage(q, d + a, m, n - a, p, d, m, n - a, p); b.fillRect(d + n - a, m, a, p); b.fillStyle = l; b.globalAlpha = .9; b.fillRect(d + n - a, m, a, g((1 - h / w) * p)) } }
+            }; return f
+        });
+
+        var colorPicker2 = document.getElementById('colorPicker2');
+        var opacityRange = document.getElementById('opacityRange');
+        var div = document.getElementById('overlay');
+
+        function updateBackgroundColor() {
+            var color = colorPicker2.value;
+            var opacity = opacityRange.value / 100;
+            div.style.backgroundColor = `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, ${opacity})`;
+        }
+
+        colorPicker2.addEventListener('input', updateBackgroundColor);
+        opacityRange.addEventListener('input', updateBackgroundColor);
+
+
+        let resizableDiv = document.getElementById('overlay');
+        let resizeHandle = document.getElementById('resizeHandle');
+
+        resizeHandle.addEventListener('mousedown', function (e) {
+            e.preventDefault();  // 텍스트 선택 방지
+            window.addEventListener('mousemove', resize, false);
+            window.addEventListener('mouseup', stopResize, false);
+        });
+
+        function resize(e) {
+            resizableDiv.style.width = e.clientX - resizableDiv.offsetLeft + 'px';
+            resizableDiv.style.height = e.clientY - resizableDiv.offsetTop + 'px';
+        }
+
+        function stopResize() {
+            window.removeEventListener('mousemove', resize, false);
+            window.removeEventListener('mouseup', stopResize, false);
+        }
+
+    </script>
+
+
+
+    <script>
+        function toggleContainer() {
+            var contentDiv = document.getElementById("content");
+            var toggleBtn = document.getElementById("toggleButton");
+            if (contentDiv.style.display === "none") {
+                contentDiv.style.display = "block";
+                toggleBtn.innerText = "Minimize";
+            } else {
+                contentDiv.style.display = "none";
+                toggleBtn.innerText = "Restore";
+            }
+        }
+        function detectDeviceType() {
+            const ua = navigator.userAgent;
+            if (/mobile/i.test(ua)) {
+                return 'Mobile';
+            } else if (/tablet|ipad/i.test(ua)) {
+                return 'Tablet';
+            } else {
+                return 'Desktop';
+            }
+        }
+
+        const deviceType = detectDeviceType();
+        document.getElementById('deviceInfo').innerHTML = `접속한 디바이스 타입: ${deviceType}`;
+
+        // import * as THREE from 'three';
+
+        // Set up the scene, camera, and renderer
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1600);
+        camera.position.y = 30;
+        camera.position.z = 10;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x111111); // Light grey background color
+        renderer.shadowMap.enabled = true; // 그림자 맵 활성화
+        document.body.appendChild(renderer.domElement);
+
+        // Stats 설정
+        const stats = new Stats();
+        document.body.appendChild(stats.dom);
+
+        // 키 입력 및 마우스 상태 관리
+        //let isDragging = false;
+        let previousMouseX = 0, previousMouseY = 0;
+        let rotationSpeed = 0.005;
+
+        // Add ambient light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.05); // Soft white light
+        scene.add(ambientLight);
+
+        // const sunLight = new THREE.Vector3(0, 20, -100);
+        // // Add directional light
+        // const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        // directionalLight.position.set(0, 20, -100);
+        // directionalLight.castShadow = true; // 그림자 발생 설정
+        // directionalLight.shadow.mapSize.width = 1024; // 그림자 해상도
+        // directionalLight.shadow.mapSize.height = 1024;
+        // directionalLight.shadow.camera.near = 0.5;
+        // directionalLight.shadow.camera.far = 130;
+        // scene.add(directionalLight);
+
+        // PointLight로 태양 구현
+        const sunLight = new THREE.PointLight(0xffffff, 4000, 1600, 2);
+        const sunPosition = new THREE.Vector3(0, 20, -20); // 태양을 원점에서 x축으로 10 단위 이동
+        sunLight.position.copy(sunPosition); // 태양의 위치
+        sunLight.castShadow = true;  // 그림자 생성 활성화
+        scene.add(sunLight);
+
+        // 태양 구현: 빛을 내는 구
+        const sunGeometry = new THREE.SphereGeometry(4, 32, 32);
+        const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 }); // 빛을 내므로 그림자 필요 없음
+        const sunSphere = new THREE.Mesh(sunGeometry, sunMaterial);
+        sunSphere.position.copy(sunPosition);
+        scene.add(sunSphere);
+
+        // 중력 및 운동 변수
+        //const gravity = -0.02; // 중력 상수
+        var gravity = new THREE.Vector3(); // 중력 벡터
+        let cameraVelocity = new THREE.Vector3(); // 이동 속도 벡터
+        let onGround = true; // 접지 확인
+
+        window.addEventListener('resize', onWindowResize);
+        function onWindowResize() {
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+        }
+        // 키보드 이벤트 리스너
+        const keys = {};
+        const keyActions = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '];
+        const directions = {
+            'moveForward': 'ArrowUp',
+            'moveBackward': 'ArrowDown',
+            'moveLeft': 'ArrowLeft',
+            'moveRight': 'ArrowRight'
+        };
+
+        function setKeyState(key, state) {
+            const inputTextArea = document.getElementById('textinput');
+
+            if (keyActions.includes(key) && document.activeElement !== inputTextArea) {
+                event.preventDefault();
+                keys[key] = state;
+                if (key === ' ' && state === true && onGround) { //'Space' key is set as ' ';
+                    console.log("key = " + key + ", state = " + state + ", onGround = " + onGround);
+                    performJump();
+                }
+            }
+        }
+
+        function performJump() {
+            // 중력의 반대 방향으로 점프 초기화
+            const jumpDirection = gravity.clone().negate().normalize(); // 중력의 반대 방향 벡터
+            const jumpSpeed = 1; // 점프 속도, 이 값을 조절하여 점프 높이 변경 가능
+            cameraVelocity.copy(jumpDirection.multiplyScalar(jumpSpeed));
+            onGround = false; // 접지 상태 해제
+        }
+
+        document.addEventListener('keydown', (event) => setKeyState(event.key, true));
+        document.addEventListener('keyup', (event) => setKeyState(event.key, false));
+
+        Object.entries(directions).forEach(([buttonId, keyName]) => {
+            const button = document.getElementById(buttonId);
+            button.addEventListener('touchstart', (event) => setKeyState(keyName, true));
+            button.addEventListener('touchend', (event) => setKeyState(keyName, false));
+        });
+
+        const planetSizeFactor = 16;
+        const planets = [
+            { name: "Mercury", color: 0xaaaaaa, size: 0.4 * planetSizeFactor, distance: 10 * planetSizeFactor, speed: 0.04, mass: 0.5 },
+            { name: "Venus", color: 0xffdd99, size: 0.9 * planetSizeFactor, distance: 15 * planetSizeFactor, speed: 0.03, mass: 0.8 },
+            { name: "Earth", color: 0x2233ff, size: 1 * planetSizeFactor, distance: 20 * planetSizeFactor, speed: 0.01, mass: 1 },
+            { name: "Mars", color: 0xff4422, size: 0.6 * planetSizeFactor, distance: 30 * planetSizeFactor, speed: 0.018, mass: 0.7 },
+            { name: "Jupiter", color: 0x884411, size: 2.4 * planetSizeFactor, distance: 40 * planetSizeFactor, speed: 0.01, mass: 2.5 },
+            { name: "Saturn", color: 0xffee33, size: 2 * planetSizeFactor, distance: 50 * planetSizeFactor, speed: 0.009, mass: 2 }
+        ];
+
+        function createPlanet(planet) {
+            const geometry = new THREE.SphereGeometry(planet.size, 32, 32);
+            const material = new THREE.MeshPhongMaterial({ color: planet.color });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.x = sunPosition.x + planet.distance; // 태양 위치를 기준으로 행성의 초기 위치 설정
+            mesh.position.y = sunPosition.y;
+            scene.add(mesh);
+
+            // 궤도 생성
+            const orbitGeometry = new THREE.RingGeometry(planet.distance - 0.1, planet.distance + 0.1, 64, 1);
+            const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide });
+            const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
+            orbit.position.copy(sunPosition);
+            orbit.rotation.x = Math.PI / 2;
+            scene.add(orbit);
+
+            return { mesh, name: planet.name, speed: planet.speed, distance: planet.distance, mass: planet.mass, radius: planet.size };
+        }
+
+        const planetObjects = planets.map(createPlanet);
+        function getEarthPosition() {
+            const earth = planetObjects.find(planet => planet.name === "Earth");
+            return earth ? earth.mesh.position.clone() : null;
+        }
+        function getPlanetMass(planets, planetName) {
+            // planets 배열을 순회하여 일치하는 이름의 행성을 찾습니다.
+            const planet = planets.find(p => p.name === planetName);
+            // 행성이 발견되면 질량을 반환합니다.
+            if (planet) {
+                return planet.mass;
+            } else {
+                // 일치하는 행성이 없는 경우, 오류 메시지를 반환하거나 null을 반환할 수 있습니다.
+                console.log("Planet not found");
+                return null;
+            }
+        }
+
+        // 행성 초기화 시 위치와 속도 벡터 추가
+        const gravitationalConstant = 0.5; // 물리학에서 사용하는 중력 상수 (예제에서는 다르게 조정할 수 있음)
+        const sunMass = 1000; // 태양 질량, 적절히 조정 필요
+
+        // 달 생성
+        const moonGeometry = new THREE.SphereGeometry(1, 32, 32);
+        const moonMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+        const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+        var earthPosition = getEarthPosition();
+        moon.position.x = earthPosition.x + 5; // 지구에서 약 384,400 km 떨어진 거리에 설정
+        moon.position.y = earthPosition.y;
+        moon.position.z = earthPosition.z;
+        //moon.position.set(5, 20, -10);
+        scene.add(moon);
+        const moonMass = 0.5;
+        const earthMass = getPlanetMass(planets, "Earth");
+        const moonSpeed = Math.sqrt(gravitationalConstant * earthMass / 5); // 달의 초기 공전 속도
+        const moonVelocity = new THREE.Vector3(0, 0, moonSpeed);
+
+
+        // 마우스 이벤트 리스너
+        let lastX, lastY, isDragging = false;
+
+        function handleStart(x, y) {
+            isDragging = true;
+            lastX = x;
+            lastY = y;
+        }
+
+        function handleMove(x, y) {
+            if (!isDragging) return;
+            const deltaX = x - lastX;
+            const deltaY = y - lastY;
+
+            // 카메라의 현재 전방향과 오른쪽 방향을 구합니다.
+            const cameraDirection = new THREE.Vector3();
+            camera.getWorldDirection(cameraDirection);
+            const cameraRight = new THREE.Vector3().crossVectors(camera.up, cameraDirection).normalize();
+
+            // 마우스 움직임에 따라 회전 축을 설정합니다.
+            const angleX = deltaX * 0.005;  // 좌우 이동
+            const angleY = deltaY * 0.005;  // 상하 이동
+
+            const quaternionX = new THREE.Quaternion().setFromAxisAngle(camera.up, -angleX);  // 카메라 오른쪽 축
+            const quaternionY = new THREE.Quaternion().setFromAxisAngle(cameraRight, angleY);  // 카메라 전방향 축
+
+            camera.quaternion.multiplyQuaternions(quaternionX, camera.quaternion);
+            camera.quaternion.multiplyQuaternions(quaternionY, camera.quaternion);
+
+            lastX = x;
+            lastY = y;
+            //camera.updateProjectionMatrix();
+        }
+
+        function handleEnd() {
+            isDragging = false;
+        }
+
+        // 마우스 이벤트
+        document.addEventListener('mousedown', (event) => {
+            handleStart(event.clientX, event.clientY);
+        });
+        document.addEventListener('mousemove', (event) => {
+            handleMove(event.clientX, event.clientY);
+        });
+        document.addEventListener('mouseup', handleEnd);
+
+        // 터치 이벤트
+        document.addEventListener('touchstart', (event) => {
+            const touch = event.touches[0];
+            handleStart(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (event) => {
+            const touch = event.touches[0];
+            handleMove(touch.clientX, touch.clientY);
+            event.preventDefault(); // 스크롤 방지
+        }, { passive: false });
+
+        document.addEventListener('touchend', handleEnd);
+
+
+        // 충돌을 감지하는 함수
+        function checkCollision(cameraPosition, direction, distance) {
+            const raycaster = new THREE.Raycaster(cameraPosition, direction);
+            const intersects = raycaster.intersectObjects(scene.children.filter(obj => obj !== gridHelper), true); // 격자를 제외한 모든 객체와 충돌 검사
+            if (intersects.length > 0) {
+                console.log(intersects[0].distance);
+            }
+
+            if (intersects.length > 0 && intersects[0].distance < distance) {
+                // 충돌 발생
+                return true;
+            }
+
+            // 충돌 없음
+            return false;
+        }
+
+        // 카메라 이동 업데이트
+        function updateCamera() {
+            const speed = 0.1;
+            const direction = new THREE.Vector3();
+
+            // 현재 카메라의 방향을 기준으로 전진, 후진 벡터 계산
+            camera.getWorldDirection(direction);
+
+            // 새로운 카메라 위치 계산
+            const newPosition = camera.position.clone();
+
+            if (keys['ArrowUp']) newPosition.addScaledVector(direction, speed);
+            if (keys['ArrowDown']) newPosition.addScaledVector(direction, -speed);
+
+            // 좌우 이동을 위해 원래 벡터에 대해 오른쪽 방향으로 90도 회전
+            var direction2 = direction;
+            direction.crossVectors(camera.up, direction).normalize();
+            var rightDirection = direction;
+            if (keys['ArrowLeft']) newPosition.addScaledVector(direction, speed);
+            if (keys['ArrowRight']) newPosition.addScaledVector(direction, -speed);
+
+            // 충돌 검사
+            const collisionDistance = 1; // 충돌을 감지할 거리
+            const directionDifference = newPosition.clone().sub(camera.position);
+            const forwardCollision = checkCollision(camera.position, directionDifference, collisionDistance);
+
+            if (!forwardCollision) {
+                // 충돌이 발생하지 않으면 카메라 위치 업데이트
+                camera.position.copy(newPosition);
+            }
+            // if (keys['Space'] && onGround) {
+            //     velocityY = 0.4; // 점프 초기 속도 설정
+            //     onGround = false; // 공중에 떠있음
+            // }
+
+            camera.updateProjectionMatrix();
+        }
+
+        // Create a cube
+        const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const cubeMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 }); // Green cube
+        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        cube.position.y = 1;
+        cube.castShadow = true; // 그림자 생성 설정
+        cube.receiveShadow = false;
+        scene.add(cube);
+
+
+        const textureLoader = new THREE.TextureLoader();
+
+        function createFloor(width, height, color, position) {
+            const geometry = new THREE.PlaneGeometry(width, height);
+            const material = new THREE.MeshPhongMaterial({ color: color, side: THREE.DoubleSide });
+            const floor = new THREE.Mesh(geometry, material);
+            floor.rotation.x = -Math.PI / 2; // Rotate the plane to be horizontal
+            floor.position.copy(position);
+            floor.receiveShadow = true;
+            scene.add(floor);
+        }
+        //createFloor(200, 200, 0x778899, new THREE.Vector3(0, 0, 0));
+        createFloor(2, 20, 0x556677, new THREE.Vector3(1, 0.02, 0));
+
+        // 격자 무늬를 추가할 GridHelper 생성
+        const gridSize = 200; // 격자의 전체 크기
+        const gridSpacing = 1; // 격자의 간격
+        const gridHelper = new THREE.GridHelper(gridSize, gridSize / gridSpacing, 0x666666, 0x666666); // 첫 번째 매개변수는 전체 크기, 두 번째 매개변수는 격자 개수, 세 번째 매개변수는 격자 색상, 네 번째 매개변수는 선 색상
+        gridHelper.position.y = 0.01; // 바닥 평면과 겹치지 않도록 약간 띄웁니다.
+        scene.add(gridHelper);
+
+
+
+        function createBox(width, height, depth, color, position) {
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const material = new THREE.MeshPhongMaterial({ color: color });
+            const box = new THREE.Mesh(geometry, material);
+            box.position.copy(position);
+            box.castShadow = true;
+            box.receiveShadow = true;
+            scene.add(box);
+        }
+        createBox(10, 4, 0.1, 0xeeeeee, new THREE.Vector3(-5, 2, -10));
+        createBox(8, 4, 0.1, 0xeeeeee, new THREE.Vector3(6, 2, -10));
+        createBox(20, 1, 0.1, 0xeeeeee, new THREE.Vector3(0, 4.5, -10));
+
+        // 텍스처 링크
+        const woodTextureURL = 'https://cdn.pixabay.com/photo/2017/02/07/09/02/wood-2045379_1280.jpg'; // 여기에 실제 텍스처 링크를 입력하세요
+        // 텍스처 로드
+        const woodTexture = textureLoader.load(woodTextureURL);
+        // 문
+        const doorGeometry = new THREE.BoxGeometry(2, 4, 0.1);
+        const doorMaterial = new THREE.MeshPhongMaterial({ map: woodTexture });
+        const door = new THREE.Mesh(doorGeometry, doorMaterial);
+        door.geometry.translate(1, 0, 0);
+        door.position.set(0, 2, -10);
+        // 문의 기하학적 중심을 하단 모서리로 이동
+        scene.add(door);
+        // 문 손잡이
+        const handleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 32);
+        const handleMaterial = new THREE.MeshBasicMaterial({ color: 0x8b4513 });
+        const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+        handle.position.set(1.8, 0, 0);
+        // 문에 손잡이를 붙이기
+        door.add(handle);
+
+        // 문의 초기 상태 설정
+        let doorIsOpen = false;
+        const doorOpenAngle = Math.PI / 2; // 문이 90도까지 열리도록 설정
+        const doorSpeed = 0.03; // 문 열리는 속도
+
+        const starsGeometry = new THREE.BufferGeometry();
+        const starCount = 10000;
+        const positions = new Float32Array(starCount * 3);
+        const colors = new Float32Array(starCount * 3); // 각 별의 색상
+        const radius = 1500;
+        const sizes = new Float32Array(starCount); // 크기 배열
+
+        function generateTemperature() {
+            // 모든 별의 온도를 흰색이 나타나는 범위인 6000K ~ 10000K로 고정
+            const temperature = 4000 + Math.random() * 20000; // 6000K에서 10000K 사이의 균일 분포
+            //const temperature = 8000; // 6000K에서 10000K 사이의 균일 분포
+            return temperature;
+        }
+        function planck(T, lambda) {
+            const h = 6.62607015e-34;  // Planck constant (Joule second)
+            const c = 2.998e8;         // Speed of light (meters per second)
+            const k = 1.380649e-23;    // Boltzmann constant (Joule per kelvin)
+
+            const exponent = (h * c) / (lambda * k * T);
+            const density = (8 * Math.PI * h * c) / (Math.pow(lambda, 5) * (Math.exp(exponent) - 1));
+
+            return density;
+        }
+        function temperatureToColor(T) {
+            const wavelengths = { red: 700e-9, green: 546.1e-9, blue: 435.8e-9 };  // Wavelengths in meters
+            const scale = { red: 255 * 12.0e-8, green: 255 * 2.0e-9, blue: 255 * 8.25e-7 };  // Scale factors for color intensities
+            //const scale = { red: 1e-13, green: 1.5e-13, blue: 2.5e-13 };  // Adjusted scale factors for color intensities
+
+            let rgb = { red: 0, green: 0, blue: 0 };
+            for (const color in wavelengths) {
+                const intensity = planck(T, wavelengths[color]);
+                rgb[color] = Math.round(Math.max(0, Math.min(255, intensity * scale[color])));
+            }
+            return new THREE.Color(rgb.red, rgb.green, rgb.blue);
+        }
+
+
+        for (let i = 0; i < starCount; i++) {
+            const theta = Math.random() * 2 * Math.PI;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.sin(phi) * Math.sin(theta);
+            const z = radius * Math.cos(phi);
+            positions[i * 3] = x;
+            positions[i * 3 + 1] = y;
+            positions[i * 3 + 2] = z;
+
+            const temperature = generateTemperature();
+            const color = temperatureToColor(temperature);
+
+            colors[i * 3] = color.r;
+            colors[i * 3 + 1] = color.g;
+            colors[i * 3 + 2] = color.b;
+
+            sizes[i] = Math.random() * 3 + 0.4; // 별 크기를 0.4에서 2.0까지 랜덤 설정
+        }
+
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        starsGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        const starsMaterial = new THREE.ShaderMaterial({
+            verticeshader: `
+    attribute float size;
+    attribute vec3 color;
+    varying vec3 vColor;
+    void main() {
+        vColor = color;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size * (300.0 / -mvPosition.z);
+        gl_Position = projectionMatrix * mvPosition;
+    }
+    `,
+            fragmentShader: `
+    varying vec3 vColor;
+    void main() {
+        gl_FragColor = vec4(vColor, 1.0);
+    }
+    `,
+            blending: THREE.AdditiveBlending,
+            depthTest: true,
+            transparent: true
+        });
+
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+
+        // // 책장 생성 함수
+        // function createBookshelf() {
+        //     // 책장 전체 오브젝트
+        //     const bookshelf = new THREE.Object3D();
+
+        //     // 책장 바닥
+        //     const shelfGeometry = new THREE.BoxGeometry(10, 1, 5);
+        //     const shelfMaterial = new THREE.MeshBasicMaterial({ color: 0x663300 }); // 갈색
+        //     const shelf = new THREE.Mesh(shelfGeometry, shelfMaterial);
+        //     shelf.position.set(0, -0.5, 0);
+        //     bookshelf.add(shelf);
+
+        //     // 책장 세로 틀 (좌측)
+        //     const verticalFrameGeometry = new THREE.BoxGeometry(1, 10, 1);
+        //     const verticalFrame = new THREE.Mesh(verticalFrameGeometry, shelfMaterial);
+        //     verticalFrame.position.set(-4.5, 4.5, 0);
+        //     bookshelf.add(verticalFrame);
+
+        //     // 책장 세로 틀 (우측)
+        //     const verticalFrame2 = new THREE.Mesh(verticalFrameGeometry, shelfMaterial);
+        //     verticalFrame2.position.set(4.5, 4.5, 0);
+        //     bookshelf.add(verticalFrame2);
+
+        //     // 책 생성 함수
+        //     function createBook(position) {
+        //         const bookGeometry = new THREE.BoxGeometry(1, 1, 2); // 책의 크기는 1x1x2로 가정
+        //         const bookMaterial = new THREE.MeshBasicMaterial({ color: 0x3366ff }); // 파란색
+        //         const book = new THREE.Mesh(bookGeometry, bookMaterial);
+        //         book.position.copy(position);
+        //         return book;
+        //     }
+
+        //     // 책장에 책을 배치
+        //     const numBooksPerShelf = 4; // 각 책장마다 4권의 책을 배치하도록 설정
+        //     const spacing = 2; // 책 간의 간격
+        //     const shelfStartX = -3; // 책장의 시작 X 좌표
+        //     const shelfStartY = 1; // 책장의 시작 Y 좌표
+        //     const shelfStartZ = -1; // 책장의 시작 Z 좌표
+        //     for (let i = 0; i < numBooksPerShelf; i++) {
+        //         const bookX = shelfStartX + i * spacing;
+        //         const bookY = shelfStartY;
+        //         const bookZ = shelfStartZ;
+        //         const book = createBook(new THREE.Vector3(bookX, bookY, bookZ));
+        //         bookshelf.add(book);
+        //     }
+
+        //     return bookshelf;
+        // }
+        // // 책장 생성 및 scene에 추가
+        // const bookshelf = createBookshelf();
+        // scene.add(bookshelf);
+
+        // 마우스 클릭 이벤트
+        window.addEventListener('click', onMouseClick);
+        // 마우스와 raycaster 설정
+        const mouse = new THREE.Vector2();
+        const raycaster = new THREE.Raycaster();
+
+        function onMouseClick(event) {
+            // 마우스 위치 계산 (정규화)
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            camera.updateProjectionMatrix();
+            door.geometry.computeBoundingBox();
+
+            // raycaster 업데이트
+            raycaster.setFromCamera(mouse, camera);
+
+            // 교차되는 객체 계산
+            const intersects = raycaster.intersectObjects(scene.children, true);
+
+            // 교차되는 객체가 있고, 문이라면 동작 실행
+            for (let i = 0; i < intersects.length; i++) {
+                if (intersects[i].object === door) {
+                    console.log('문이 클릭되었습니다!');
+                    // 여기에 원하는 추가 동작을 작성하세요
+                    if (!doorIsOpen) {
+                        openDoor();
+                    } else {
+                        closeDoor();
+                    }
+                }
+            }
+        }
+        function openDoor() {
+            if (door.rotation.y < doorOpenAngle) {
+                door.rotation.y += doorSpeed;
+                requestAnimationFrame(openDoor); // 계속해서 문을 열도록 재귀 호출
+            } else {
+                doorIsOpen = true; // 문이 완전히 열렸음을 표시
+            }
+        }
+
+        function closeDoor() {
+            if (door.rotation.y > 0) {
+                door.rotation.y -= doorSpeed;
+                requestAnimationFrame(closeDoor); // 계속해서 문을 닫도록 재귀 호출
+            } else {
+                doorIsOpen = false; // 문이 완전히 닫혔음을 표시
+            }
+        }
+        //아날로그 시계 생성
+        var canvas2 = document.getElementById('canvas2'),
+            context = canvas2.getContext('2d'),
+            FONT_HEIGHT = 10,
+            MARGIN = 25,
+            HAND_TRUNCATION = canvas2.width / 25,
+            HOUR_HAND_TRUNCATION = canvas2.width / 10,
+            NUMERAL_SPACING = 10,
+            RADIUS = canvas2.width / 2 - MARGIN,
+            HAND_RADIUS = RADIUS + NUMERAL_SPACING;
+
+        function drawcycle() {
+            context.beginPath();
+            context.arc(canvas2.width / 2, canvas2.height / 2, RADIUS, 0, Math.PI * 2, true);
+            context.lineWidth = 5;
+            context.strokeStyle = '#333';
+            context.shadowBlur = 10;
+            context.shadowColor = '#333';
+            context.stroke();
+        }
+
+        function drawNumerals() {
+            var numerals = ['III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'I', 'II'],
+                angle = 0,
+                numeralWidth = 0;
+            numerals.forEach(function (numeral) {
+                angle = Math.PI / 6 * (numerals.indexOf(numeral));
+                numeralWidth = context.measureText(numeral).width;
+                context.font = FONT_HEIGHT + 'px Arial';
+                context.fillStyle = '#000000';
+                context.fillText(numeral, canvas2.width / 2 + Math.cos(angle) * (HAND_RADIUS) - numeralWidth / 2, canvas2.height / 2 + Math.sin(angle) * (HAND_RADIUS) + FONT_HEIGHT / 3);
+            });
+        }
+
+        function drawCenter() {
+            context.beginPath();
+            context.arc(canvas2.width / 2, canvas2.height / 2, 5, 0, Math.PI * 2, true);
+            context.fillStyle = '#333';
+            context.shadowBlur = 0;
+            context.fill();
+        }
+
+        function drawHand(loc, isHour, thickness) {
+            var angle = (Math.PI * 2) * (loc / 60) - Math.PI / 2,
+                handRadius = isHour ? RADIUS - HAND_TRUNCATION - HOUR_HAND_TRUNCATION : RADIUS - HAND_TRUNCATION;
+            context.beginPath();
+            context.moveTo(canvas2.width / 2, canvas2.height / 2);
+            context.lineTo(canvas2.width / 2 + Math.cos(angle) * handRadius, canvas2.height / 2 + Math.sin(angle) * handRadius);
+            context.lineWidth = thickness;
+            context.lineCap = "round";
+            context.strokeStyle = '#000000';
+            context.shadowBlur = 10;
+            context.shadowColor = '#333';
+            context.stroke();
+        }
+
+        function drawHands() {
+            var date = new Date,
+                hour = date.getHours();
+            hour = hour > 12 ? hour - 12 : hour;
+            drawHand(hour * 5 + (date.getMinutes() / 60) * 5, true, 8);
+            drawHand(date.getMinutes(), false, 5);
+            drawHand(date.getSeconds(), false, 2);
+        }
+
+        function drawClock() {
+            context.clearRect(0, 0, canvas2.width, canvas2.height);
+            context.fillStyle = '#dddddd';
+            context.fillRect(0, 0, canvas2.width, canvas2.height);
+            drawcycle();
+            drawCenter();
+            drawHands();
+            drawNumerals();
+        }
+
+        setInterval(drawClock, 1000);
+
+        const texture2 = new THREE.CanvasTexture(canvas2);
+
+        // Create a plane and add it to the scene
+        const planeGeometry = new THREE.PlaneGeometry(2, 2);
+        const material = new THREE.MeshBasicMaterial({ map: texture2, color: 0xffffff });
+        const plane = new THREE.Mesh(planeGeometry, material);
+        plane.position.x = -9;
+        plane.position.y = 3;
+        plane.position.z = -9.899;
+        scene.add(plane);
+        // function getEarthPosition() {
+        //     const earth = planetObjects.find(planet => planet.name === "Earth");
+        //     return earth ? earth.mesh.position.clone() : null;
+        // }
+        function updateGravity() {
+            // 중력 벡터를 계산: 카메라 위치에서 구면 중심을 빼고, 그 벡터를 정규화
+            earthPosition = getEarthPosition();
+            if (earthPosition) {
+                //console.log("Earth's position vector:", earthPosition);
+            } else {
+                console.log("Earth not found");
+            }
+            gravity.copy(camera.position).sub(earthPosition).normalize().multiplyScalar(-0.8);
+        }
+
+        function initializePlanets() {
+            planetObjects.forEach(planet => {
+                // 초기 위치 설정
+                planet.position = new THREE.Vector3(sunPosition.x + planet.distance, sunPosition.y, sunPosition.z);
+                // 초기 속도 설정: 편의상 y축을 사용하지 않고, xy평면의 z축 방향으로 속도를 부여
+                let initialSpeed = Math.sqrt(gravitationalConstant * sunMass / planet.distance); // 원운동에 필요한 초기 속도
+                planet.velocity = new THREE.Vector3(0, 0, initialSpeed);
+                planet.mesh.position.copy(planet.position);
+            });
+        }
+        // 업데이트 함수
+        function updatePlanets() {
+            const deltaTime = 0.016; // 프레임당 시간 (대략 60FPS)
+            planetObjects.forEach(planet => {
+                // 중력 벡터 계산
+                let forceDirection = new THREE.Vector3().subVectors(sunPosition, planet.position);
+                let distanceSquared = forceDirection.lengthSq();
+                let strength = gravitationalConstant * ((sunMass * planet.mass) / distanceSquared); // 두 천체 질량 곱이 중력 계산에 포함됨
+                forceDirection.normalize().multiplyScalar(strength);
+
+                // 속도 업데이트
+                planet.velocity.add(forceDirection.multiplyScalar(deltaTime));
+
+                // 위치 업데이트
+                planet.position.add(planet.velocity.clone().multiplyScalar(deltaTime));
+                planet.mesh.position.copy(planet.position);
+
+                // 행성 자체 회전
+                planet.mesh.rotation.y += 0.05;
+            });
+        }
+        initializePlanets(); // 행성 초기화
+        function updateMoon() {
+            // 지구와 달 사이의 거리 벡터
+            // 시간 간격
+            const deltaTime = 0.016; // 가정, 실제 사용 시 적절히 조절 필요
+
+            const forceDirection = new THREE.Vector3().subVectors(getEarthPosition(), moon.position);
+            const distanceSquared = forceDirection.lengthSq();
+            const forceMagnitude = gravitationalConstant * (earthMass * moonMass) / distanceSquared;
+
+            // 중력 벡터
+            const earthForce = forceDirection.clone().normalize().multiplyScalar(forceMagnitude / earthMass);
+            const moonForce = forceDirection.clone().normalize().multiplyScalar(-forceMagnitude / moonMass);
+
+            // 속도 업데이트
+            moonVelocity.add(moonForce.multiplyScalar(deltaTime));
+
+            // 위치 업데이트
+            moon.position.add(moonVelocity.clone().multiplyScalar(deltaTime));
+
+        }
+        function animate() {
+            updateGravity();
+            //drawClock();
+            texture2.needsUpdate = true;
+            // Rotate the cube
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+
+            // gravity = calculateGravity();
+            // cameraVelocity.add(gravity);
+            // camera.position.add(cameraVelocity);
+            // // 중력을 속도에 적용
+            const delta = 0.03; // 프레임 당 시간 (대략 60 FPS에서 1/60)
+            cameraVelocity.addScaledVector(gravity, delta); // 속도에 중력 적용
+            moonVelocity.addScaledVector(gravity, delta);
+            camera.position.addScaledVector(cameraVelocity, delta); // 카메라 위치 업데이트
+            moon.position.addScaledVector(moonVelocity, delta);
+            earthCenter = getEarthPosition();
+            const distanceFromCenter = camera.position.distanceTo(earthCenter);
+            if (distanceFromCenter < planetSizeFactor + 0.3) {
+                const correctionVector = new THREE.Vector3().subVectors(camera.position, earthCenter).normalize().multiplyScalar(planetSizeFactor + 0.3);
+                camera.position.copy(earthCenter).add(correctionVector);
+                cameraVelocity.set(0, 0, 0);
+                onGround = true;
+            }
+            updateCamera();
+            updatePlanets(); // 행성 위치 및 속도 업데이트
+            //updateMoon();
+            // Stats 업데이트
+            stats.update();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+
+    <script>
+        let user = 0, vertex = 0, ch = 0;
+        function updateClock() {
+            document.getElementById("clock").textContent = new Date().toLocaleTimeString();
+        }
+        function applyStyle(styleType) {
+            document.execCommand(styleType, false, null);
+        }
+        function changeColor() {
+            var color = document.getElementById('colorPicker').value;
+            document.execCommand('foreColor', false, color);
+        }
+
+        function changeFontSize() {
+            var size = document.getElementById('fontSizePicker').value;
+            document.execCommand('fontSize', false, size);
+        }
+
+        function insertLink() {
+            const url = prompt("Enter the URL", "http://");
+            if (url) {
+                document.execCommand('createLink', false, url);
+            }
+        }
+
+        function toggleHTMLView() {
+            const editor = document.getElementById('textinput');
+            const htmlView = document.getElementById('htmlView');
+            if (htmlView.style.display === 'none') {
+                htmlView.textContent = editor.innerHTML;
+                htmlView.style.display = 'block';
+                editor.style.display = 'none';
+            } else {
+                editor.innerHTML = htmlView.textContent;
+                editor.style.display = 'block';
+                htmlView.style.display = 'none';
+            }
+        }
+        function sendTextToServer(textinput) {
+            //const textinput = document.getElementById("textinput").value;
+            const fileContent = document.getElementById('fileContent').value;
+            const additionalContent = textinput === "editHtml" ? `\t${fileContent}` : (textinput === "editcppl" ? `\t${fileContent}` : '');
+            const text = `${user}\t${vertex}\t${ch}\t${textinput}${additionalContent}`;
+            document.getElementById('contents').textContent = textinput;
+            const xhr = new XMLHttpRequest();
+            //xhr.open('POST', 'http://35.225.102.250:8080', true);
+            xhr.open('POST', 'https://cuddly-space-trout-wpw5q79q7j9hgvj5-8080.app.github.dev/', true);
+            xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const res = xhr.responseText.split('\t');
+                    updateUI(res);
+                } else {
+                    console.error('Error:', xhr.status, xhr.statusText);
+                    document.getElementById("contents").textContent += `An error occurred: ${xhr.status} ${xhr.statusText}`;
+                }
+            };
+            xhr.onerror = function () {
+                console.error('Request failed.');
+                document.getElementById('contents').textContent += '\r\nRequest failed.';
+            };
+            xhr.send(text);
+        }
+        function updateUI(res) {
+            user = res[0];
+            vertex = res[1];
+            ch = res[2];
+            const contents = document.getElementById("contents");
+            const info = document.getElementById("info2");
+            if (res[5] === "html") {
+                document.getElementById('fileContent').value = res[3];
+            } else if (res[5] === "cpp") {
+                document.getElementById('fileContent').value = res[3];
+            } else {
+                res[3].replace(/\n/g, '<br/>');
+                contents.innerHTML = res[3];
+            }
+            info.innerHTML = `user: ${res[0]}, vertex: ${res[1]}/${res[4]}, ch: ${res[2]}/${res[10]}<br> Last: ${res[6]}, Create: ${res[7]}<br> copy: ${res[11]}-${res[12]}`;
+            document.getElementById("textinput").innerHTML = res[5]; //innerHTML로 받아야 함!!
+            document.getElementById('Log').innerText = res[8];
+            document.getElementById('info').innerText = res[9];
+            console.log(res);
+            if (document.getElementById("textinput").textContent == '98') {
+                document.getElementById('Button_Review').focus();
+                console.log('Review button clicked.');
+            } else {
+                document.getElementById("textinput").focus();
+                console.log('focused on inputtext.');
+            }
+        }
+        function saveFileChanges() {
+            if (document.getElementById("textinput").textContent === "html") {
+                document.getElementById("textinput").textContent = "editHtml";
+            } else {
+                document.getElementById("textinput").textContent = "editcpp";
+            }
+            sendTextToServer();
+            //location.reload();
+        }
+        // 중복 확인 버튼 클릭 시 이벤트 핸들러 등록
+        document.getElementById('checkDuplicate').addEventListener('click', function () {
+            checkDuplicate();
+        });
+        function checkDuplicate() {
+            var username = document.getElementById('newUsername').value;
+
+            // AJAX 요청을 보내기 위한 XMLHttpRequest 객체 생성
+            var xhr = new XMLHttpRequest();
+
+            // 요청 완료 후 처리할 함수 등록
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        // 요청이 성공하면 응답을 처리
+                        var response = xhr.responseText;
+                        if (response === "Username available") {
+                            document.getElementById('usernameValidationMessage').innerText = "Username is available";
+                            document.getElementById('signupButton').disabled = false; // 회원가입 버튼 활성화
+                        } else {
+                            document.getElementById('usernameValidationMessage').innerText = "Username is already taken";
+                        }
+                    } else {
+                        // 요청이 실패하면 오류 메시지를 표시
+                        console.error('Request failed: ', xhr.status);
+                    }
+                }
+            };
+
+            // 서버로 요청을 보냄
+            xhr.open('GET', '/checkDuplicate?username=' + encodeURIComponent(username), true);
+            xhr.send();
+        }
+
+        window.onload = function () {
+            document.getElementById('Log').innerText = 'Page is fully loaded.';
+            updateClock();
+            setInterval(updateClock, 1000);
+            sendTextToServer();
+            document.getElementById('signupForm').style.display = 'none';
+        }
+        document.getElementById("loginForm").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent the form from submitting
+
+            var formData = new FormData(this); // Collect form data
+
+            fetch("/login", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    // Handle successful login response
+                    const res = data.split('\t');
+                    updateUI(res);
+                    // Hide the login form
+                    document.getElementById("loginForm").style.display = "none";
+                    //console.log(data); // Do whatever processing you need with the response data
+                })
+                .catch(error => {
+                    // Handle error
+                    console.error('There was a problem with the fetch operation:', error);
+                });
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('showSignUpForm').addEventListener('click', function () {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('signupForm').style.display = 'block';
+            });
+            var coll = document.getElementsByClassName("collapsible");
+            for (var i = 0; i < coll.length; i++) {
+                coll[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    var content = this.nextElementSibling;
+                    if (content.style.display === "block") {
+                        content.style.display = "none";
+                    } else {
+                        content.style.display = "block";
+                    }
+                });
+            }
+        });
+
+        function validatePassword() {
+            var password = document.getElementById("newPassword").value;
+            var confirmPassword = document.getElementById("confirmPassword").value;
+            console.log(password + ", " + confirmPassword);
+            if (password != confirmPassword) {
+                alert("Passwords do not match.");
+                return false;
+            }
+            return true;
+        }
+        function home() {
+            const signupForm = document.getElementById('signupForm');
+            if (signupForm.style.display == 'block') {
+                document.getElementById('loginForm').style.display = 'block';
+                signupForm.style.display = 'none';
+            } else {
+                sendTextToServer('start');
+            }
+        }
+        /* eslint no-console:0 consistent-return:0 */
+        'use strict';
+
+        //         const vs = `#version 300 es
+        // in vec4 a_position;
+        // in vec2 a_texcoord;
+        // in vec3 a_normal;
+
+        // uniform mat4 u_projection;
+        // uniform mat4 u_view;
+        // uniform mat4 u_world;
+        // uniform mat4 u_textureMatrix;
+
+        // out vec2 v_texcoord;
+        // out vec4 v_projectedTexcoord;
+        // out vec3 v_normal;
+
+        // void main() {
+        //   // Multiply the position by the matrix.
+        //   vec4 worldPosition = u_world * a_position;
+
+        //   gl_Position = u_projection * u_view * worldPosition;
+
+        //   // Pass the texture coord to the fragment shader.
+        //   v_texcoord = a_texcoord;
+
+        //   v_projectedTexcoord = u_textureMatrix * worldPosition;
+
+        //   // orient the normals and pass to the fragment shader
+        //   v_normal = mat3(u_world) * a_normal;
+        // }
+        // `;
+        //         const fs = `#version 300 es
+        // precision highp float;
+
+        // // Passed in from the vertex shader.
+        // in vec2 v_texcoord;
+        // in vec4 v_projectedTexcoord;
+        // in vec3 v_normal;
+
+        // uniform vec4 u_colorMult;
+        // uniform sampler2D u_texture;
+        // uniform sampler2D u_projectedTexture;
+        // uniform float u_bias;
+        // uniform vec3 u_reverseLightDirection;
+
+        // out vec4 outColor;
+
+        // void main() {
+        //   // because v_normal is a varying it's interpolated
+        //   // so it will not be a unit vector. Normalizing it
+        //   // will make it a unit vector again
+        //   vec3 normal = normalize(v_normal);
+
+        //   float light = dot(normal, u_reverseLightDirection);
+
+        //   vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
+        //   float currentDepth = projectedTexcoord.z + u_bias;
+
+        //   bool inRange =
+        //       projectedTexcoord.x >= 0.0 &&
+        //       projectedTexcoord.x <= 1.0 &&
+        //       projectedTexcoord.y >= 0.0 &&
+        //       projectedTexcoord.y <= 1.0;
+
+        //   // the 'r' channel has the depth values
+        //   float projectedDepth = texture(u_projectedTexture, projectedTexcoord.xy).r;
+        //   float shadowLight = (inRange && projectedDepth <= currentDepth) ? 0.0 : 1.0;
+
+        //   vec4 texColor = texture(u_texture, v_texcoord) * u_colorMult;
+        //   outColor = vec4(
+        //       texColor.rgb * light * shadowLight,
+        //       texColor.a);
+        // }
+        // `;
+        //         const colorVS = `#version 300 es
+        // in vec4 a_position;
+
+        // uniform mat4 u_projection;
+        // uniform mat4 u_view;
+        // uniform mat4 u_world;
+
+        // void main() {
+        //   // Multiply the position by the matrices.
+        //   gl_Position = u_projection * u_view * u_world * a_position;
+        // }
+        // `;
+        //         const colorFS = `#version 300 es
+        // precision highp float;
+
+        // uniform vec4 u_color;
+
+        // out vec4 outColor;
+
+        // void main() {
+        //   outColor = u_color;
+        // }
+        // `;
+
+        //         function main() {
+        //             // Get A WebGL context
+        //             /** @type {HTMLCanvasElement} */
+        //             const canvas = document.querySelector('#canvas');
+        //             const gl = canvas.getContext('webgl2');
+        //             if (!gl) {
+        //                 return;
+        //             }
+
+        //             // setup GLSL programs
+        //             // note: Since we're going to use the same VAO with multiple
+        //             // shader programs we need to make sure all programs use the
+        //             // same attribute locations. There are 2 ways to do that.
+        //             // (1) assign them in GLSL. (2) assign them by calling `gl.bindAttribLocation`
+        //             // before linking. We're using method 2 as it's more. D.R.Y.
+        //             const programOptions = {
+        //                 attribLocations: {
+        //                     'a_position': 0,
+        //                     'a_normal': 1,
+        //                     'a_texcoord': 2,
+        //                     'a_color': 3,
+        //                 },
+        //             };
+        //             const textureProgramInfo = twgl.createProgramInfo(gl, [vs, fs], programOptions);
+        //             const colorProgramInfo = twgl.createProgramInfo(gl, [colorVS, colorFS], programOptions);
+
+        //             // Tell the twgl to match position with a_position,
+        //             // normal with a_normal etc..
+        //             twgl.setAttributePrefix("a_");
+
+        //             const sphereBufferInfo = flattenedPrimitives.createSphereBufferInfo(
+        //                 gl,
+        //                 1,  // radius
+        //                 32, // subdivisions around
+        //                 24, // subdivisions down
+        //             );
+        //             const planeBufferInfo = twgl.primitives.createPlaneBufferInfo(
+        //                 gl,
+        //                 40,  // width
+        //                 40,  // height
+        //                 1,   // subdivisions across
+        //                 1,   // subdivisions down
+        //             );
+        //             const cubeBufferInfo = twgl.primitives.createCubeBufferInfo(gl, 2,);
+        //             var coneBufferInfo = flattenedPrimitives.createTruncatedConeBufferInfo(gl, 1, 0, 2, 12, 1, true, false);
+        //             const cubeLinesBufferInfo = twgl.createBufferInfoFromArrays(gl, {
+        //                 position: [
+        //                     -1, -1, -1,
+        //                     1, -1, -1,
+        //                     -1, 1, -1,
+        //                     1, 1, -1,
+        //                     -1, -1, 1,
+        //                     1, -1, 1,
+        //                     -1, 1, 1,
+        //                     1, 1, 1,
+        //                 ],
+        //                 indices: [
+        //                     0, 1,
+        //                     1, 3,
+        //                     3, 2,
+        //                     2, 0,
+
+        //                     4, 5,
+        //                     5, 7,
+        //                     7, 6,
+        //                     6, 4,
+
+        //                     0, 4,
+        //                     1, 5,
+        //                     3, 7,
+        //                     2, 6,
+        //                 ],
+        //             });
+        //             const wallBufferInfo = twgl.createBufferInfoFromArrays(gl, {
+        //                 position: [
+        //                     -10, 0, -10,  // v0
+        //                     10, 0, -10,   // v1
+        //                     10, 5, -10,    // v2
+        //                     -10, 5, -10,   // v3
+        //                     -10, 0, -11,   // v4
+        //                     10, 0, -11,    // v5
+        //                     10, 5, -11,     // v6
+        //                     -10, 5, -11     // v7
+        //                 ],
+        //                 indices: [
+        //                     0, 1, 2, 0, 2, 3,  // 앞면 (v0-v1-v2, v0-v2-v3)
+        //                     1, 5, 6, 1, 6, 2,  // 오른쪽면 (v1-v5-v6, v1-v6-v2)
+        //                     5, 4, 7, 5, 7, 6,  // 뒷면 (v5-v4-v7, v5-v7-v6)
+        //                     4, 0, 3, 4, 3, 7,  // 왼쪽면 (v4-v0-v3, v4-v3-v7)
+        //                     3, 2, 6, 3, 6, 7,  // 윗면 (v3-v2-v6, v3-v6-v7)
+        //                     4, 5, 1, 4, 1, 0   // 밑면 (v4-v5-v1, v4-v1-v0)
+        //                 ],
+        //             });
+        //             const canvas2BufferInfo = twgl.createBufferInfoFromArrays(gl, {
+        //                 position: [
+        //                     -10, 0, -10,  // v0
+        //                     -5, 0, -10,   // v1
+        //                     -5, 5, -10,    // v2
+        //                     -10, 5, -10,   // v3
+        //                 ],
+        //                 indices: [
+        //                     0, 1, 2, 0, 2, 3,  // 앞면 (v0-v1-v2, v0-v2-v3)
+        //                 ],
+        //             });
+
+        //             const sphereVAO = twgl.createVAOFromBufferInfo(gl, textureProgramInfo, sphereBufferInfo);
+        //             const planeVAO = twgl.createVAOFromBufferInfo(gl, textureProgramInfo, planeBufferInfo);
+        //             const cubeVAO = twgl.createVAOFromBufferInfo(gl, textureProgramInfo, cubeBufferInfo);
+        //             var coneVAO = twgl.createVAOFromBufferInfo(gl, textureProgramInfo, coneBufferInfo);
+        //             const wallVAO = twgl.createVAOFromBufferInfo(gl, textureProgramInfo, wallBufferInfo);
+        //             const canvas2VAO = twgl.createVAOFromBufferInfo(gl, textureProgramInfo, canvas2BufferInfo);
+
+        //             const cubeLinesVAO = twgl.createVAOFromBufferInfo(gl, colorProgramInfo, cubeLinesBufferInfo);
+        //             // make a 8x8 checkerboard texture
+        //             const checkerboardTexture = gl.createTexture();
+        //             gl.bindTexture(gl.TEXTURE_2D, checkerboardTexture);
+        //             gl.texImage2D(
+        //                 gl.TEXTURE_2D,
+        //                 0,                // mip level
+        //                 gl.LUMINANCE,     // internal format
+        //                 8,                // width
+        //                 8,                // height
+        //                 0,                // border
+        //                 gl.LUMINANCE,     // format
+        //                 gl.UNSIGNED_BYTE, // type
+        //                 new Uint8Array([  // data
+        //                     0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
+        //                     0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
+        //                     0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
+        //                     0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
+        //                     0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
+        //                     0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
+        //                     0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
+        //                     0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
+        //                 ]));
+        //             gl.generateMipmap(gl.TEXTURE_2D);
+        //             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        //             // // 캔버스 요소에서 이미지 데이터 가져오기
+        //             // canvas2.getContext('2d').willReadFrequently = true;
+        //             // var imageData = canvas2.getContext('2d').getImageData(0, 0, canvas2.width, canvas2.height);
+        //             // var canvas2Texture = gl.createTexture();
+        //             // gl.bindTexture(gl.TEXTURE_2D, canvas2Texture);
+
+        //             var canvas2Texture = gl.createTexture();
+        //             // 이미지 데이터를 WebGL 텍스처로 업로드
+        //             // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
+        //             // // Set the parameters so we don't need mips and so we're not filtering
+        //             // // and we don't repeat at the edges
+        //             // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        //             // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        //             // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        //             // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        //             // Set up the canvas and its texture
+        //             const myCanvas = document.getElementById('myCanvas');
+        //             myCanvas.width = 256;
+        //             myCanvas.height = 256;
+        //             const myCtx = myCanvas.getContext('2d');
+
+        //             let hue = 0;
+        //             function updateCanvas() {
+        //                 hue = (hue + 1) % 360;
+        //                 myCtx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+        //                 myCtx.fillRect(0, 0, myCanvas.width, myCanvas.height);
+        //             }
+        //             const textureMy = new THREE.CanvasTexture(myCanvas);
+
+        //             const depthTexture = gl.createTexture();
+        //             const depthTextureSize = 1024;
+        //             gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+        //             gl.texImage2D(
+        //                 gl.TEXTURE_2D,      // target
+        //                 0,                  // mip level
+        //                 gl.DEPTH_COMPONENT32F, // internal format
+        //                 depthTextureSize,   // width
+        //                 depthTextureSize,   // height
+        //                 0,                  // border
+        //                 gl.DEPTH_COMPONENT, // format
+        //                 gl.FLOAT,           // type
+        //                 null);              // data
+        //             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        //             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        //             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        //             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        //             const depthFramebuffer = gl.createFramebuffer();
+        //             gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
+        //             gl.framebufferTexture2D(
+        //                 gl.FRAMEBUFFER,       // target
+        //                 gl.DEPTH_ATTACHMENT,  // attachment point
+        //                 gl.TEXTURE_2D,        // texture target
+        //                 depthTexture,         // texture
+        //                 0);                   // mip level
+
+        //             function degToRad(d) {
+        //                 return d * Math.PI / 180;
+        //             }
+
+        //             // Compute the camera's matrix using look at.
+        //             var cameraPosition = [6, 6, 20];
+        //             var cameraToX = 6;
+        //             var cameraToY = 6;
+        //             var cameraToZ = 20 - 1;
+        //             var cameraDirection = [0, 0, -1];
+        //             let yaw = -90.0; // Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right
+        //             let pitch = 0.0;
+        //             let lastX = canvas.width / 2, lastY = canvas.height / 2;
+        //             let isDragging = false;
+        //             const up = [0, 1, 0];
+        //             // 카메라 오른쪽 벡터 (cameraDirection과 up 벡터를 외적하여 계산)
+        //             var cameraRight = m4.cross(cameraDirection, up);
+
+        //             const settings = {
+        //                 posX: 2.5,
+        //                 posY: 40,
+        //                 posZ: 7,
+        //                 targetX: 3.5,
+        //                 targetY: 0,
+        //                 targetZ: 3.5,
+        //                 projWidth: 40,
+        //                 projHeight: 40,
+        //                 perspective: false,
+        //                 fieldOfView: 120,
+        //                 bias: -0.006,
+        //             };
+        //             function updateCameraDirection(x, y) {
+        //                 const sensitivity = 0.5; // Change this value to make it more or less sensitive
+        //                 const xOffset = (x - lastX) * sensitivity;
+        //                 const yOffset = (lastY - y) * sensitivity; // Reversed since y-coordinates range from bottom to top
+
+        //                 lastX = x;
+        //                 lastY = y;
+
+        //                 yaw += xOffset;
+        //                 pitch += yOffset;
+
+        //                 // Constrain the pitch so the screen doesn't flip
+        //                 pitch = Math.max(-89.0, Math.min(89.0, pitch));
+
+        //                 // Calculate the new Front vector
+        //                 cameraDirection[0] = Math.cos(degToRad(yaw)) * Math.cos(degToRad(pitch));
+        //                 cameraDirection[1] = Math.sin(degToRad(pitch));
+        //                 cameraDirection[2] = Math.sin(degToRad(yaw)) * Math.cos(degToRad(pitch));
+        //                 cameraDirection = m4.normalize(cameraDirection);
+        //             }
+        //             // 카메라 속도 (초당 이동 거리)
+        //             const cameraSpeed = 0.2;
+        //             // 카메라 방향 벡터 정규화
+        //             var normalizedCameraDirection = m4.normalize(cameraDirection);
+
+        //             // 이동 벡터 계산
+        //             const moveVector = [0, 0, 0];
+        //             // 키보드 이벤트 리스너 등록
+        //             document.addEventListener('keydown', function (event) {
+        //                 switch (event.key) {
+        //                     case 'ArrowUp':
+        //                         cameraPosition[0] += normalizedCameraDirection[0] * cameraSpeed;
+        //                         cameraPosition[1] += normalizedCameraDirection[1] * cameraSpeed;
+        //                         cameraPosition[2] += normalizedCameraDirection[2] * cameraSpeed;
+        //                         break;
+        //                     case 'ArrowDown':
+        //                         cameraPosition[0] -= normalizedCameraDirection[0] * cameraSpeed;
+        //                         cameraPosition[1] -= normalizedCameraDirection[1] * cameraSpeed;
+        //                         cameraPosition[2] -= normalizedCameraDirection[2] * cameraSpeed;
+        //                         break;
+        //                     case 'ArrowLeft':
+        //                         cameraPosition[0] -= cameraRight[0] * cameraSpeed;
+        //                         cameraPosition[1] -= cameraRight[1] * cameraSpeed;
+        //                         cameraPosition[2] -= cameraRight[2] * cameraSpeed;
+        //                         break;
+        //                     case 'ArrowRight':
+        //                         cameraPosition[0] += cameraRight[0] * cameraSpeed;
+        //                         cameraPosition[1] += cameraRight[1] * cameraSpeed;
+        //                         cameraPosition[2] += cameraRight[2] * cameraSpeed;
+        //                         break;
+        //                 }
+        //                 console.log(`Updated Camera Position: X=${cameraPosition[0]}, Z=${cameraPosition[2]}`);
+        //             });
+        //             canvas.addEventListener('mousedown', function (e) {
+        //                 isDragging = true;
+        //                 lastX = e.clientX;
+        //                 lastY = e.clientY;
+        //             });
+        //             canvas.addEventListener('mouseup', function (e) {
+        //                 isDragging = false;
+        //             });
+        //             document.addEventListener('mouseup', function (e) {
+        //                 isDragging = false;
+        //             });
+        //             canvas.addEventListener('mousemove', function (e) {
+        //                 var loc = windowToCanvas(canvas, e.clientX, e.clientY);
+        //                 document.getElementById('readout').innerText = '(' + loc.x.toFixed(0) + ', ' + loc.y.toFixed(0) + ')';
+        //                 if (isDragging) {
+        //                     updateCameraDirection(e.clientX, e.clientY);
+        //                 }
+        //             });
+        //             webglLessonsUI.setupUI(document.querySelector('#ui'), settings, [
+        //                 // { type: 'slider', key: 'cameraX', min: -10, max: 10, change: render, precision: 2, step: 0.001, },
+        //                 // { type: 'slider', key: 'cameraY', min: 1, max: 20, change: render, precision: 2, step: 0.001, },
+        //                 { type: 'slider', key: 'posX', min: -10, max: 10, change: render, precision: 2, step: 0.001, },
+        //                 { type: 'slider', key: 'posY', min: 1, max: 20, change: render, precision: 2, step: 0.001, },
+        //                 { type: 'slider', key: 'posZ', min: 1, max: 20, change: render, precision: 2, step: 0.001, },
+        //                 { type: 'slider', key: 'targetX', min: -10, max: 10, change: render, precision: 2, step: 0.001, },
+        //                 { type: 'slider', key: 'targetY', min: 0, max: 20, change: render, precision: 2, step: 0.001, },
+        //                 { type: 'slider', key: 'targetZ', min: -10, max: 20, change: render, precision: 2, step: 0.001, },
+        //                 { type: 'slider', key: 'projWidth', min: 0, max: 200, change: render, precision: 4, step: 0.002, },
+        //                 { type: 'slider', key: 'projHeight', min: 0, max: 200, change: render, precision: 4, step: 0.002, },
+        //                 { type: 'checkbox', key: 'perspective', change: render, },
+        //                 { type: 'slider', key: 'fieldOfView', min: 1, max: 179, change: render, },
+        //                 { type: 'slider', key: 'bias', min: -0.01, max: 0.00001, change: render, precision: 4, step: 0.0001, },
+        //             ]);
+
+        //             const fieldOfViewRadians = degToRad(60);
+
+        //             // Uniforms for each object.
+        //             const planeUniforms = {
+        //                 u_colorMult: [0.5, 0.5, 1, 1],  // lightblue
+        //                 u_color: [1, 0, 0, 1],
+        //                 u_texture: checkerboardTexture,
+        //                 u_world: m4.translation(0, 0, 0),
+        //             };
+        //             const sphereUniforms = {
+        //                 u_colorMult: [1, 0.5, 0.5, 1],  // pink
+        //                 u_color: [0, 0, 1, 1],
+        //                 u_texture: checkerboardTexture,
+        //                 u_world: m4.translation(2, 3, 4),
+        //             };
+        //             const cubeUniforms = {
+        //                 u_colorMult: [0.5, 1, 0.2, 0.9],  // lightgreen
+        //                 u_color: [0, 0, 1, 1],
+        //                 u_texture: checkerboardTexture,
+        //                 u_world: m4.translation(3, 1, 0),
+        //             };
+        //             var coneUniforms = {
+        //                 u_colorMult: [0.5, 1, 0.2, 0.9],  // lightgreen
+        //                 u_color: [1, 0, 1, 1],
+        //                 //u_texture: checkerboardTexture,
+        //                 u_world: m4.translation(3, 0, 5),
+        //             };
+        //             var wallUniforms = {
+        //                 u_colorMult: [0.5, 1, 0.2, 0.5],  // lightgreen
+        //                 u_color: [0, 0.5, 1, 1],
+        //                 u_texture: checkerboardTexture,
+        //                 u_world: m4.translation(0, 0, 0),
+        //             };
+        //             var canvas2Uniforms = {
+        //                 u_colorMult: [0.5, 1, 0.2, 0.5],  // lightgreen
+        //                 u_color: [0, 0.5, 1, 1],
+        //                 u_texture: textureMy,
+        //                 u_world: m4.translation(0, 0, 2),
+        //             };
+        //             var objectsToDraw = [
+        //                 {
+        //                     programInfo: textureProgramInfo,
+        //                     bufferInfo: planeBufferInfo,
+        //                     vertexArray: planeVAO,
+        //                     uniforms: planeUniforms,
+        //                 },
+        //                 {
+        //                     programInfo: textureProgramInfo,
+        //                     bufferInfo: sphereBufferInfo,
+        //                     vertexArray: sphereVAO,
+        //                     uniforms: sphereUniforms,
+        //                 },
+        //                 {
+        //                     programInfo: textureProgramInfo,
+        //                     bufferInfo: cubeBufferInfo,
+        //                     vertexArray: cubeVAO,
+        //                     uniforms: cubeUniforms,
+        //                 },
+        //                 {
+        //                     programInfo: textureProgramInfo,
+        //                     bufferInfo: coneBufferInfo,
+        //                     vertexArray: coneVAO,
+        //                     uniforms: coneUniforms,
+        //                 },
+        //                 {
+        //                     programInfo: textureProgramInfo,
+        //                     bufferInfo: wallBufferInfo,
+        //                     vertexArray: wallVAO,
+        //                     uniforms: wallUniforms,
+        //                 },
+        //                 {
+        //                     programInfo: textureProgramInfo,
+        //                     bufferInfo: canvas2BufferInfo,
+        //                     vertexArray: canvas2VAO,
+        //                     uniforms: canvas2Uniforms,
+        //                 },
+        //             ];
+        //             function drawScene(
+        //                 projectionMatrix,
+        //                 cameraMatrix,
+        //                 textureMatrix,
+        //                 lightWorldMatrix,
+        //                 programInfo) {
+        //                 // Make a view matrix from the camera matrix.
+        //                 const viewMatrix = m4.inverse(cameraMatrix);
+
+        //                 gl.useProgram(programInfo.program);
+
+        //                 // set uniforms that are the same for both the sphere and plane
+        //                 // note: any values with no corresponding uniform in the shader
+        //                 // are ignored.
+        //                 twgl.setUniforms(programInfo, {
+        //                     u_view: viewMatrix,
+        //                     u_projection: projectionMatrix,
+        //                     u_bias: settings.bias,
+        //                     u_textureMatrix: textureMatrix,
+        //                     u_projectedTexture: depthTexture,
+        //                     u_reverseLightDirection: lightWorldMatrix.slice(8, 11),
+        //                 });
+        //                 objectsToDraw.forEach(function (object) {
+        //                     // Setup all the needed attributes.
+        //                     gl.bindVertexArray(object.vertexArray);
+        //                     twgl.setUniforms(programInfo, object.uniforms);
+        //                     twgl.drawBufferInfo(gl, object.bufferInfo);
+        //                 });
+        //             }
+
+        //             // Draw the scene.
+        //             function render() {
+        //                 twgl.resizeCanvasToDisplaySize(gl.canvas);
+
+        //                 gl.enable(gl.CULL_FACE);
+        //                 gl.enable(gl.DEPTH_TEST);
+
+        //                 // first draw from the POV of the light
+        //                 const lightWorldMatrix = m4.lookAt(
+        //                     [settings.posX, settings.posY, settings.posZ],          // position
+        //                     [settings.targetX, settings.targetY, settings.targetZ], // target
+        //                     [0, 1, 0],                                              // up
+        //                 );
+        //                 const lightProjectionMatrix = settings.perspective
+        //                     ? m4.perspective(
+        //                         degToRad(settings.fieldOfView),
+        //                         settings.projWidth / settings.projHeight,
+        //                         0.5,  // near
+        //                         100)   // far
+        //                     : m4.orthographic(
+        //                         -settings.projWidth / 2,   // left
+        //                         settings.projWidth / 2,   // right
+        //                         -settings.projHeight / 2,  // bottom
+        //                         settings.projHeight / 2,  // top
+        //                         0.5,                      // near
+        //                         100);                      // far
+
+        //                 // draw to the depth texture
+        //                 gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
+        //                 gl.viewport(0, 0, depthTextureSize, depthTextureSize);
+        //                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        //                 drawScene(
+        //                     lightProjectionMatrix,
+        //                     lightWorldMatrix,
+        //                     m4.identity(),
+        //                     lightWorldMatrix,
+        //                     colorProgramInfo);
+
+        //                 // now draw scene to the canvas projecting the depth texture into the scene
+        //                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        //                 gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        //                 gl.clearColor(0, 0, 0, 1);
+        //                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        //                 let textureMatrix = m4.identity();
+        //                 textureMatrix = m4.translate(textureMatrix, 0.5, 0.5, 0.5);
+        //                 textureMatrix = m4.scale(textureMatrix, 0.5, 0.5, 0.5);
+        //                 textureMatrix = m4.multiply(textureMatrix, lightProjectionMatrix);
+        //                 // use the inverse of this world matrix to make
+        //                 // a matrix that will transform other positions
+        //                 // to be relative this this world space.
+        //                 textureMatrix = m4.multiply(
+        //                     textureMatrix,
+        //                     m4.inverse(lightWorldMatrix));
+
+        //                 // 정사각형의 각 모서리에 otherCanvas 매핑을 위한 texture matrix 설정
+        //                 let canvas2textureMatrix = m4.identity();
+        //                 canvas2textureMatrix = m4.translate(canvas2textureMatrix, -0.5, -0.5, 0); // 좌하단으로 이동
+        //                 canvas2textureMatrix = m4.scale(canvas2textureMatrix, 0.5, 0.5, 1); // 크기 조정
+
+        //                 // Compute the projection matrix
+        //                 const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+        //                 const projectionMatrix =
+        //                     m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
+        //                 //const target = cameraPosition + cameraDirection;
+        //                 //const cameraMatrix = m4.lookAt(cameraPosition, target, up);
+        //                 cameraRight = m4.cross(cameraDirection, up);
+        //                 // 카메라 정규화 벡터 (cameraDirection 벡터의 길이를 1로 만듬)
+        //                 normalizedCameraDirection = m4.normalize(cameraDirection);
+        //                 // cameraMatrix 계산
+        //                 const cameraMatrix = m4.lookAt(cameraPosition,
+        //                     [cameraPosition[0] + normalizedCameraDirection[0],
+        //                     cameraPosition[1] + normalizedCameraDirection[1],
+        //                     cameraPosition[2] + normalizedCameraDirection[2]],
+        //                     up);
+
+        //                 // 캔버스 요소에서 이미지 데이터 가져오기
+        //                 //const canvas2Test = document.getElementById('loginForm');
+        //                 // var imageData = canvas2.getContext('2d').getImageData(0, 0, canvas2.width, canvas2.height);
+        //                 // gl.bindTexture(gl.TEXTURE_2D, canvas2Texture);
+        //                 // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, myCanvas);
+        //                 // // Set the parameters so we don't need mips and so we're not filtering
+        //                 // // and we don't repeat at the edges
+        //                 // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        //                 // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        //                 updateCanvas();
+
+        //                 drawScene(
+        //                     projectionMatrix,
+        //                     cameraMatrix,
+        //                     textureMatrix,
+        //                     lightWorldMatrix,
+        //                     textureProgramInfo);
+        //                 {
+
+        //                 }
+        //                 // ------ Draw the frustum ------
+        //                 {
+        //                     const viewMatrix = m4.inverse(cameraMatrix);
+
+        //                     gl.useProgram(colorProgramInfo.program);
+
+        //                     // Setup all the needed attributes.
+        //                     gl.bindVertexArray(cubeLinesVAO);
+
+        //                     // scale the cube in Z so it's really long
+        //                     // to represent the texture is being projected to
+        //                     // infinity
+        //                     const mat = m4.multiply(
+        //                         lightWorldMatrix, m4.inverse(lightProjectionMatrix));
+
+        //                     // Set the uniforms we just computed
+        //                     twgl.setUniforms(colorProgramInfo, {
+        //                         u_color: [1, 1, 1, 1],
+        //                         u_view: viewMatrix,
+        //                         u_projection: projectionMatrix,
+        //                         u_world: mat,
+        //                     });
+
+        //                     // calls gl.drawArrays or gl.drawElements
+        //                     twgl.drawBufferInfo(gl, cubeLinesBufferInfo, gl.LINES);
+        //                 }
+
+        //                 const canvasTest = document.getElementById('canvasTest');
+        //                 const contextTest = canvasTest.getContext('2d');
+
+        //                 // 이미지 데이터를 캔버스에 그리기
+        //                 //contextTest.putImageData(imageData, 0, 0);
+
+        //                 requestAnimationFrame(render);
+        //             }
+        //             render();
+        //         }
+
+        //         main();
+
+
+    </script>
+
+    <script>
+        var ws; // WebSocket 객체를 전역으로 선언
+
+        function initWebSocket() {
+            // WebSocket 서버의 URL. ws 또는 wss (SSL/TLS) 프로토콜을 사용할 수 있습니다.
+            ws = new WebSocket('wss://obscure-space-train-v9xrjvg795p2rx5-8081.app.github.dev/');
+
+            ws.onopen = function () {
+                console.log('Connection opened!');
+                sendMessage('Hello Server!');
+            };
+
+            ws.onmessage = function (event) {
+                console.log('Received message: ' + event.data);
+                displayMessage(event.data);
+            };
+
+            ws.onerror = function (error) {
+                console.log('WebSocket Error: ' + error);
+            };
+
+            ws.onclose = function (event) {
+                console.log('Connection closed. Code: ' + event.code + ', Reason: ' + event.reason);
+            };
+        }
+
+        function sendMessage(message) {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(message);
+                console.log('Sent message: ' + message);
+            } else {
+                console.log('WebSocket is not open. ReadyState: ' + ws.readyState);
+            }
+        }
+
+        function displayMessage(message) {
+            var messageContainer = document.getElementById('messages');
+            var msgElement = document.createElement('p');
+            msgElement.textContent = message;
+            messageContainer.appendChild(msgElement);
+        }
+
+        window.onload = initWebSocket; // 페이지 로드 시 WebSocket 초기화
+    </script>
+</body>
+
+</html>
