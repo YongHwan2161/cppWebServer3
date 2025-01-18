@@ -11,15 +11,22 @@ The system provides functionality to create sentences by linking token vertices 
    - Each token maps to existing vertex
    - Tokens found sequentially from input
 
-2. Channel Creation
-   - New channel created for each token
-   - Prevents path overlap with existing sentences
-   - Maintains sentence independence
+2. Token Optimization
+   - Check for existing token combinations
+   - Search through channel links
+   - Create combined tokens when possible
+   - Reduce sentence length through combination
 
-3. Cycle Formation
-   - Tokens linked sequentially
-   - Last token links to first
-   - Uses sentence axis (2)
+3. Token Combination
+   - Create new vertex for combined tokens
+   - Remove old token path from cycle
+   - Insert new combined token
+   - Update token sequence
+
+4. Cycle Formation
+   - Link optimized tokens sequentially
+   - Create sentence cycle
+   - Use axis 2 for connections
 
 ### Command Interface
 ```shell
@@ -60,53 +67,37 @@ Error: Failed to tokenize at position 0: '未知の文字列'
 
 ### Implementation Details
 
-#### Tokenization Process
+#### Token Optimization Process
 ```c
-// Tokenize input using search_token
-while (remaining_len > 0 && count < MAX_SENTENCE_TOKENS) {
-    TokenSearchResult* result = search_token(current_pos, remaining_len);
-    if (!result || result->matched_length == 0) {
-        printf("Error: Failed to tokenize at position %ld\n", 
-               current_pos - args);
-        return ERROR;
-    }
-    tokens[count++] = result->vertex_index;
-    current_pos += result->matched_length;
-    remaining_len -= result->matched_length;
-}
+// For each token
+for each new_token in input:
+    // Check previous token's channels
+    for each channel in prev_token:
+        // Look for matching next tokens
+        if (next_token matches new_token):
+            // Create combined token
+            new_vertex = create_token_vertex(prev_token, new_token)
+            
+            // Update cycle
+            delete_path(old_tokens)
+            insert_path(new_vertex)
 ```
 
-#### Channel Management
-```c
-// Create new channel for each token vertex
-for (int i = 0; i < count; i++) {
-    if (create_channel(token_vertices[i]) != CHANNEL_SUCCESS) {
-        return LINK_ERROR;
-    }
-    channels[i] = get_channel_count(Core[vertex_position]) - 1;
-}
-```
+### Benefits
+1. Storage Optimization
+   - Reduced token count
+   - Shared token combinations
+   - Efficient data representation
 
-### Notes
-1. Token Handling
-   - Uses search_token for finding tokens
-   - Matches longest possible tokens
-   - Sequential tokenization
+2. Performance
+   - Faster sentence traversal
+   - Fewer cycle elements
+   - Optimized memory usage
 
-2. Channel Independence
-   - New channels for each sentence
-   - Prevents cycle overlap
-   - Clean path separation
-
-3. Error Handling
-   - Tokenization failures
-   - Minimum token count
-   - Channel creation errors
-
-4. Performance
-   - Efficient token search
-   - Minimal memory usage
-   - Sequential processing
+3. Data Deduplication
+   - Common patterns combined
+   - Reduced redundancy
+   - Consistent representation
 
 ## String-Based Sentence Creation
 
@@ -314,3 +305,52 @@ else if (c < 0xF8) {    // 4-byte UTF-8
    - Efficient byte processing
    - Proper string length handling
    - Safe buffer management 
+
+### Special Cases
+
+#### Single Token Sentences
+When the sentence data exactly matches an existing token, special handling is required:
+
+1. Detection
+   - Single token found during tokenization
+   - Exact match with existing token data
+   - No need for token combination
+
+2. Channel Creation
+   - Add new channel to existing token
+   - Use for self-referential cycle
+   - Preserve token structure
+
+3. Self-Loop Creation
+   - Create link to same vertex
+   - Use axis 2 for sentence structure
+   - Same channel for source and destination
+
+#### Implementation Details
+```c
+// Handle single token case
+if (count == 1) {
+    // Create new channel for self-loop
+    create_channel(token_vertex);
+    ushort new_channel = get_channel_count(vertex) - 1;
+    
+    // Create self-loop using axis 2
+    create_link(token_vertex, new_channel, token_vertex, new_channel, 2);
+}
+```
+
+### Benefits
+1. Storage Efficiency
+   - Reuses existing tokens
+   - Minimal additional storage
+   - Simple cycle structure
+
+2. Data Consistency
+   - Maintains token uniqueness
+   - Clear relationship representation
+   - Efficient data access
+
+3. Implementation Simplicity
+   - Straightforward handling
+   - Clear cycle structure
+   - Easy maintenance 

@@ -660,6 +660,10 @@ void print_help() {
     printf("  insert-path <vertex> <ch> <axis> <path>  Insert path into existing cycle\n");
     printf("                                           Path format: <vertex1> <ch1> <vertex2> <ch2>...\n");
     printf("  Example: insert-path 42 1 2 55 3 66 4    Insert 2-vertex path at vertex 42\n");
+
+    printf("  delete-path <vertex> <ch> <axis> <length>  Delete path from existing cycle\n");
+    printf("                                           Removes specified number of vertices\n");
+    printf("  Example: delete-path 42 1 2 3             Delete 3 vertices starting at vertex 42\n");
 }
 
 int handle_command(char* command) {
@@ -881,6 +885,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "insert-path") == 0) {
         return handle_insert_path(args);
+    }
+    else if (strcmp(cmd, "delete-path") == 0) {
+        return handle_delete_path(args);
     }
     else
     {

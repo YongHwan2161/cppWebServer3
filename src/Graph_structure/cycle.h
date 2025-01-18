@@ -44,10 +44,20 @@ int handle_create_cycle(char* args);
 bool validate_cycle(int vertex_index, int channel_index, int axis_number);
 int handle_validate_cycle(char* args);
 int handle_print_cycle(char* args);
+int handle_delete_path(char* args);
 
 // Create a sentence from an ASCII string
 // Returns SUCCESS or ERROR
 int handle_create_sentence_from_string(char* args);
 int handle_insert_path(char* args);
+
+// Insert a path into an existing cycle
+int insert_path_into_cycle(uint insert_vertex, ushort insert_channel,
+                          uint* path_vertices, ushort* path_channels, 
+                          int path_length, ushort axis_number);
+
+// Delete a path from an existing cycle
+int delete_path_from_cycle(uint start_vertex, ushort start_channel,
+                          int path_length, ushort axis_number);
 
 #endif // cycle_H 

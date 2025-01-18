@@ -86,7 +86,7 @@ void init_map(void) {
     }
 }
 
-int get_vertex_position(unsigned int vertex_index) {
+unsigned int get_vertex_position(unsigned int vertex_index) {
     // printf("calling get_vertex_position: %d\n", vertex_index);
     // Check if vertex is loaded
     if (!CoreMap[vertex_index].is_loaded) {
@@ -94,7 +94,7 @@ int get_vertex_position(unsigned int vertex_index) {
         int position = load_vertex_to_core(vertex_index);
         if (position == -1) {
             printf("Error: vertex %d is not loaded in memory\n", vertex_index);
-            return -1;
+            return 0;
         }
     }
     

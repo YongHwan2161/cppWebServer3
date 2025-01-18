@@ -13,5 +13,5 @@ uint get_channel_offset(uchar* vertex, ushort channel_index);
 uint get_channel_end_offset(uchar* vertex, ushort channel_index);
 int create_channel(uint vertex_index);
 int clear_channel(uint vertex_index, ushort channel_index);
-
+int create_multi_channels(uint vertex_index, int num_channels);
 #endif

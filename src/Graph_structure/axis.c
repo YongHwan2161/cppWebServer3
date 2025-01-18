@@ -4,6 +4,7 @@
 #include "link.h"
 #include "vertex.h"
 #include "../memory.h"
+#include "../map.h"
 #include <string.h>
 #include <stdbool.h>
 
@@ -129,12 +130,10 @@ int create_axis(uint vertex_index, ushort channel_index, ushort axis_number) {
     
     // Update actual size
     *(uint*)(vertex + 2) = required_size;
-    printf("before call save_vertex_to_file\n");
     if (!save_vertex_to_file(vertex_index)) {
         printf("Error: Failed to save vertex\n");
         return AXIS_ERROR;
     }
-    printf("after call save_vertex_to_file\n");
     return AXIS_SUCCESS;
 }
 

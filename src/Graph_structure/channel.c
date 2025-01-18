@@ -2,13 +2,14 @@
 #include "../free_space.h"
 #include "vertex.h"
 #include "../memory.h"
+#include "../map.h"
 #include <string.h>
 
 ushort get_channel_count(uchar* vertex) {
     return *(ushort*)(vertex + 6);  // Skip size power (2) and actual size (4)
 }
 
-uint get_channel_offset(uchar* vertex, ushort channel_index) {
+unsigned int get_channel_offset(uchar* vertex, ushort channel_index) {
     ushort channel_count = get_channel_count(vertex);
     if (channel_index >= channel_count) {
         printf("Error: Invalid channel index %d (max: %d)\n", 
@@ -16,7 +17,7 @@ uint get_channel_offset(uchar* vertex, ushort channel_index) {
     }
     return *(uint*)(vertex + 8 + (channel_index * 4));  // 8: size_power(2) + actual_size(4) + channels(2)
 }
-uint get_channel_end_offset(uchar* vertex, ushort channel_index) {
+unsigned int get_channel_end_offset(uchar* vertex, ushort channel_index) {
     ushort channel_count = get_channel_count(vertex);
     if (channel_index + 1 < channel_count) {
         uint next_channel_offset = get_channel_offset(vertex, channel_index + 1);
@@ -92,6 +93,31 @@ int clear_channel(uint vertex_index, ushort channel_index) {
     if (!save_vertex_to_file(vertex_index)) {
         printf("Error: Failed to update data.bin\n");
         return CHANNEL_ERROR;
+    }
+
+    return CHANNEL_SUCCESS;
+}
+
+// Create multiple channels in a vertex
+int create_multi_channels(uint vertex_index, int num_channels) {
+    if (num_channels < 1) {
+        printf("Error: Invalid number of channels to create\n");
+        return CHANNEL_ERROR;
+    }
+
+    // Get vertex data
+    uint vertex_position = get_vertex_position(vertex_index);
+    if (!Core[vertex_position]) {
+        printf("Error: Vertex %u not loaded\n", vertex_index);
+        return CHANNEL_ERROR;
+    }
+
+    // Create channels one by one
+    for (int i = 0; i < num_channels; i++) {
+        if (create_channel(vertex_index) != CHANNEL_SUCCESS) {
+            printf("Error: Failed to create channel %d\n", i + 1);
+            return CHANNEL_ERROR;
+        }
     }
 
     return CHANNEL_SUCCESS;

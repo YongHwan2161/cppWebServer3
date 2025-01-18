@@ -12,5 +12,5 @@ int save_map(uint vertex_index);
 int save_map_all(void);
 int load_map(void);
 void init_map(void);
-int get_vertex_position(uint vertex_index);
+unsigned int get_vertex_position(uint vertex_index);
 #endif // MAP_H 

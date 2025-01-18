@@ -65,7 +65,7 @@ bool save_vertex_to_file(unsigned int vertex_index) {
         fclose(data_file);
         data_file = fopen(DATA_FILE, "r+b");
     }
-    printf("file offset: 0x%lx\n", CoreMap[vertex_index].file_offset);
+    // printf("file offset: 0x%lx\n", CoreMap[vertex_index].file_offset);
     // Write vertex data
     if (fseek(data_file, CoreMap[vertex_index].file_offset, SEEK_SET) != 0) {
         printf("Error: Failed to seek in data.bin\n");
