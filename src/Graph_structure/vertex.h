@@ -19,4 +19,8 @@ char* get_token_data(unsigned int vertex_index);
 #define VERTEX_ERROR_GARBAGE 1
 #define VERTEX_ERROR_IN_GARBAGE_cycle 2
 
+// Create a new token vertex by combining two existing tokens
+// Returns the new vertex index or -1 on error
+int create_token_vertex(unsigned int first_vertex, unsigned int second_vertex);
+
 #endif // vertex_H 

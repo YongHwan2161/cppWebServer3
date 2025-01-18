@@ -11,7 +11,6 @@
 #include "../data_structures/stack.h"
 
 #define MAX_STACK_SIZE 1000
-#define TOKEN_DATA_AXIS 2
 
 // Initial vertex values
 static uchar initValues[16] = {
@@ -252,4 +251,36 @@ char* get_token_data(unsigned int vertex_index) {
     destroy_stack(stack);
     result[result_len] = '\0';
     return result;
+}
+
+int create_token_vertex(unsigned int first_vertex, unsigned int second_vertex) {
+    // Validate input vertices
+    if (!validate_vertex(first_vertex) || !validate_vertex(second_vertex)) {
+        return -1;
+    }
+
+    // Create new vertex
+    create_new_vertex();
+    uint new_vertex = CurrentvertexCount - 1;
+
+    // Create axis 2 in new vertex for storing token data links
+    if (create_axis(new_vertex, 0, TOKEN_DATA_AXIS) != AXIS_SUCCESS) {
+        printf("Error: Failed to create token data axis\n");
+        return -1;
+    }
+
+    // Link new vertex to first vertex's token search axis
+    if (create_link(first_vertex, 0, new_vertex, 0, TOKEN_SEARCH_AXIS) != LINK_SUCCESS) {
+        printf("Error: Failed to create search link\n");
+        return -1;
+    }
+
+    // Link new vertex to both input vertices for data storage
+    if (create_link(new_vertex, 0, first_vertex, 0, TOKEN_DATA_AXIS) != LINK_SUCCESS ||
+        create_link(new_vertex, 0, second_vertex, 0, TOKEN_DATA_AXIS) != LINK_SUCCESS) {
+        printf("Error: Failed to create data links\n");
+        return -1;
+    }
+
+    return new_vertex;
 }

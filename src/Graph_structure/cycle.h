@@ -25,4 +25,8 @@ bool is_in_garbage_cycle(unsigned int vertex_index);
 // Add this function declaration
 int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number);
 
+// Create a sentence cycle from an array of token vertices
+// Returns LINK_SUCCESS or LINK_ERROR
+int create_sentence_cycle(uint* token_vertices, int count);
+
 #endif // cycle_H 

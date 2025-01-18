@@ -175,4 +175,36 @@ int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number
     }
 
     return LINK_SUCCESS;
+}
+
+int create_sentence_cycle(uint* token_vertices, int count) {
+    if (!token_vertices || count < 2) {
+        printf("Error: Invalid token array or count\n");
+        return LINK_ERROR;
+    }
+
+    // Create channels and store channel indices
+    ushort* channels = malloc(count * sizeof(ushort));
+    if (!channels) {
+        printf("Error: Failed to allocate channel array\n");
+        return LINK_ERROR;
+    }
+
+    // Create new channel for each token vertex
+    for (int i = 0; i < count; i++) {
+        if (create_channel(token_vertices[i]) != CHANNEL_SUCCESS) {
+            printf("Error: Failed to create channel for vertex %u\n", token_vertices[i]);
+            free(channels);
+            return LINK_ERROR;
+        }
+        // Get the index of newly created channel
+        uint vertex_position = get_vertex_position(token_vertices[i]);
+        channels[i] = get_channel_count(Core[vertex_position]) - 1;
+    }
+
+    // Create sentence cycle using the new channels
+    int result = create_cycle(token_vertices, channels, count, SENTENCE_AXIS);
+    free(channels);
+    
+    return result;
 } 

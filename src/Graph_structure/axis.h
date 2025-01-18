@@ -8,10 +8,10 @@
 #define AXIS_SUCCESS 0
 #define AXIS_ERROR -1
 
-// Common axis types
-#define AXIS_FORWARD 0
-#define AXIS_BACKWARD 1
-#define AXIS_TIME 3
+
+#define TOKEN_SEARCH_AXIS 0
+#define TOKEN_DATA_AXIS 1
+#define SENTENCE_AXIS 2
 
 // Function declarations
 ushort get_axis_count(uchar* vertex, ushort channel_index);

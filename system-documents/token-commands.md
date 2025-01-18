@@ -5,122 +5,107 @@ The system provides commands for managing and retrieving token data from vertice
 
 ## Commands
 
-### Get Token Data
+### Create Token
 ```shell
-get-token <vertex_index>
+create-token <first_vertex> <second_vertex>
 ```
 
 #### Purpose
-Retrieves and displays the token data stored in a vertex by traversing its hierarchical structure.
+Creates a new token vertex by combining two existing tokens. The new token's data will be the concatenation of the two input tokens' data.
 
 #### Parameters
-- vertex_index: Index of the token vertex to read (0-255)
+- first_vertex: Index of first token vertex
+- second_vertex: Index of second token vertex
 
 #### Process
-1. Input Validation
-   - Verify vertex index
-   - Check vertex exists
-   - Validate token structure
+1. Token Creation
+   - Create new vertex
+   - Set up token data structure
+   - Link to existing tokens
 
-2. Data Retrieval
-   - Traverse token hierarchy
-   - Collect leaf node values
-   - Assemble complete data
+2. Data Organization
+   - Axis 0: Token search links
+   - Axis 2: Token data storage
+   - Maintains hierarchical structure
 
-3. Output Format
-   - Display vertex index
-   - Show retrieved data
-   - Handle special characters
+3. Link Creation
+   - Search link from first token
+   - Data links to both tokens
+   - Order preservation
 
 #### Usage Examples
 ```shell
-# Get data from a token vertex
-> get-token 42
-Token data from vertex 42: Hello, World!
+# Create token from two existing tokens
+> create-token 42 43
+Successfully created token vertex 44 with data: Hello World
 
 # Error cases
-> get-token
+> create-token
 Error: Missing arguments
-Usage: get-token <vertex_index>
-Example: get-token 42
+Usage: create-token <first_vertex> <second_vertex>
+Example: create-token 42 43
 
-> get-token 256
+> create-token 256 42
 Error: Invalid vertex index
 
-> get-token abc
+> create-token abc 42
 Error: Invalid arguments
-Usage: get-token <vertex_index>
+Usage: create-token <first_vertex> <second_vertex>
 ```
 
 #### Notes
-1. Memory Management
-   - Automatic cleanup
-   - No memory leaks
-   - Resource handling
+1. Token Structure
+   - New token combines existing tokens
+   - Order matters for data combination
+   - Hierarchical organization
 
-2. Error Handling
+2. Memory Management
+   - Automatic vertex creation
+   - Proper link management
+   - Resource cleanup
+
+3. Error Handling
    - Invalid vertex indices
-   - Missing arguments
-   - Malformed token structure
-
-3. Performance
-   - Efficient traversal
-   - Stack-based implementation
-   - Minimal memory usage
+   - Link creation failures
+   - Data validation
 
 ## Implementation Details
 
-### Command Handler
-```c
-int handle_get_token_data(char* args) {
-    // Parse vertex index
-    unsigned int vertex_index;
-    if (sscanf(args, "%u", &vertex_index) != 1) {
-        print_argument_error("get-token", "<vertex_index>", false);
-        return CMD_ERROR;
-    }
-    
-    // Get and display token data
-    char* data = get_token_data(vertex_index);
-    if (data) {
-        printf("Token data from vertex %u: %s\n", vertex_index, data);
-        free(data);
-        return CMD_SUCCESS;
-    }
-    return CMD_ERROR;
-}
-```
-
-### Error Messages
-1. Missing Arguments
-   ```
-   Error: Missing arguments
-   Usage: get-token <vertex_index>
-   Example: get-token 42
+### Token Creation Process
+1. Vertex Creation
+   ```c
+   create_new_vertex();  // Create base vertex
+   create_axis(new_vertex, 0, 2);  // Create data axis
    ```
 
-2. Invalid Vertex
-   ```
-   Error: Invalid vertex index
+2. Link Setup
+   ```c
+   // Search link
+   create_link(first_vertex, 0, new_vertex, 0, 0);
+   
+   // Data links
+   create_link(new_vertex, 0, first_vertex, 0, 2);
+   create_link(new_vertex, 0, second_vertex, 0, 2);
    ```
 
-3. Failed Retrieval
-   ```
-   Error: Failed to get token data from vertex <index>
+3. Data Validation
+   ```c
+   char* data = get_token_data(new_vertex);
+   // Verify combined token data
    ```
 
 ### Best Practices
 1. Input Validation
-   - Check argument count
-   - Validate vertex index
-   - Verify vertex exists
+   - Check vertex indices
+   - Verify token existence
+   - Validate data structure
 
-2. Memory Management
-   - Free returned data
-   - Handle allocation failures
-   - Clean up on errors
+2. Link Management
+   - Maintain search hierarchy
+   - Preserve data order
+   - Ensure link consistency
 
-3. User Experience
-   - Clear error messages
-   - Helpful usage examples
-   - Consistent output format 
+3. Error Recovery
+   - Clean up on failures
+   - Report specific errors
+   - Maintain database integrity 

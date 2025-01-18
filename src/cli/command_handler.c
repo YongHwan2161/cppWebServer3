@@ -154,14 +154,14 @@ int handle_list_axes(char* args) {
     for (int i = 0; i < axis_count; i++) {
         const char* axis_type = "";
         switch(axis_numbers[i]) {
-            case AXIS_FORWARD:
-                axis_type = "(Forward link)";
+            case TOKEN_SEARCH_AXIS:
+                axis_type = "(Token search)";
                 break;
-            case AXIS_BACKWARD:
-                axis_type = "(Backward link)";
+            case TOKEN_DATA_AXIS:
+                axis_type = "(Token data)";
                 break;
-            case AXIS_TIME:
-                axis_type = "(Time axis)";
+            case SENTENCE_AXIS:
+                axis_type = "(Sentence)";
                 break;
         }
         printf("- Axis %d %s\n", axis_numbers[i], axis_type);
@@ -341,9 +341,9 @@ int handle_print_vertex(char* args) {
             // Get axis type label
             const char* axis_type = "";
             switch(axis_number) {
-                case AXIS_FORWARD: axis_type = "(Forward link)"; break;
-                case AXIS_BACKWARD: axis_type = "(Backward link)"; break;
-                case AXIS_TIME: axis_type = "(Time axis)"; break;
+                case TOKEN_SEARCH_AXIS: axis_type = "(Token search)"; break;
+                case TOKEN_DATA_AXIS: axis_type = "(Token data)"; break;
+                case SENTENCE_AXIS: axis_type = "(Sentence)"; break;
             }
             
             printf("  Axis %d %s (offset: 0x%04X):\n", axis_number, axis_type, axis_offset);
@@ -930,6 +930,12 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "get-token") == 0) {
         return handle_get_token_data(args);
     }
+    else if (strcmp(cmd, "create-token") == 0) {
+        return handle_create_token(args);
+    }
+    else if (strcmp(cmd, "create-sentence") == 0) {
+        return handle_create_sentence(args);
+    }
     else
     {
         printf("Unknown command. Type 'help' for available commands.\n");
@@ -1122,4 +1128,64 @@ int handle_get_token_data(char* args) {
     // Clean up
     free(data);
     return CMD_SUCCESS;
+}
+
+int handle_create_token(char* args) {
+    unsigned int first_vertex, second_vertex;
+    
+    // Parse vertex indices
+    if (sscanf(args, "%u %u", &first_vertex, &second_vertex) != 2) {
+        print_argument_error("create-token", "<first_vertex> <second_vertex>", false);
+        return CMD_ERROR;
+    }
+    
+    // Create token vertex
+    int new_vertex = create_token_vertex(first_vertex, second_vertex);
+    if (new_vertex < 0) {
+        printf("Error: Failed to create token vertex\n");
+        return CMD_ERROR;
+    }
+    
+    // Get and display the token data
+    char* data = get_token_data(new_vertex);
+    if (data) {
+        printf("Successfully created token vertex %d with data: %s\n", new_vertex, data);
+        free(data);
+        return CMD_SUCCESS;
+    }
+    
+    printf("Warning: Created token vertex %d but failed to read data\n", new_vertex);
+    return CMD_SUCCESS;
+}
+
+#define MAX_SENTENCE_TOKENS 100
+
+int handle_create_sentence(char* args) {
+    uint tokens[MAX_SENTENCE_TOKENS];
+    int count = 0;
+    char* token = strtok(args, " ");
+    
+    // Parse token vertex indices
+    while (token && count < MAX_SENTENCE_TOKENS) {
+        if (sscanf(token, "%u", &tokens[count]) != 1) {
+            printf("Error: Invalid token vertex index\n");
+            return CMD_ERROR;
+        }
+        count++;
+        token = strtok(NULL, " ");
+    }
+    
+    if (count < 2) {
+        printf("Error: At least 2 tokens required for a sentence\n");
+        return CMD_ERROR;
+    }
+    
+    // Create sentence cycle
+    if (create_sentence_cycle(tokens, count) == LINK_SUCCESS) {
+        printf("Successfully created sentence cycle with %d tokens\n", count);
+        return CMD_SUCCESS;
+    }
+    
+    printf("Error: Failed to create sentence cycle\n");
+    return CMD_ERROR;
 }
