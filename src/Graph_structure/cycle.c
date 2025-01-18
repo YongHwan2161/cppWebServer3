@@ -4,6 +4,7 @@
 #include "axis.h"
 #include "channel.h"
 #include "link.h"
+#include "vertex.h"
 #include <stdlib.h>
 
 #define MAX_cycle_vertices 1000
@@ -207,4 +208,57 @@ int create_sentence_cycle(uint* token_vertices, int count) {
     free(channels);
     
     return result;
+}
+
+char* get_sentence_data(uint vertex_index, ushort channel_index) {
+    // Get cycle info
+    cycleInfo* info = get_cycle_info(vertex_index, channel_index, SENTENCE_AXIS);
+    if (!info || info->count < 2) {
+        printf("Error: No valid sentence cycle found\n");
+        free_cycle_info(info);
+        return NULL;
+    }
+
+    // Allocate buffer for sentence data
+    char* sentence = malloc(1024);  // Adjust size as needed
+    if (!sentence) {
+        free_cycle_info(info);
+        return NULL;
+    }
+    int sentence_len = 0;
+
+    // Get token data for each vertex in cycle
+    for (int i = 0; i < info->count; i++) {
+        char* token_data = get_token_data(info->vertices[i]);
+        if (!token_data) {
+            printf("Error: Failed to get token data from vertex %u\n", info->vertices[i]);
+            free(sentence);
+            free_cycle_info(info);
+            return NULL;
+        }
+
+        // Add token data to sentence
+        int token_len = strlen(token_data);
+        if (sentence_len + token_len >= 1023) {
+            printf("Error: Sentence too long\n");
+            free(token_data);
+            free(sentence);
+            free_cycle_info(info);
+            return NULL;
+        }
+
+        strcpy(sentence + sentence_len, token_data);
+        sentence_len += token_len;
+
+        // Add space between tokens
+        if (i < info->count - 1) {
+            sentence[sentence_len++] = ' ';
+        }
+
+        free(token_data);
+    }
+
+    sentence[sentence_len] = '\0';
+    free_cycle_info(info);
+    return sentence;
 } 

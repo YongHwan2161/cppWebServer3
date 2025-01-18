@@ -936,6 +936,9 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "create-sentence") == 0) {
         return handle_create_sentence(args);
     }
+    else if (strcmp(cmd, "get-sentence") == 0) {
+        return handle_get_sentence(args);
+    }
     else
     {
         printf("Unknown command. Type 'help' for available commands.\n");
@@ -1188,4 +1191,37 @@ int handle_create_sentence(char* args) {
     
     printf("Error: Failed to create sentence cycle\n");
     return CMD_ERROR;
+}
+
+int handle_get_sentence(char* args) {
+    uint vertex_index;
+    ushort channel_index;
+    
+    // Parse arguments
+    if (sscanf(args, "%u %hu", &vertex_index, &channel_index) != 2) {
+        print_argument_error("get-sentence", "<vertex_index> <channel_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Get sentence data
+    char* data = get_sentence_data(vertex_index, channel_index);
+    if (!data) {
+        printf("Error: Failed to get sentence data\n");
+        return CMD_ERROR;
+    }
+    
+    // Print the data in both formats
+    printf("Sentence data starting from vertex %u, channel %u:\n", vertex_index, channel_index);
+    printf("ASCII: %s\n", data);
+    
+    // Print hexadecimal format
+    printf("HEX: ");
+    for (int i = 0; data[i] != '\0'; i++) {
+        printf("%02X ", (unsigned char)data[i]);
+    }
+    printf("\n");
+    
+    // Clean up
+    free(data);
+    return CMD_SUCCESS;
 }

@@ -40,60 +40,103 @@ Error: At least 2 tokens required for a sentence
 Error: Invalid token vertex index
 ```
 
-## Implementation Details
+## Sentence Retrieval
 
-### Channel Management
-1. New Channel Creation
+### Process
+1. Cycle Validation
+   - Check for valid sentence cycle
+   - Verify cycle completeness
+   - Validate starting point
+
+2. Token Collection
+   - Traverse cycle in order
+   - Get data from each token
+   - Concatenate token data
+
+3. Data Assembly
+   - Add spaces between tokens
+   - Maintain order from start point
+   - Handle buffer management
+
+### Command Interface
+```shell
+get-sentence <vertex_index> <channel_index>
+```
+
+#### Parameters
+- vertex_index: Starting vertex of sentence cycle
+- channel_index: Channel containing sentence cycle
+
+#### Output Format
+The command displays sentence data in two formats:
+1. ASCII: Human-readable text format
+2. HEX: Hexadecimal representation of each byte
+
+#### Examples
+```shell
+# Get sentence data
+> get-sentence 42 1
+Sentence data starting from vertex 42, channel 1:
+ASCII: Hello World Example
+HEX: 48 65 6C 6C 6F 20 57 6F 72 6C 64 20 45 78 61 6D 70 6C 65
+
+# Error cases
+> get-sentence 42
+Error: Missing arguments
+Usage: get-sentence <vertex_index> <channel_index>
+
+> get-sentence 256 0
+Error: Invalid vertex index
+
+> get-sentence 42 1
+Error: No valid sentence cycle found
+```
+
+### Implementation Details
+
+#### Cycle Traversal
+1. Starting Point
    ```c
-   // Create unique channel for each token
-   create_sequential_channel(token_vertex);
+   cycleInfo* info = get_cycle_info(vertex_index, channel_index, SENTENCE_AXIS);
    ```
 
-2. Channel Independence
-   - Each sentence uses separate channels
-   - Prevents interference between sentences
-   - Maintains path isolation
-
-### Cycle Creation
-1. Link Formation
+2. Token Processing
    ```c
-   // Create cycle using new channels
-   create_cycle(tokens, channels, count, SENTENCE_AXIS);
+   for (int i = 0; i < info->count; i++) {
+       char* token_data = get_token_data(info->vertices[i]);
+       // Process token data
+   }
    ```
 
-2. Link Properties
-   - Sequential token connections
-   - Cycle completion
-   - Sentence axis usage
+3. Data Assembly
+   ```c
+   // Add token data to sentence
+   strcpy(sentence + sentence_len, token_data);
+   sentence_len += token_len;
 
-### Best Practices
-1. Channel Usage
-   - Create new channels for each sentence
-   - Don't reuse existing channels
-   - Maintain path independence
-
-2. Error Handling
-   - Validate token indices
-   - Check channel creation
-   - Verify cycle formation
-
-3. Resource Management
-   - Clean up on failures
-   - Free temporary arrays
-   - Handle memory allocation
+   // Add space between tokens
+   if (i < info->count - 1) {
+       sentence[sentence_len++] = ' ';
+   }
+   ```
 
 ### Notes
-1. Path Independence
-   - Each sentence uses unique channels
-   - Prevents cross-sentence interference
-   - Maintains data structure integrity
+1. Order Dependence
+   - Different start points = different output
+   - Cycle order preserved
+   - Token sequence matters
 
 2. Memory Management
-   - Dynamic channel allocation
-   - Proper cleanup on errors
-   - Resource tracking
+   - Dynamic buffer allocation
+   - Token data cleanup
+   - Cycle info cleanup
 
-3. Error Recovery
-   - Partial cleanup on failures
-   - Clear error messages
-   - State consistency 
+3. Error Handling
+   - Invalid cycles
+   - Missing tokens
+   - Buffer overflow
+
+4. Performance
+   - Linear time traversal
+   - Minimal memory usage
+   - Efficient string handling 
