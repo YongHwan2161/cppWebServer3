@@ -111,6 +111,13 @@ int recycle_or_create_channel(uint vertex_index) {
 
     return channel_count; // Return new channel index
 }
+// int clear_channel(uint vertex_index, ushort channel_index) {
+//     uint vertex_position = get_vertex_position(vertex_index);
+//     uchar* vertex = Core[vertex_position];
+//     uint channel_offset = get_channel_offset(vertex, channel_index);
+//     *(ushort*)(vertex + channel_offset) = 0;
+//     return CHANNEL_SUCCESS;
+// }
 int clear_channel(uint vertex_index, ushort channel_index) {
     uint vertex_position = get_vertex_position(vertex_index);
     uchar* vertex = Core[vertex_position];
@@ -118,17 +125,17 @@ int clear_channel(uint vertex_index, ushort channel_index) {
     uint channel_end_offset = get_channel_end_offset(vertex, channel_index);
     uint move_dest = channel_offset + 2;
     uint actual_size = *(uint*)(vertex + 2);
-    uint move_size = channel_end_offset - move_dest;
+    uint move_size = actual_size - channel_end_offset; // move_size is the size of the channel to be moved
     memmove(vertex + move_dest, vertex + channel_end_offset, move_size);
 
-    // Update actual size
-    *(uint*)(vertex + 2) = actual_size - move_size;
+    // Update actual size - corrected calculation
+    *(uint*)(vertex + 2) = actual_size - (channel_end_offset - move_dest);
     *(ushort*)(vertex + channel_offset) = 0; // Clear axis count
 
     // Update channel offsets
     ushort channel_count = get_channel_count(vertex);
     for (ushort i = channel_index + 1; i < channel_count; i++) {
-        *(uint*)(vertex + 8 + (i * 4)) -= move_size;
+        *(uint*)(vertex + 8 + (i * 4)) -= channel_end_offset - move_dest;
     }
 
     if (!save_vertex_to_file(vertex_index)) {

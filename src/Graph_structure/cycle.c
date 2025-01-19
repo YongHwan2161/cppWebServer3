@@ -288,10 +288,16 @@ int handle_create_sentence(char* args) {
         TokenSearchResult *result = search_token(current_pos, remaining_len);
         if (!result) break;
         
-        // uint current_vertex_position = get_vertex_position(result->vertex_index);
-        // ushort channel_count = get_channel_count(Core[current_vertex_position]);
         tokens[count] = result->vertex_index;
-        channels[count] = recycle_or_create_channel(result->vertex_index);
+        if (tokens[count] == tokens[count-1]) // repeat token
+        {
+            create_channel(tokens[count]);
+            channels[count] = channels[count-1] + 1;
+        }
+        else // ordinary token sequence
+        {
+            channels[count] = recycle_or_create_channel(result->vertex_index);
+        }
         if (channels[count] == (ushort)CHANNEL_ERROR) {
             printf("Error: Failed to create channel for vertex %u\n", result->vertex_index);
             free_search_result(result);
@@ -301,6 +307,7 @@ int handle_create_sentence(char* args) {
         ushort prev_channel_count = 0;
         if (count > 0) {
             prev_channel_count = get_channel_count(Core[get_vertex_position(tokens[count-1])]);
+            create_link(tokens[count-1], channels[count-1], tokens[count], channels[count], 2); // create a link between the previous token and the current token
             if (prev_channel_count <= 2) need_search = false;
         }
         // channel_count > 2
@@ -309,13 +316,14 @@ int handle_create_sentence(char* args) {
             uint prev_vertex = tokens[count-1];
             // Check each channel for matching next token
             for (ushort ch = 1; ch < prev_channel_count; ch++) {
+                if (ch == channels[count - 1]) continue; // skip the current channel
                 uint next_vertex;
                 ushort next_channel;
                 if (get_link(prev_vertex, ch, (ushort)2, (ushort)0, &next_vertex, &next_channel) != LINK_SUCCESS) continue;
 
                 // Compare next vertex's token data with current token
                 char* next_token = get_token_data(next_vertex);
-                printf("prev_vertex: %u, next_vertex: %u, next_token: %s\n", prev_vertex, next_vertex, next_token);
+                printf("prev_vertex: %u, prev_channel: %u, next_vertex: %u, next_channel: %u, next_token: %s\n", prev_vertex, ch, next_vertex, next_channel, next_token);
                 if (!next_token) continue;
 
                 if (strcmp(next_token, result->token_data) == 0)
@@ -330,6 +338,34 @@ int handle_create_sentence(char* args) {
 
                     if (new_vertex >= 0)
                     {
+                        bool found = false;
+                        for (int i = 0; i < count - 2; i++) {
+                            if (tokens[i] == tokens[count-1] && tokens[i + 1] == tokens[count]) {
+                                clear_channel(tokens[i], channels[i]);
+                                clear_channel(tokens[i + 1], channels[i + 1]);
+                                clear_channel(tokens[count - 2], channels[count - 2]);
+                                clear_channel(tokens[count - 1], channels[count - 1]);
+                                clear_channel(tokens[count], channels[count]);
+                                tokens[i] = new_vertex;
+                                channels[i] = 1;
+                                tokens[count - 1] = new_vertex;
+                                channels[count - 1] = 2;
+                                create_link(tokens[i], channels[i], tokens[i + 2], channels[i + 2], 2);
+                                for (int j = i + 1; j < count - 1; j++) {
+                                    tokens[j] = tokens[j + 1];
+                                    channels[j] = channels[j + 1];
+                                }
+                                if (count > 3)
+                                {
+                                    create_link(tokens[count - 3], channels[count - 3], tokens[count - 2], channels[count - 2], 2); // create a link between the previous token and the current token
+                                }
+                                count -= 2;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found) break;
+
                         cycleInfo *existing_cycle = get_cycle_info(prev_vertex, ch, 2);
 
                         if (existing_cycle && existing_cycle->count == 2)
@@ -369,19 +405,13 @@ int handle_create_sentence(char* args) {
         free_search_result(result);
     }
 
-    if (count < 2) {
-        printf("Error: At least 2 tokens required for a sentence\n");
+    if (create_link(tokens[count - 1], channels[count - 1], tokens[0], channels[0], 2) != LINK_SUCCESS) { // count - 1 is the last token, because count++
+        printf("Error: Failed to create link between the last token and the first token\n");
         return ERROR;
-    }
-
-    // Create sentence cycle using the tokens
-    if (create_sentence_cycle(tokens, channels, count) == LINK_SUCCESS) {
-        printf("Successfully created sentence cycle with %d tokens\n", count);
+    } else {
+        printf("Successfully created link between the last token and the first token\n");
         return SUCCESS;
     }
-
-    printf("Error: Failed to create sentence cycle\n");
-    return ERROR;
 }
 int handle_get_sentence(char* args) {
     // Set locale to support UTF-8

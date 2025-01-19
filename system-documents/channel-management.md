@@ -365,8 +365,8 @@ int clear_channel(uint vertex_index, ushort channel_index);
 
 2. 데이터 이동
    ```c
-   uint move_dest = channel_end_offset + 2;
-   uint move_size = actual_size - channel_end_offset;
+   uint move_dest = channel_offset + 2;  // 새로운 위치 (axis count 이후)
+   uint move_size = actual_size - channel_end_offset;  // 이동할 데이터 크기
    memmove(vertex + move_dest, vertex + channel_end_offset, move_size);
    ```
    - 다음 채널의 데이터를 앞으로 이동
@@ -375,21 +375,35 @@ int clear_channel(uint vertex_index, ushort channel_index);
 
 3. 크기 업데이트
    ```c
-   *(uint*)(vertex + 2) = actual_size - (channel_end_offset - channel_offset);
-   *(ushort*)(vertex + channel_offset) = 0;
+   // 실제 크기 = 현재 크기 - (제거된 데이터 크기)
+   // 제거된 데이터 크기 = channel_end_offset - move_dest
+   *(uint*)(vertex + 2) = actual_size - (channel_end_offset - move_dest);
+   *(ushort*)(vertex + channel_offset) = 0;  // axis count 초기화
    ```
    - 노드의 실제 크기 감소
+   - 제거된 데이터 크기만큼 감소
    - 채널의 axis count 초기화
 
 4. 오프셋 조정
    ```c
    for (ushort i = channel_index + 1; i < channel_count; i++) {
-       *(uint*)(vertex + 8 + (i * 4)) -= delete_size;
+       *(uint*)(vertex + 8 + (i * 4)) -= channel_end_offset - move_dest;
    }
    ```
    - 후속 채널들의 오프셋 업데이트
    - 삭제된 공간만큼 감소
    - 채널 데이터 일관성 유지
+
+#### 크기 계산 설명
+1. channel_end_offset - move_dest
+   - 제거되는 데이터의 실제 크기
+   - 채널 끝 위치에서 새 위치를 뺀 값
+   - 삭제되는 공간의 크기
+
+2. actual_size 업데이트
+   - 현재 크기에서 제거된 크기를 뺌
+   - 정확한 새 크기 계산
+   - 메모리 관리 일관성 유지
 
 #### Return Values
 - CHANNEL_SUCCESS: 채널 초기화 성공
