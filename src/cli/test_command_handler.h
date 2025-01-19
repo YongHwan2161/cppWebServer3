@@ -12,4 +12,5 @@ int handle_test_multiple_link_creation(char* args);
 int handle_test_create_delete_links(char* args);
 int handle_test_multi_channel_links(char* args);
 int handle_test_channel_creation(char* args);
+int handle_test_sequential_token_creation(char* args);
 #endif // TEST_COMMAND_HANDLER_H 

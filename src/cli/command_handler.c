@@ -767,10 +767,17 @@ int handle_command(char* command) {
         else if (strcmp(cmd, "delete-vertex") == 0) {
             return handle_delete_vertex(args);
         }
-        else if (strcmp(cmd, "print-garbage") == 0) {
+        else if (strcmp(cmd, "print-garbage") == 0)
+        {
             return handle_print_garbage();
         }
-        else {
+
+        else if (strcmp(cmd, "test-sequential-token") == 0)
+        {
+            return handle_test_sequential_token_creation(args);
+        }
+        else
+        {
             printf("Unknown command. Type 'help' for available commands.\n");
         }
         return CMD_ERROR;

@@ -2,8 +2,11 @@
 #include "../tests/axis_tests.h"
 #include "../tests/link_tests.h"
 #include "../tests/channel_tests.h"
+#include "../Graph_structure/vertex.h"
+#include "../Graph_structure/cycle.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int handle_run_tests(char* args) {
     if (args) {
@@ -149,5 +152,39 @@ int handle_test_channel_creation(char* args) {
     }
     
     int failed = test_sequential_channel_creation(vertex_index);
+    return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
+}
+
+int handle_test_sequential_token_creation(char* args) {
+    if (args) {
+        print_argument_error("test-sequential-token", "", false);
+        return CMD_ERROR;
+    }
+    
+    printf("\nTesting sequential token creation...\n");
+    int failed = 0;
+    
+    // Test string to build up gradually
+    const char* test_str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    int test_len = strlen(test_str);
+    
+    // Start with 2 characters and gradually increase
+    for (int len = 2; len <= test_len; len++) {
+        char substr[27] = {0};  // Large enough for full test string + null
+        strncpy(substr, test_str, len);
+        
+        printf("Creating sentence for: %s\n", substr);
+        
+        // Create sentence from substring
+        int result = handle_create_sentence(substr);
+        if (result == CMD_ERROR) {
+            printf("Error: Failed to create sentence for %s\n", substr);
+            failed++;
+        } else {
+            printf("Successfully created sentence for %s\n", substr);
+        }
+    }
+    
+    printf("\nSequential token creation tests completed. Failed tests: %d\n", failed);
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }

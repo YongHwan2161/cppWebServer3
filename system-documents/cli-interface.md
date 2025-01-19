@@ -1065,6 +1065,61 @@ Error: Invalid vertex index
    - cycle properly closed
    - All vertices accessible
 
+## Test Commands
+
+### Sequential Token Creation Test
+```shell
+test-sequential-token
+```
+
+#### Purpose
+Tests the token creation system by creating sentences with incrementally longer strings.
+
+#### Arguments
+None. The command runs with predefined test strings.
+
+#### Process
+1. Starts with 2-character string
+2. Incrementally adds characters
+3. Creates sentence for each string
+4. Reports success/failure for each step
+
+#### Output Format
+```
+Testing sequential token creation...
+Creating sentence for: AB
+Successfully created sentence for AB
+Creating sentence for: ABC
+Successfully created sentence for ABC
+...
+Sequential token creation tests completed. Failed tests: 0
+```
+
+#### Error Cases
+- Invalid arguments provided
+- Sentence creation failure
+- Memory allocation failure
+
+#### Usage Example
+```shell
+# Run test
+> test-sequential-token
+Testing sequential token creation...
+[Test output...]
+Sequential token creation tests completed. Failed tests: 0
+
+# Error case
+> test-sequential-token extra_args
+Error: Invalid arguments
+Usage: test-sequential-token
+```
+
+#### Notes
+- No arguments should be provided
+- Tests complete sentence creation flow
+- Reports total number of failures
+- Automatically handles cleanup
+
 ## Error Handling
 
 ### Missing Arguments
