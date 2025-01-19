@@ -5,6 +5,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+// Add these error code definitions
+#define VERTEX_SUCCESS 0
+#define VERTEX_ERROR_GARBAGE 1
+#define VERTEX_ERROR_IN_GARBAGE_cycle 2
+
 // Structure to hold search result
 typedef struct {
     unsigned int vertex_index;    // Found vertex index
@@ -24,10 +29,6 @@ int handle_delete_vertex(char* args);
 // Returns the concatenated data from all leaf nodes
 char* get_token_data(unsigned int vertex_index);
 
-// Add these error code definitions
-#define VERTEX_SUCCESS 0
-#define VERTEX_ERROR_GARBAGE 1
-#define VERTEX_ERROR_IN_GARBAGE_cycle 2
 
 // Create a new token vertex by combining two existing tokens
 // Returns the new vertex index or -1 on error

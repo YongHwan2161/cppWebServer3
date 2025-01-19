@@ -126,7 +126,15 @@ int clear_channel(uint vertex_index, ushort channel_index) {
 
     return CHANNEL_SUCCESS;
 }
-
+int clear_channels(uint *vertex_index, ushort *channel_index, ushort count) {
+    for (ushort i = 0; i < count; i++) {
+        if (clear_channel(vertex_index[i], channel_index[i]) != CHANNEL_SUCCESS) {
+            printf("Error: Failed to clear channel %d\n", i);
+            return CHANNEL_ERROR;
+        }
+    }
+    return CHANNEL_SUCCESS;
+}
 // Create multiple channels in a vertex
 int create_multi_channels(uint vertex_index, int num_channels) {
     if (num_channels < 1) {

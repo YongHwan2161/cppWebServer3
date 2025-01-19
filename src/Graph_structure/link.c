@@ -152,4 +152,48 @@ int delete_link(uint source_vertex, ushort source_ch,
         return LINK_ERROR;
     }
     return LINK_SUCCESS;
+}
+/**
+ * @brief Get link data at specified index
+ * 
+ * @param source_vertex Source vertex index
+ * @param source_ch Source channel index
+ * @param axis_number Axis number
+ * @param link_index Index of link to retrieve
+ * @param dest_vertex Pointer to store destination vertex index
+ * @param dest_ch Pointer to store destination channel index
+ * @return int LINK_SUCCESS if link exists, LINK_ERROR if not
+ */
+int get_link(uint source_vertex, ushort source_ch, 
+            ushort axis_number, ushort link_index,
+            uint* dest_vertex, ushort* dest_ch) {
+    
+    if (!ensure_axis_exists(source_vertex, source_ch, axis_number)) {
+        printf("Error: Axis %d does not exist in vertex %d, channel %d\n",
+               axis_number, source_vertex, source_ch);
+        return LINK_ERROR;
+    }
+
+    uint vertex_position = CoreMap[source_vertex].core_position;
+    uchar* vertex = Core[vertex_position];
+    uint channel_offset = get_channel_offset(vertex, source_ch);
+    uint axis_offset = get_axis_offset(vertex, source_ch, axis_number);
+    
+    // Get link count
+    ushort* current_link_count = (ushort*)(vertex + channel_offset + axis_offset);
+    
+    // Check if link_index is valid
+    if (link_index >= *current_link_count) {
+        return LINK_ERROR;
+    }
+    
+    // Calculate offset to link data
+    uint link_data_offset = channel_offset + axis_offset + 2 + (link_index * 6);
+    
+    // Get link data
+    Link* link = (Link*)(vertex + link_data_offset);
+    *dest_vertex = link->vertex;
+    *dest_ch = link->channel;
+    
+    return LINK_SUCCESS;
 } 

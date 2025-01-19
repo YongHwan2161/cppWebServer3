@@ -21,5 +21,6 @@ int create_bidirectional_link(uint source_vertex, ushort source_ch, uint dest_ve
 int create_forward_link(uint source_vertex, ushort source_ch, uint dest_vertex, ushort dest_ch);
 int create_backward_link(uint source_vertex, ushort source_ch, uint dest_vertex, ushort dest_ch);
 int delete_link(uint source_vertex, ushort source_ch, uint dest_vertex, ushort dest_ch, ushort axis_number);
+int get_link(uint source_vertex, ushort source_ch, ushort axis_number, ushort link_index, uint* dest_vertex, ushort* dest_ch);
 
 #endif // LINK_H 

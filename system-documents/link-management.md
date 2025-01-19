@@ -478,5 +478,82 @@ if (failed > 0) {
    - 링크 생성/삭제 실패
    - count 불일치
 
+## Link Data Retrieval
+
+### Get Link
+```c
+int get_link(uint source_vertex, ushort source_ch, 
+            ushort axis_number, ushort link_index,
+            uint* dest_vertex, ushort* dest_ch);
+```
+
+#### Purpose
+Retrieves link data (destination vertex and channel) at a specified index from a vertex's channel and axis.
+
+#### Parameters
+- source_vertex: Source vertex index
+- source_ch: Source channel index
+- axis_number: Axis to check for link
+- link_index: Index of link to retrieve
+- dest_vertex: Pointer to store destination vertex index
+- dest_ch: Pointer to store destination channel index
+
+#### Returns
+- LINK_SUCCESS: Link data successfully retrieved
+- LINK_ERROR: Link does not exist or invalid parameters
+
+#### Process
+1. Input Validation
+   - Check axis exists
+   - Verify link index is valid
+   - Validate source vertex/channel
+
+2. Offset Calculation
+   - Get channel offset
+   - Get axis offset
+   - Calculate link data position
+
+3. Data Retrieval
+   - Read link count
+   - Check index bounds
+   - Extract link data
+
+#### Usage Example
+```c
+uint dest_vertex;
+ushort dest_ch;
+
+// Get first link (index 0) from vertex 1, channel 0, axis 0
+int result = get_link(1, 0, 0, 0, &dest_vertex, &dest_ch);
+if (result == LINK_SUCCESS) {
+    printf("Link destination: vertex %u, channel %u\n", 
+           dest_vertex, dest_ch);
+} else {
+    printf("Link not found\n");
+}
+```
+
+#### Error Cases
+1. Invalid Parameters
+   - Non-existent axis
+   - Invalid link index
+   - Invalid vertex/channel
+
+2. Missing Data
+   - No links in axis
+   - Index out of bounds
+   - Unloaded vertex
+
+#### Implementation Notes
+1. Memory Access
+   - Direct memory reading
+   - Proper offset calculation
+   - Type-safe data extraction
+
+2. Error Handling
+   - Parameter validation
+   - Bounds checking
+   - Clear error reporting
+
 [Rest of the document remains the same...]
  
