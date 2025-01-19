@@ -33,7 +33,7 @@ int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number
 
 // Create a sentence cycle from an array of token vertices
 // Returns LINK_SUCCESS or LINK_ERROR
-int create_sentence_cycle(uint* token_vertices, int count);
+int create_sentence_cycle(uint* token_vertices, ushort* channels, int count);
 
 // Get sentence data starting from given vertex/channel
 // Returns allocated string containing sentence data or NULL on error

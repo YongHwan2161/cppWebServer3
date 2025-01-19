@@ -66,7 +66,23 @@ int create_channel(uint vertex_index) {
     }
     return CHANNEL_SUCCESS;
 }
+// Create multiple channels in a vertex
+int create_multi_channels(uint vertex_index, int num_channels) {
+    if (num_channels < 1) {
+        printf("Error: Invalid number of channels to create\n");
+        return CHANNEL_ERROR;
+    }
 
+    // Create channels one by one
+    for (int i = 0; i < num_channels; i++) {
+        if (create_channel(vertex_index) != CHANNEL_SUCCESS) {
+            printf("Error: Failed to create channel %d\n", i + 1);
+            return CHANNEL_ERROR;
+        }
+    }
+
+    return CHANNEL_SUCCESS;
+}
 // Find empty channel or create new one
 int recycle_or_create_channel(uint vertex_index) {
     uint vertex_position = get_vertex_position(vertex_index);
@@ -79,7 +95,7 @@ int recycle_or_create_channel(uint vertex_index) {
     ushort channel_count = get_channel_count(vertex);
 
     // Check for empty channels
-    for (ushort ch = 0; ch < channel_count; ch++) {
+    for (ushort ch = 1; ch < channel_count; ch++) {
         uint channel_offset = get_channel_offset(vertex, ch);
         ushort axis_count = *(ushort*)(vertex + channel_offset);
         if (axis_count == 0) {
@@ -100,23 +116,19 @@ int clear_channel(uint vertex_index, ushort channel_index) {
     uchar* vertex = Core[vertex_position];
     uint channel_offset = get_channel_offset(vertex, channel_index);
     uint channel_end_offset = get_channel_end_offset(vertex, channel_index);
-    uint move_dest = channel_end_offset + 2;
+    uint move_dest = channel_offset + 2;
     uint actual_size = *(uint*)(vertex + 2);
-    uint move_size = actual_size - channel_end_offset;
+    uint move_size = channel_end_offset - move_dest;
     memmove(vertex + move_dest, vertex + channel_end_offset, move_size);
 
     // Update actual size
-    *(uint*)(vertex + 2) = actual_size - (channel_end_offset - channel_offset);
-    *(ushort*)(vertex + channel_offset) = 0;
+    *(uint*)(vertex + 2) = actual_size - move_size;
+    *(ushort*)(vertex + channel_offset) = 0; // Clear axis count
 
     // Update channel offsets
     ushort channel_count = get_channel_count(vertex);
-    uint delete_size = channel_end_offset - channel_offset - 2;
-    printf("delete_size: %d\n", delete_size);
-    printf("channel_end_offset: %d\n", channel_end_offset);
-    printf("channel_offset: %d\n", channel_offset);
     for (ushort i = channel_index + 1; i < channel_count; i++) {
-        *(uint*)(vertex + 8 + (i * 4)) -= delete_size;
+        *(uint*)(vertex + 8 + (i * 4)) -= move_size;
     }
 
     if (!save_vertex_to_file(vertex_index)) {
@@ -133,29 +145,5 @@ int clear_channels(uint *vertex_index, ushort *channel_index, ushort count) {
             return CHANNEL_ERROR;
         }
     }
-    return CHANNEL_SUCCESS;
-}
-// Create multiple channels in a vertex
-int create_multi_channels(uint vertex_index, int num_channels) {
-    if (num_channels < 1) {
-        printf("Error: Invalid number of channels to create\n");
-        return CHANNEL_ERROR;
-    }
-
-    // Get vertex data
-    uint vertex_position = get_vertex_position(vertex_index);
-    if (!Core[vertex_position]) {
-        printf("Error: Vertex %u not loaded\n", vertex_index);
-        return CHANNEL_ERROR;
-    }
-
-    // Create channels one by one
-    for (int i = 0; i < num_channels; i++) {
-        if (create_channel(vertex_index) != CHANNEL_SUCCESS) {
-            printf("Error: Failed to create channel %d\n", i + 1);
-            return CHANNEL_ERROR;
-        }
-    }
-
     return CHANNEL_SUCCESS;
 }

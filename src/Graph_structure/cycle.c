@@ -179,34 +179,13 @@ int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number
 
     return LINK_SUCCESS;
 }
-int create_sentence_cycle(uint* token_vertices, int count) {
+int create_sentence_cycle(uint* token_vertices, ushort* channels, int count) {
     if (!token_vertices) {
         printf("Error: Invalid token array or count\n");
         return LINK_ERROR;
     }
-
-    // Create channels and store channel indices
-    ushort* channels = malloc(count * sizeof(ushort));
-    if (!channels) {
-        printf("Error: Failed to allocate channel array\n");
-        return LINK_ERROR;
-    }
-
-    // Create new channel for each token vertex
-    for (int i = 0; i < count; i++) {
-        if (create_channel(token_vertices[i]) != CHANNEL_SUCCESS) {
-            printf("Error: Failed to create channel for vertex %u\n", token_vertices[i]);
-            free(channels);
-            return LINK_ERROR;
-        }
-        // Get the index of newly created channel
-        uint vertex_position = get_vertex_position(token_vertices[i]);
-        channels[i] = get_channel_count(Core[vertex_position]) - 1;
-    }
-
     // Create sentence cycle using the new channels
     int result = create_cycle(token_vertices, channels, count, SENTENCE_AXIS);
-    free(channels);
     
     return result;
 }
@@ -309,8 +288,8 @@ int handle_create_sentence(char* args) {
         TokenSearchResult *result = search_token(current_pos, remaining_len);
         if (!result) break;
         
-        uint current_vertex_position = get_vertex_position(result->vertex_index);
-        ushort channel_count = get_channel_count(Core[current_vertex_position]);
+        // uint current_vertex_position = get_vertex_position(result->vertex_index);
+        // ushort channel_count = get_channel_count(Core[current_vertex_position]);
         tokens[count] = result->vertex_index;
         channels[count] = recycle_or_create_channel(result->vertex_index);
         if (channels[count] == (ushort)CHANNEL_ERROR) {
@@ -319,27 +298,35 @@ int handle_create_sentence(char* args) {
             return ERROR;
         }
         need_search = true;
-        if (channel_count == 2) need_search = false;
+        ushort prev_channel_count = 0;
+        if (count > 0) {
+            prev_channel_count = get_channel_count(Core[get_vertex_position(tokens[count-1])]);
+            if (prev_channel_count <= 2) need_search = false;
+        }
         // channel_count > 2
         // Check for possible token combinations
         if (count > 0 && need_search) {
             uint prev_vertex = tokens[count-1];
             // Check each channel for matching next token
-            for (ushort ch = 1; ch < channel_count; ch++) {
+            for (ushort ch = 1; ch < prev_channel_count; ch++) {
                 uint next_vertex;
                 ushort next_channel;
                 if (get_link(prev_vertex, ch, (ushort)2, (ushort)0, &next_vertex, &next_channel) != LINK_SUCCESS) continue;
 
                 // Compare next vertex's token data with current token
                 char* next_token = get_token_data(next_vertex);
-                printf("next_token: %s\n", next_token);
+                printf("prev_vertex: %u, next_vertex: %u, next_token: %s\n", prev_vertex, next_vertex, next_token);
                 if (!next_token) continue;
 
                 if (strcmp(next_token, result->token_data) == 0)
                 {
                     // Create combined token
                     int new_vertex = create_token_vertex(prev_vertex, result->vertex_index);
-                    create_channel(new_vertex);
+                    if (create_multi_channels(new_vertex, 2) != CHANNEL_SUCCESS) {
+                        printf("Error: Failed to create channels for vertex %u\n", new_vertex);
+                        free_search_result(result);
+                        return ERROR;
+                    }
 
                     if (new_vertex >= 0)
                     {
@@ -365,6 +352,7 @@ int handle_create_sentence(char* args) {
 
                         // Update tokens array
                         tokens[count - 1] = new_vertex;
+                        channels[count - 1] = 2;
                         count--;
                     }
                     free(next_token);
@@ -387,7 +375,7 @@ int handle_create_sentence(char* args) {
     }
 
     // Create sentence cycle using the tokens
-    if (create_sentence_cycle(tokens, count) == LINK_SUCCESS) {
+    if (create_sentence_cycle(tokens, channels, count) == LINK_SUCCESS) {
         printf("Successfully created sentence cycle with %d tokens\n", count);
         return SUCCESS;
     }
