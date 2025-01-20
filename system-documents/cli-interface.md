@@ -211,47 +211,50 @@ Example: print-vertex 0
 Error: vertex index must be between 0 and 255
 ```
 
-### Print Free Space Information
+### Memory Management Commands
+
+#### Print Free Space
 ```
 print-free-space
 ```
-Displays detailed information about the free space management system.
+Displays information about available free space in the data file.
 
-Output includes:
-1. Total number of free blocks
-2. Number of free vertex indices
-3. List of free blocks with their sizes and offsets
-4. List of available vertex indices
+Parameters: None
 
-Example:
+Example output:
 ```
-> print-free-space
 Free Space Information:
 Total free blocks: 2
-Free vertex indices: 1
 
 Free Blocks:
 Size (bytes)    Offset
 ------------    ------
 16              0x00001000
 32              0x00002000
-
-Free vertex Indices:
-5
 ```
-
-The output shows:
-1. Summary of free space status
-2. Detailed list of available blocks
-3. List of vertex indices available for reuse
 
 Error handling:
-```
-> print-free-space something
+```shell
+> print-free-space extra_args
 Error: Invalid arguments
 Usage: print-free-space
-Example: print-free-space
 ```
+
+Purpose:
+- Monitor available memory blocks
+- Track memory fragmentation
+- Debug memory allocation issues
+- Verify space reclamation
+
+Display Format:
+1. Summary Information
+   - Total number of free blocks
+   - Block count and sizes
+
+2. Block Details
+   - Size in bytes
+   - File offset in hexadecimal
+   - Sorted by offset
 
 ### Delete Link
 ```
@@ -1265,5 +1268,54 @@ Error: Maximum number of vertices (256) reached
    - Core 배열에 추가
    - CoreMap 업데이트
    - 파일 저장 자동화
+
+### Test Commands
+
+#### Test Repeating Sentence
+```
+test-repeating-sentence
+```
+Tests sentence creation with repeating patterns.
+
+Parameters: None
+
+Example:
+```shell
+> test-repeating-sentence
+Testing repeating sentence creation...
+
+Testing patterns of length 1
+Creating sentence for: AA (pattern 'A' repeated 2 times)
+Successfully created sentence
+...
+
+Testing patterns of length 2
+Creating sentence for: ABAB (pattern 'AB' repeated 2 times)
+Successfully created sentence
+...
+
+Repeating sentence tests completed. Failed tests: 0
+```
+
+Error handling:
+```shell
+> test-repeating-sentence extra_args
+Error: Invalid arguments
+Usage: test-repeating-sentence
+```
+
+The command will:
+1. Test patterns of length 1-10
+2. Test repetition counts 2-10
+3. Create sentences for all combinations
+4. Report success/failure for each test
+5. Provide final summary of failed tests
+
+Purpose:
+- Verify handling of repeating patterns
+- Test system stability with repetitive data
+- Ensure proper token reuse and combination
+- Validate memory management
+- Check cycle creation with repeated elements
 
 [Rest of the document remains the same...] 

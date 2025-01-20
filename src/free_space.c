@@ -10,8 +10,6 @@ int init_free_space() {
     
     free_space->count = 0;
     free_space->blocks = NULL;
-    free_space->free_indices = NULL;
-    free_space->index_count = 0;
     
     // Try to load existing free space data
     FILE* fs_file = fopen(FREE_SPACE_FILE, "rb");
@@ -35,25 +33,6 @@ int init_free_space() {
             }
         }
         
-        // Read free indices
-        if (fread(&free_space->index_count, sizeof(uint), 1, fs_file) != 1) {
-            fclose(fs_file);
-            return FREE_SPACE_ERROR;
-        }
-        
-        if (free_space->index_count > 0) {
-            free_space->free_indices = (uint*)malloc(free_space->index_count * sizeof(uint));
-            if (!free_space->free_indices) {
-                fclose(fs_file);
-                return FREE_SPACE_ERROR;
-            }
-            if (fread(free_space->free_indices, sizeof(uint), free_space->index_count, fs_file) 
-                != free_space->index_count) {
-                fclose(fs_file);
-                return FREE_SPACE_ERROR;
-            }
-        }
-        
         fclose(fs_file);
         return FREE_SPACE_SUCCESS;
     }
@@ -70,11 +49,6 @@ void save_free_space() {
     fwrite(&free_space->count, sizeof(uint), 1, fs_file);
     if (free_space->count > 0) {
         fwrite(free_space->blocks, sizeof(FreeBlock), free_space->count, fs_file);
-    }
-    
-    fwrite(&free_space->index_count, sizeof(uint), 1, fs_file);
-    if (free_space->index_count > 0) {
-        fwrite(free_space->free_indices, sizeof(uint), free_space->index_count, fs_file);
     }
     
     fclose(fs_file);
@@ -98,30 +72,6 @@ void add_free_block(uint size, long offset) {
     free_space->blocks[free_space->count - 1].offset = offset;
 }
 
-int get_free_index() {
-    if (free_space->index_count == 0) return -1;
-    
-    int index = free_space->free_indices[free_space->index_count - 1];
-    free_space->index_count--;
-    
-    if (free_space->index_count == 0) {
-        free(free_space->free_indices);
-        free_space->free_indices = NULL;
-    } else {
-        free_space->free_indices = (uint*)realloc(free_space->free_indices,
-                                                 free_space->index_count * sizeof(uint));
-    }
-    
-    return index;
-}
-
-void add_free_index(uint index) {
-    free_space->index_count++;
-    free_space->free_indices = (uint*)realloc(free_space->free_indices,
-                                             free_space->index_count * sizeof(uint));
-    free_space->free_indices[free_space->index_count - 1] = index;
-}
-
 void release_vertex_space(int vertex_index) {
     if (!CoreMap[vertex_index].is_loaded) return;
     
@@ -133,7 +83,7 @@ void release_vertex_space(int vertex_index) {
     // Add to free space
     add_free_block(actual_size, CoreMap[vertex_index].file_offset);
     
-    // Clear data in data.bin
+    // Clear data in file
     FILE* data_file = fopen(DATA_FILE, "r+b");
     if (data_file) {
         fseek(data_file, CoreMap[vertex_index].file_offset, SEEK_SET);
@@ -142,9 +92,6 @@ void release_vertex_space(int vertex_index) {
         free(zeros);
         fclose(data_file);
     }
-    
-    // Add index to free indices
-    add_free_index(vertex_index);
     
     // Update free space file
     save_free_space();

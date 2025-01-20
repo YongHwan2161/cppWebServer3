@@ -408,7 +408,7 @@ TokenSearchResult* search_token(const char* data, size_t length) {
 
     // Start with first byte as vertex index
     uint current_vertex = (unsigned char)data[0];
-    printf("current_vertex: %d\n", current_vertex);
+    // printf("current_vertex: %d\n", current_vertex);
     size_t matched_pos = 1;
     
     // Get token data for current vertex
@@ -425,7 +425,7 @@ TokenSearchResult* search_token(const char* data, size_t length) {
         bool found_match = false;
         // Get links from current vertex
         uint vertex_position = get_vertex_position(current_vertex);
-        printf("vertex_position: %d\n", vertex_position);
+        // printf("vertex_position: %d\n", vertex_position);
         if (!Core[vertex_position]) break;
 
         uint channel_offset = get_channel_offset(Core[vertex_position], 0);  // Use channel 0
@@ -464,7 +464,7 @@ TokenSearchResult* search_token(const char* data, size_t length) {
     result->vertex_index = current_vertex;
     result->token_data = token_data;
     result->matched_length = matched_pos;
-    printf("result->matched_length: %d\n", result->matched_length);
+    // printf("result->matched_length: %d\n", result->matched_length);
     return result;
 }
 

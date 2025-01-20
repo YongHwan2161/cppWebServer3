@@ -39,7 +39,7 @@ int create_sentence_cycle(uint* token_vertices, ushort* channels, int count);
 // Returns allocated string containing sentence data or NULL on error
 char* get_sentence_data(uint vertex_index, ushort channel_index);
 int handle_get_sentence(char* args);
-int handle_create_sentence(char* args);
+int handle_create_sentence(char* args, uint* start_vertex, ushort* start_channel);
 int handle_create_cycle(char* args);
 bool validate_cycle(int vertex_index, int channel_index, int axis_number);
 int handle_validate_cycle(char* args);
@@ -48,7 +48,7 @@ int handle_delete_path(char* args);
 
 // Create a sentence from an ASCII string
 // Returns SUCCESS or ERROR
-int handle_create_sentence_from_string(char* args);
+// int handle_create_sentence_from_string(char* args);
 int handle_insert_path(char* args);
 
 // Insert a path into an existing cycle

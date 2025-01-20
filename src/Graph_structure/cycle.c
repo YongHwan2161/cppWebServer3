@@ -243,7 +243,7 @@ int clear_cycle(cycleInfo* info) {
     clear_channels(info->vertices, info->channels, info->count);
     return LINK_SUCCESS;
 }
-int handle_create_sentence(char* args) {
+int handle_create_sentence(char* args, uint* start_vertex, ushort* start_channel) {
     if (!args || !*args) {
         print_argument_error("create-sentence", "<text>", false);
         return ERROR;
@@ -328,17 +328,14 @@ int handle_create_sentence(char* args) {
                     }
                     if (ch == channels[count - 1])
                         continue; // skip the current channel
+                    
                     uint next_vertex;
                     ushort next_channel;
                     if (get_link(prev_vertex, ch, (ushort)2, (ushort)0, &next_vertex, &next_channel) != LINK_SUCCESS)
                         continue;
-                    // if (next_vertex == tokens[count] && next_channel == channels[count])
-                    // {
-                    //     clear_channel(prev_vertex, ch);
-                    //     printf("next_vertex == tokens[count] && next_channel == channels[count]\n");
-                    //     continue; // skip if the next vertex is the current token
-                    // }
-
+                    if (next_vertex == tokens[count - 1] && next_channel == channels[count - 1]) // if the next vertex is itself -> it means loop
+                        continue; // skip if the next vertex is the same as itself
+    
                     // Compare next vertex's token data with current token
                     char *next_token = get_token_data(next_vertex);
                     printf("prev_vertex: %u, prev_channel: %u, next_vertex: %u, next_channel: %u, next_token: %s\n", prev_vertex, ch, next_vertex, next_channel, next_token);
@@ -434,6 +431,8 @@ int handle_create_sentence(char* args) {
 
     if (create_link(tokens[count - 1], channels[count - 1], tokens[0], channels[0], 2) != LINK_SUCCESS) { // count - 1 is the last token, because count++
         printf("Error: Failed to create link between the last token and the first token\n");
+        *start_vertex = tokens[0];
+        *start_channel = channels[0];
         return ERROR;
     } else {
         printf("Successfully created link between the last token and the first token\n");
@@ -631,12 +630,7 @@ int handle_print_cycle(char* args) {
     free_cycle_info(info);
     return CMD_SUCCESS;
 }
-int handle_create_sentence_from_string(char* args) {
-    if (handle_create_sentence(args) == CMD_SUCCESS) {
-        return CMD_SUCCESS;
-    }
-    return CMD_ERROR;
-}
+
 
 // Insert a path into an existing cycle at specified position
 int insert_path_into_cycle(uint insert_vertex, ushort insert_channel, 

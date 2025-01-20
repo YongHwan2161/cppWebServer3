@@ -53,12 +53,12 @@ void create_DB() {
     CoreMap = (vertexMapping*)malloc(257 * sizeof(vertexMapping));
     
     // Initialize CoreMap with default values
-    for (int i = 0; i < 257; ++i) {
+    for (int i = 0; i < 256; ++i) {
         CoreMap[i].core_position = i;
         CoreMap[i].is_loaded = 1;
         CoreMap[i].file_offset = 16 * i;  // Each vertex starts with 16 bytes, plus 4 bytes header        
         create_new_vertex();
     }
-    create_axis(256, 0, 0); // create axis first
-    create_loop(GarbagevertexIndex, 0, 0);
+    // create_axis(256, 0, 0); // create axis first
+    // create_loop(GarbagevertexIndex, 0, 0);
 }

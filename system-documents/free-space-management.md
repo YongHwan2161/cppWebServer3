@@ -15,12 +15,41 @@ typedef struct {
 typedef struct {
     uint count;          // Number of free blocks
     FreeBlock* blocks;   // Array of free blocks
-    uint* free_indices;  // Array of free vertex indices
-    uint index_count;    // Number of free indices
 } FreeSpace;
 ```
 
 ## Operations
+
+### Free Block Management
+```c
+FreeBlock* find_free_block(uint size);
+void add_free_block(uint size, long offset);
+```
+
+#### Process
+1. Block Finding
+   - 요청된 크기와 일치하는 블록 검색
+   - 정확한 크기 매칭만 허용
+   - 효율적인 공간 재사용
+
+2. Block Addition
+   - 새로운 블록 정보 추가
+   - 블록 배열 크기 조정
+   - 파일 동기화 수행
+
+### Memory Management
+
+#### Space Requirements
+- Block 정보: 8 bytes per block
+  - Size: 4 bytes
+  - Offset: 4 bytes
+- 메모리 효율성 최적화
+- 동적 배열 관리
+
+#### File Format
+```
+[Block Count(4)][Block Data(8 * count)]
+```
 
 ### vertex Space Management
 ```c
@@ -33,16 +62,6 @@ uchar* resize_vertex_space(uchar* vertex, uint required_size, int vertex_index, 
 3. 새로운 메모리 할당
 4. 데이터 복사
 5. 오프셋 관리
-   ```c
-   // 올바른 순서
-   long old_offset = CoreMap[vertex_index].file_offset;  // 기존 오프셋 저장
-   CoreMap[vertex_index].file_offset = free_block->offset;  // 새 오프셋 설정
-   add_free_block(current_size, old_offset);  // 기존 공간 반환
-   ```
-
-6. 메모리 정리
-   - 할당된 FreeBlock 해제
-   - 이전 노드 메모리 해제
 
 #### Parameters
 - vertex: 현재 노드 데이터
@@ -64,69 +83,7 @@ uchar* resize_vertex_space(uchar* vertex, uint required_size, int vertex_index, 
    - FreeBlock 메모리 누수 방지
    - 적절한 시점의 메모리 해제
 
-### Free Block Management
-```c
-FreeBlock* find_free_block(uint size);
-void add_free_block(uint size, long offset);
-```
-
-#### Find and Get Free Block
-```c
-FreeBlock* find_and_get_free_block(uint size);
-```
-
-##### Process
-1. Block 검색
-   - 요청된 크기와 일치하는 block 찾기
-   - blocks 배열 순차 검색
-
-2. Block 반환 및 제거
-   - 찾은 block 정보 복사
-   - free space list에서 제거
-   - 메모리 재할당
-
-##### 반환 값
-- 성공: 할당된 FreeBlock 포인터
-- 실패: NULL
-
-##### 메모리 관리
-1. 반환 Block
-   - 새로운 메모리 할당
-   - block 정보젵 복사
-   - 호출자가 메모리 해제 책임
-
-2. Free Space 관리
-   - blocks 배열 크기 조정
-   - 빈 공간 제거
-   - 메모리 최적화
-
-##### 사용 예시
-```c
-FreeBlock* block = find_and_get_free_block(required_size);
-if (block) {
-    // Use the block
-    // ...
-    free(block);  // Don't forget to free
-}
-```
-
-##### 주의사항
-1. 메모리 관리
-   - 반환된 block은 사용 후 반드시 해제
-   - free space 메모리 관리
-   - 메모리 누수 방지
-
-2. 동기화
-   - free space 정보 갱신
-   - 파일 저장 고려
-
-### Free Index Management
-```c
-int get_free_index();
-void add_free_index(uint index);
-```
-
-## File Persistence
+### File Persistence
 - FREE_SPACE_FILE에 상태 저장
 - 프로그램 시작 시 로드
 - 변경사항 발생 시 저장
@@ -158,31 +115,22 @@ int handle_print_free_space(void);
 #### Display Format
 1. Summary Information
    - Total number of free blocks
-   - Number of free vertex indices
 
 2. Free Block Details
    - Block size in bytes
    - File offset in hexadecimal
    - Sorted by offset
 
-3. Free vertex Indices
-   - List of available vertex indices
-   - Used for new vertex allocation
-
 #### Example Output
 ```
 Free Space Information:
 Total free blocks: 2
-Free vertex indices: 1
 
 Free Blocks:
 Size (bytes)    Offset
 ------------    ------
 16              0x00001000
 32              0x00002000
-
-Free vertex Indices:
-5
 ```
 
 ### Usage

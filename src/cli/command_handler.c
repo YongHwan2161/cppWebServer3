@@ -377,32 +377,19 @@ int handle_print_free_space(char* args) {
         return CMD_ERROR;
     }
     
-    if (!free_space) {
-        printf("Error: Free space manager not initialized\n");
-        return CMD_ERROR;
-    }
-    
     printf("\nFree Space Information:\n");
-    printf("Total free blocks: %d\n", free_space->count);
-    printf("Free vertex indices: %d\n", free_space->index_count);
+    printf("Total free blocks: %u\n\n", free_space->count);
     
     if (free_space->count > 0) {
-        printf("\nFree Blocks:\n");
+        printf("Free Blocks:\n");
         printf("Size (bytes)    Offset\n");
         printf("------------    ------\n");
+        
         for (uint i = 0; i < free_space->count; i++) {
-            printf("%-14u    0x%08lX\n", 
+            printf("%-14u0x%08lx\n", 
                    free_space->blocks[i].size,
                    free_space->blocks[i].offset);
         }
-    }
-    
-    if (free_space->index_count > 0) {
-        printf("\nFree vertex Indices:\n");
-        for (uint i = 0; i < free_space->index_count; i++) {
-            printf("%d ", free_space->free_indices[i]);
-        }
-        printf("\n");
     }
     
     return CMD_SUCCESS;
@@ -776,6 +763,9 @@ int handle_command(char* command) {
         {
             return handle_test_sequential_token_creation(args);
         }
+        else if (strcmp(cmd, "test-repeating-sentence") == 0) {
+            return handle_test_repeating_sentence(args);
+        }
         else
         {
             printf("Unknown command. Type 'help' for available commands.\n");
@@ -879,13 +869,14 @@ int handle_command(char* command) {
         return handle_create_token(args);
     }
     else if (strcmp(cmd, "create-sentence") == 0) {
-        return handle_create_sentence(args);
+        uint start_vertex;
+        ushort start_channel;
+        int result = handle_create_sentence(args, &start_vertex, &start_channel);
+        printf("start_vertex: %u, start_channel: %u\n", start_vertex, start_channel);
+        return result;
     }
     else if (strcmp(cmd, "get-sentence") == 0) {
         return handle_get_sentence(args);
-    }
-    else if (strcmp(cmd, "create-sentence-str") == 0) {
-        return handle_create_sentence_from_string(args);
     }
     else if (strcmp(cmd, "search-token") == 0) {
         return handle_search_token(args);

@@ -76,3 +76,82 @@ Sequential token creation tests completed. Failed tests: 0
 - Tokens are automatically created and combined as needed
 - System handles memory management automatically
 - Failures are clearly reported and tracked 
+
+### Repeating Pattern Test
+The system provides a test to verify proper handling of repeating patterns in sentence creation:
+
+#### Test Process
+1. Pattern Generation
+   - Tests patterns of length 1 to 10
+   - Uses sequential letters (A, B, C, etc.)
+   - Creates patterns like "A", "AB", "ABC", etc.
+
+2. Repetition Testing
+   - Repeats each pattern 2 to 10 times
+   - Creates test strings like "AA", "AAA", "ABABAB", etc.
+   - Tests all combinations of pattern length and repetition count
+
+3. Sentence Creation
+   - Creates sentence for each test string
+   - Verifies successful creation
+   - Tracks any failures
+
+#### Command Interface
+```shell
+test-repeating-sentence
+```
+
+#### Example Output
+```
+Testing repeating sentence creation...
+
+Testing patterns of length 1
+Creating sentence for: AA (pattern 'A' repeated 2 times)
+Successfully created sentence
+Creating sentence for: AAA (pattern 'A' repeated 3 times)
+Successfully created sentence
+...
+
+Testing patterns of length 2
+Creating sentence for: ABAB (pattern 'AB' repeated 2 times)
+Successfully created sentence
+...
+```
+
+#### Implementation Details
+1. Pattern Generation
+   - Sequential letter patterns
+   - Maximum pattern length: 10
+   - Null-terminated strings
+
+2. Repetition Handling
+   - Safe string concatenation
+   - Maximum total length: 100
+   - Buffer overflow prevention
+
+3. Error Tracking
+   - Per-pattern failure counting
+   - Detailed error reporting
+   - Success/failure summary
+
+#### Benefits
+1. Edge Case Testing
+   - Repeating pattern handling
+   - Memory management verification
+   - System stability testing
+
+2. Comprehensive Coverage
+   - Multiple pattern lengths
+   - Various repetition counts
+   - All combinations tested
+
+3. Error Detection
+   - Pattern-specific failures
+   - Creation process validation
+   - Resource management verification
+
+#### Notes
+- Tests 90 different combinations
+- Verifies memory handling
+- Ensures stable sentence creation
+- Reports specific failure cases 
