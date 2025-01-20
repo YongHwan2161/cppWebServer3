@@ -27,61 +27,60 @@ The system provides functionality to create sentences by linking token vertices 
    - Link optimized tokens sequentially
    - Create sentence cycle
    - Use axis 2 for connections
+   - Return start vertex and channel
 
 ### Command Interface
 ```shell
 create-sentence <text>
 ```
 
-#### Parameters
-- text: Text to be tokenized and formed into sentence
-- System automatically finds matching tokens
-- Creates cycle from found token vertices
+Parameters:
+- text: Input text to create sentence from
 
-#### Examples
+Returns:
+- Success/error status
+- Start vertex and channel for sentence access
+
+Example:
 ```shell
-# Create sentence from text
 > create-sentence "Hello World"
-Tokenizing: Found 2 tokens
-- Token 1: vertex 72 ("Hello")
-- Token 2: vertex 87 ("World")
-Successfully created sentence cycle with 2 tokens
-
-# Create sentence with longer text
-> create-sentence "This is a test"
-Tokenizing: Found 4 tokens
-- Token 1: vertex 84 ("This")
-- Token 2: vertex 32 ("is")
-- Token 3: vertex 97 ("a")
-- Token 4: vertex 116 ("test")
-Successfully created sentence cycle with 4 tokens
-
-# Error cases
-> create-sentence
-Error: Missing arguments
-Usage: create-sentence <text>
-
-> create-sentence "未知の文字列"
-Error: Failed to tokenize at position 0: '未知の文字列'
+Successfully created sentence starting at vertex 5, channel 2
 ```
 
 ### Implementation Details
-
-#### Token Optimization Process
 ```c
-// For each token
-for each new_token in input:
-    // Check previous token's channels
-    for each channel in prev_token:
-        // Look for matching next tokens
-        if (next_token matches new_token):
-            // Create combined token
-            new_vertex = create_token_vertex(prev_token, new_token)
-            
-            // Update cycle
-            delete_path(old_tokens)
-            insert_path(new_vertex)
+int handle_create_sentence(char* args, uint* start_vertex, ushort* start_channel);
 ```
+
+#### Parameters
+- args: Input text string
+- start_vertex: Pointer to store starting vertex index
+- start_channel: Pointer to store starting channel index
+
+#### Return Values
+- SUCCESS: Sentence created successfully
+- ERROR: Failed to create sentence
+
+#### Process Flow
+1. Input Processing
+   - Validate input text
+   - Initialize token arrays
+   - Set initial start vertex/channel
+
+2. Token Processing
+   - Search and create tokens
+   - Optimize token combinations
+   - Track start position
+
+3. Cycle Creation
+   - Link tokens in sequence
+   - Create final cycle link
+   - Return start position
+
+4. Error Handling
+   - Return start position even on error
+   - Clear error state appropriately
+   - Provide detailed error messages
 
 ### Benefits
 1. Storage Optimization

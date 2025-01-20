@@ -429,10 +429,12 @@ int handle_create_sentence(char* args, uint* start_vertex, ushort* start_channel
         free_search_result(result);
     }
 
-    if (create_link(tokens[count - 1], channels[count - 1], tokens[0], channels[0], 2) != LINK_SUCCESS) { // count - 1 is the last token, because count++
+    // Set start vertex and channel before any potential error returns
+    *start_vertex = tokens[0];
+    *start_channel = channels[0];
+
+    if (create_link(tokens[count - 1], channels[count - 1], tokens[0], channels[0], 2) != LINK_SUCCESS) {
         printf("Error: Failed to create link between the last token and the first token\n");
-        *start_vertex = tokens[0];
-        *start_channel = channels[0];
         return ERROR;
     } else {
         printf("Successfully created link between the last token and the first token\n");

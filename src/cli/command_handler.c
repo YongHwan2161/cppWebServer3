@@ -872,7 +872,10 @@ int handle_command(char* command) {
         uint start_vertex;
         ushort start_channel;
         int result = handle_create_sentence(args, &start_vertex, &start_channel);
-        printf("start_vertex: %u, start_channel: %u\n", start_vertex, start_channel);
+        if (result == SUCCESS) {
+            printf("Successfully created sentence starting at vertex %u, channel %u\n", 
+                   start_vertex, start_channel);
+        }
         return result;
     }
     else if (strcmp(cmd, "get-sentence") == 0) {
