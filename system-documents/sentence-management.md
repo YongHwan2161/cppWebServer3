@@ -357,119 +357,138 @@ if (count == 1) {
 
 ## Sentence Creation Process
 
-### handle_create_sentence Implementation
-```c
-int handle_create_sentence(char* args) {
-    // Input validation
-    if (!args || !*args) {
-        print_argument_error("create-sentence", "<text>", false);
-        return ERROR;
-    }
+### Overview
+The sentence creation process involves tokenizing input data and creating a cycle of tokens. The process includes token optimization through combination when possible.
 
-    uint tokens[MAX_SENTENCE_TOKENS];
-    ushort channels[MAX_SENTENCE_TOKENS];
-    int count = 0;
-    const char* current_pos = args;
-    size_t remaining_len = strlen(args);
-```
+### Detailed Process
 
-### Key Components
-
-#### 1. Token Search and Channel Creation
+#### 1. Initial Token Search
 ```c
 TokenSearchResult *result_first = search_token(current_pos, remaining_len);
-if (!result_first) {
-    printf("Error: Failed to search token\n");
-    return ERROR; 
-}
-
-// Handle single token case
-if (remaining_len == (size_t)result_first->matched_length) {
-    int channel_index = recycle_or_create_channel(result_first->vertex_index);
-    if (channel_index == CHANNEL_ERROR) {
-        printf("Error: Failed to create channel for vertex %u\n", result_first->vertex_index);
-        free_search_result(result_first);
-        return ERROR;
-    }
-
-    // Create self-loop for single token
-    if (create_loop(result_first->vertex_index, channel_index, 2) != LINK_SUCCESS) {
-        printf("Error: Failed to create loop for vertex %u\n", result_first->vertex_index);
-        free_search_result(result_first);
-        return ERROR;
-    }
-    free_search_result(result_first);
-    return SUCCESS;
-}
 ```
+- Searches for longest matching token from input
+- Returns token vertex index and matched length
+- Handles initial token discovery
 
-#### 2. Token Combination Process
+#### 2. Single Token Case
+If input matches a single token completely:
+1. Create/recycle channel
+2. Create self-loop using axis 2
+3. Return success
+
 ```c
-bool need_search = true;
-while (remaining_len > 0 && count < MAX_SENTENCE_TOKENS) {
-    TokenSearchResult *result = search_token(current_pos, remaining_len);
-    if (!result) break;
-    
-    tokens[count] = result->vertex_index;
-    channels[count] = recycle_or_create_channel(result->vertex_index);
-    
-    // Check for possible token combinations
-    if (count > 0 && need_search) {
-        uint prev_vertex = tokens[count-1];
-        // Check each channel for matching next token
-        for (ushort ch = 1; ch < prev_channel_count; ch++) {
-            uint next_vertex;
-            ushort next_channel;
-            if (get_link(prev_vertex, ch, 2, 0, &next_vertex, &next_channel) != LINK_SUCCESS) 
-                continue;
-
-            // Compare next vertex's token data with current token
-            char* next_token = get_token_data(next_vertex);
-            if (!next_token) continue;
-
-            if (strcmp(next_token, result->token_data) == 0) {
-                // Create combined token
-                int new_vertex = create_token_vertex(prev_vertex, result->vertex_index);
-                // Update cycle with new combined token
-                // ...
-            }
-            free(next_token);
-        }
-    }
-    // Update position and continue search
-    current_pos += result->matched_length;
-    remaining_len -= result->matched_length;
-    count++;
-    free_search_result(result);
+if (remaining_len == result_first->matched_length) {
+    int channel_index = recycle_or_create_channel(result_first->vertex_index);
+    create_loop(result_first->vertex_index, channel_index, 2);
 }
 ```
 
-### Process Flow
+#### 3. Multi-Token Processing
+For inputs requiring multiple tokens:
 
-1. Initial Setup
-   - Validate input arguments
-   - Initialize token and channel arrays
-   - Set up position tracking
+1. Token Collection
+   ```c
+   uint tokens[MAX_SENTENCE_TOKENS];
+   ushort channels[MAX_SENTENCE_TOKENS];
+   ```
+   - Stores token vertices and channels
+   - Tracks token sequence
+   - Limited by MAX_SENTENCE_TOKENS
 
-2. Single Token Handling
-   - Check if input matches single token
-   - Create dedicated channel
-   - Create self-loop using axis 2
+2. Repeat Token Handling
+   ```c
+   if (tokens[count] == tokens[count-1]) {
+       create_channel(tokens[count]);
+       channels[count] = channels[count-1] + 1;
+   } else {
+       channels[count] = recycle_or_create_channel(result->vertex_index);
+   }
+   ```
+   - Special handling for repeated tokens
+   - Creates new channel explicitly
+   - Increments channel index
 
-3. Multi-Token Processing
-   - Search for tokens sequentially
-   - Create/recycle channels for each token
-   - Track token and channel information
+3. Token Linking
+   ```c
+   if (count > 0) {
+       create_link(tokens[count-1], channels[count-1], 
+                  tokens[count], channels[count], 2);
+   }
+   ```
+   - Links consecutive tokens
+   - Uses axis 2 for sentence structure
+   - Maintains token sequence
 
-4. Token Optimization
-   - Check for possible token combinations
-   - Compare with existing token patterns
-   - Create combined tokens when possible
+#### 4. Token Optimization
+For each token after the first:
 
-5. Cycle Creation
-   - Verify minimum token count (2)
-   - Create sentence cycle using tokens
-   - Use axis 2 for sentence structure
+1. Channel Count Check
+   ```c
+   prev_channel_count = get_channel_count(Core[get_vertex_position(tokens[count-1])]);
+   if (prev_channel_count <= 2) {
+       need_search = false;
+   }
+   ```
+   - Skip optimization if insufficient channels
+   - Prevents unnecessary searches
+   - Improves performance
+
+2. Channel Search
+   ```c
+   for (ushort ch = 1; ch < prev_channel_count; ch++) {
+       if (ch == channels[count-1]) continue;
+       // Search for matching tokens...
+   }
+   ```
+   - Examines each channel except current
+   - Looks for matching token sequences
+   - Enables token combination
+
+3. Skip Conditions
+   - Empty axis 2 (cleared channels)
+   - Current sentence channel
+   - Invalid link configurations
+
+4. Token Combination
+   ```c
+   if (strcmp(next_token, result->token_data) == 0) {
+       int new_vertex = create_token_vertex(prev_vertex, result->vertex_index);
+       create_multi_channels(new_vertex, 2);
+       // Update sentence structure...
+   }
+   ```
+   - Creates combined token vertex
+   - Allocates necessary channels
+   - Updates sentence links
+
+### Implementation Notes
+
+#### Channel Management
+1. Channel Creation
+   - Explicit creation for repeat tokens
+   - Recycling for new tokens
+   - Multiple channels for combined tokens
+
+2. Channel Selection
+   - Skip current sentence channel
+   - Skip cleared channels
+   - Consider all other channels
+
+#### Token Optimization Strategy
+1. Search Criteria
+   - Minimum channel count (>2)
+   - Valid axis 2 presence
+   - Matching token data
+
+2. Combination Benefits
+   - Reduced token count
+   - Optimized storage
+   - Improved traversal
+
+3. Performance Considerations
+   - Early search termination
+   - Channel count validation
+   - Efficient token comparison
 
 ### Key Features
 

@@ -118,16 +118,59 @@ Graph databases have become increasingly important in managing complex interconn
 \subsection{Core Concepts}
 Channel Graph Theory is built upon three fundamental concepts:
 \begin{itemize}
-    \item \textbf{vertices}: Basic units of data storage, each with a unique index (0-255)
+    \item \textbf{Vertices}: Basic units of data storage, each with a unique index (0-255)
     \item \textbf{Channels}: Independent connection pathways within vertices, allowing multiple relationship sets
     \item \textbf{Axes}: Connection properties that define the nature of links between channels
 \end{itemize}
 
-\subsection{Database Structure}
-The system maintains data through two critical files:
+\subsection{Sentence Structure}
+The system implements a sophisticated sentence management system through cycles:
 \begin{itemize}
-    \item data.bin: Contains actual vertex data with structured memory layout
-    \item map.bin: Stores vertex mapping information and file offsets
+    \item \textbf{Token Management}: Efficient tokenization and storage of text data
+    \item \textbf{Cycle Formation}: Sentences represented as cycles of token vertices
+    \item \textbf{UTF-8 Support}: Full support for multilingual text including CJK characters
+\end{itemize}
+
+\section{Cycle Management}\label{Sec:Cycles}
+\subsection{Cycle Detection}
+The system implements efficient cycle detection:
+\begin{itemize}
+    \item Path tracking with visited vertices
+    \item Maximum cycle length constraints
+    \item Memory-efficient implementation
+\end{itemize}
+
+\subsection{Path Operations}
+Two primary path operations are supported:
+\begin{itemize}
+    \item \textbf{Path Insertion}: Adding new vertices into existing cycles
+    \item \textbf{Path Deletion}: Removing vertex sequences while maintaining cycle integrity
+\end{itemize}
+
+\section{Sentence Processing}\label{Sec:Sentences}
+\subsection{Token Optimization}
+The system employs sophisticated token optimization:
+\begin{itemize}
+    \item Automatic token combination detection
+    \item Channel-based pattern matching
+    \item Storage efficiency through token reuse
+\end{itemize}
+
+\subsection{Channel Management}
+Channel handling is optimized for sentence structures:
+\begin{equation}
+    Channel_{new} = \begin{cases}
+        Channel_{prev} + 1 & \text{for repeat tokens} \\
+        recycle\_or\_create() & \text{otherwise}
+    \end{cases}
+\end{equation}
+
+\subsection{UTF-8 Processing}
+The system provides robust UTF-8 support:
+\begin{itemize}
+    \item Multi-byte character handling (1-4 bytes)
+    \item Invalid sequence detection
+    \item Proper escape sequence generation
 \end{itemize}
 
 \section{Memory Management}\label{Sec:Memory}
@@ -219,7 +262,7 @@ Future research directions include:
 \end{itemize}
 
 \section{Conclusion}\label{Sec:Conclusion}
-Channel Graph Theory provides a novel approach to graph database management that addresses the limitations of traditional systems. Through its channel-based architecture and axis-based link management, it offers both theoretical elegance and practical efficiency. The implementation demonstrates the viability of this approach, while performance analysis confirms its effectiveness in real-world scenarios.
+Channel Graph Theory provides a novel approach to graph database management that addresses the limitations of traditional systems. Through its channel-based architecture, cycle management, and sophisticated sentence processing capabilities, it offers both theoretical elegance and practical efficiency. The implementation demonstrates particular strength in handling multilingual text data and optimizing token storage through pattern recognition and cycle-based structures.
 
 \section*{Conflict of interest statement}
 The authors declare no competing interests.
