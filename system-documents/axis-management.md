@@ -36,7 +36,7 @@ Offset    Content          Description
 
 ### Axis Creation
 ```c
-int create_axis(int vertex_index, int channel_index, int axis_number);
+int create_axis(int node_index, int channel_index, int axis_number);
 ```
 
 #### Process
@@ -47,7 +47,7 @@ int create_axis(int vertex_index, int channel_index, int axis_number);
    - Axis 데이터 (6 bytes)
    - Link count 초기화 (2 bytes)
 5. 공간 부족 시 메모리 재할당
-   - resize_vertex_space 호출
+   - resize_node_space 호출
    - 새로운 공간 할당
    - 오프셋 재계산
 6. Axis 데이터 작성
@@ -66,8 +66,8 @@ int create_axis(int vertex_index, int channel_index, int axis_number);
 - Link count: 2 bytes
 - Total: 8 bytes minimum per axis
 
-#### vertex Resizing
-공간 부족 시 resize_vertex_space 사용:
+#### node Resizing
+공간 부족 시 resize_node_space 사용:
 1. 새로운 크기 계산
 2. Free Space 검색
 3. 메모리 재할당
@@ -83,18 +83,18 @@ int create_axis(int vertex_index, int channel_index, int axis_number);
 ## Usage Example
 ```c
 // Forward link axis 생성
-create_axis(vertex_index, channel_index, AXIS_FORWARD);
+create_axis(node_index, channel_index, AXIS_FORWARD);
 
 // Backward link axis 생성
-create_axis(vertex_index, channel_index, AXIS_BACKWARD);
+create_axis(node_index, channel_index, AXIS_BACKWARD);
 
 // Time axis 생성
-create_axis(vertex_index, channel_index, AXIS_TIME);
+create_axis(node_index, channel_index, AXIS_TIME);
 ```
 
 ## Implementation Notes
 - Axis 생성 시 자동으로 link count 초기화
-- 메모리 재할당은 resize_vertex_space 함수 사용
+- 메모리 재할당은 resize_node_space 함수 사용
 - 모든 변경사항은 즉시 파일에 동기화
 - Free space 정보 자동 업데이트 
 
@@ -121,14 +121,14 @@ create_axis(vertex_index, channel_index, AXIS_TIME);
 1. Required Size
    ```c
    // Simple size calculation using actual size
-   uint current_actual_size = *(uint*)(vertex + 2);
+   uint current_actual_size = *(uint*)(node + 2);
    uint required_size = current_actual_size + 6;  // Add 6 bytes for new axis
    ```
 
 2. Size Validation
    ```c
    // Check if resize needed
-   if (required_size > (1 << vertex_size_power)) {
+   if (required_size > (1 << node_size_power)) {
        // Resize to next power of 2
    }
    ```
@@ -169,7 +169,7 @@ create_axis(vertex_index, channel_index, AXIS_TIME);
 #### Size Calculations
 ```c
 // Calculate required size for new axis
-uint current_actual_size = *(uint*)(vertex + 2);
+uint current_actual_size = *(uint*)(node + 2);
 uint required_size = current_actual_size + 8;  // Total new space needed
 ```
 
@@ -188,12 +188,12 @@ Total: 8 bytes
 ##### 메모리 레이아웃 예시
 ```
 Before:
-[vertex Header][Channel Data][Existing Axes]
+[node Header][Channel Data][Existing Axes]
                                 ↑
                          current_actual_size
 
 After:
-[vertex Header][Channel Data][Existing Axes][New Axis Entry(6)][Link Count(2)]
+[node Header][Channel Data][Existing Axes][New Axis Entry(6)][Link Count(2)]
                                 ↑                             ↑
                          current_actual_size          current_actual_size + 8
 ```

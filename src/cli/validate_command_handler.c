@@ -14,10 +14,10 @@
 #define MAX_VISITED_vertices 1000
 
 typedef struct {
-    uint vertex;
+    uint node;
     ushort channel;
     ushort axis;
-} Pathvertex;
+} Pathnode;
 
 int validate_free_offsets(char* args) {
     if (args) {

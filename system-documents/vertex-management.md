@@ -1,8 +1,8 @@
-### vertex Deletion
+### node Deletion
 
 #### Command Interface
 ```shell
-delete-vertex <vertex_index>
+delete-node <node_index>
 ```
 
 ##### 기능
@@ -29,16 +29,16 @@ delete-vertex <vertex_index>
 ##### 사용 예시
 ```shell
 # 노드 삭제
-> delete-vertex 5
-Successfully deleted vertex 5
+> delete-node 5
+Successfully deleted node 5
 
 # 가비지 노드 삭제 시도
-> delete-vertex 0
-Error: Cannot delete garbage vertex (index 0)
+> delete-node 0
+Error: Cannot delete garbage node (index 0)
 
 # 가비지 순환에 포함된 노드 삭제 시도
-> delete-vertex 3
-Error: Cannot delete vertex in garbage cycle
+> delete-node 3
+Error: Cannot delete node in garbage cycle
 ```
 
 ##### 주의사항

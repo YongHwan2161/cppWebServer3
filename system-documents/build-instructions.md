@@ -16,8 +16,8 @@
 ├── obj/            # Object files directory
 │   └── src/        # Compiled source objects
 ├── binary-data/    # Database files directory
-│   ├── data.bin    # vertex data storage
-│   └── map.bin     # vertex mapping information
+│   ├── data.bin    # node data storage
+│   └── map.bin     # node mapping information
 └── system-documents/   # Documentation
 ```
 

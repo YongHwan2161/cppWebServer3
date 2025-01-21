@@ -5,17 +5,17 @@ The token search functionality allows finding the longest matching sequence of t
 
 ## Process
 1. Initial Matching
-   - Start with first byte as vertex index
-   - Get token data from vertex
+   - Start with first byte as node index
+   - Get token data from node
    - Check for matches in token search axis
 
 2. Link Traversal
    - Follow links in token search axis (axis 0)
-   - Check each linked vertex's token data
+   - Check each linked node's token data
    - Find longest matching sequence
 
 3. Result Generation
-   - Return matched vertex index
+   - Return matched node index
    - Include matched token data
    - Report matched length
 
@@ -33,14 +33,14 @@ search-token <text>
 > search-token AABBCCDD
 Search results for: AABBCCDD
 Matched length: 4 bytes
-Final vertex: 187
+Final node: 187
 Token data: AABB
 
 # Search with existing sequence
 > search-token Hello
 Search results for: Hello
 Matched length: 5 bytes
-Final vertex: 111
+Final node: 111
 Token data: Hello
 ```
 
@@ -49,32 +49,32 @@ Token data: Hello
 ### Data Structure
 ```c
 typedef struct {
-    uint vertex_index;    // Found vertex index
-    char* token_data;     // Token data at vertex
+    uint node_index;    // Found node index
+    char* token_data;     // Token data at node
     int matched_length;   // Length of matched data
 } TokenSearchResult;
 ```
 
 ### Search Process
 ```c
-// Get links from current vertex
-uint vertex_position = get_vertex_position(current_vertex);
-if (!Core[vertex_position]) break;
+// Get links from current node
+uint node_position = get_node_position(current_node);
+if (!Core[node_position]) break;
 
 // Check if token search axis exists
-uint channel_offset = get_channel_offset(Core[vertex_position], 0);
-if (!has_axis(Core[vertex_position], 0, TOKEN_SEARCH_AXIS)) {
+uint channel_offset = get_channel_offset(Core[node_position], 0);
+if (!has_axis(Core[node_position], 0, TOKEN_SEARCH_AXIS)) {
     break;
 }
 
 // Get axis offset and link count
-uint axis_offset = get_axis_offset(Core[vertex_position], 0, TOKEN_SEARCH_AXIS);
-ushort link_count = *(ushort*)(Core[vertex_position] + channel_offset + axis_offset);
+uint axis_offset = get_axis_offset(Core[node_position], 0, TOKEN_SEARCH_AXIS);
+ushort link_count = *(ushort*)(Core[node_position] + channel_offset + axis_offset);
 
 // Check each link's destination
 for (int i = 0; i < link_count; i++) {
-    uint next_vertex = *(uint*)(Core[vertex_position] + link_offset + (i * 6));
-    char* next_token = get_token_data(next_vertex);
+    uint next_node = *(uint*)(Core[node_position] + link_offset + (i * 6));
+    char* next_token = get_token_data(next_node);
     
     // Compare full token with input data
     size_t next_len = strlen(next_token);
@@ -92,7 +92,7 @@ for (int i = 0; i < link_count; i++) {
 1. Initial Check
    - Verify token search axis exists
    - Get link count and offsets
-   - Validate vertex position
+   - Validate node position
 
 2. Token Comparison
    - Compare full token with input data
@@ -100,7 +100,7 @@ for (int i = 0; i < link_count; i++) {
    - Update position on match
 
 3. Debug Information
-   - Vertex positions
+   - node positions
    - Link counts
    - Token contents
    - Match lengths
@@ -118,11 +118,11 @@ for (int i = 0; i < link_count; i++) {
 
 3. Error Handling
    - Missing axis detection
-   - Invalid vertex checks
+   - Invalid node checks
    - NULL token data handling
 
 4. Debug Features
-   - Vertex position logging
+   - node position logging
    - Link count display
    - Token content printing
    - Match length tracking

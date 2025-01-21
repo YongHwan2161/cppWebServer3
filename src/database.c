@@ -1,6 +1,6 @@
 #include "database.h"
 #include "init.h"
-#include "Graph_structure/vertex.h"
+#include "Graph_structure/node.h"
 #include "memory.h"
 #include "Graph_structure/link.h"
 #include <string.h>
@@ -35,10 +35,10 @@ int initialize_database() {
         // Load initial set of vertices
         Core = (uchar **)malloc(MaxCoreSize * sizeof(uchar *));
 
-        for (uint i = 0; i < CurrentvertexCount; i++)
+        for (uint i = 0; i < CurrentnodeCount; i++)
         {
             Core[i] = NULL;
-            load_vertex_to_core(i);
+            load_node_to_core(i);
         }
 
         fclose(map_file);
@@ -50,15 +50,15 @@ int initialize_database() {
 void create_DB() {
     printf("Creating new database...\n");
     Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
-    CoreMap = (vertexMapping*)malloc(257 * sizeof(vertexMapping));
+    CoreMap = (nodeMapping*)malloc(257 * sizeof(nodeMapping));
     
     // Initialize CoreMap with default values
     for (int i = 0; i < 256; ++i) {
         CoreMap[i].core_position = i;
         CoreMap[i].is_loaded = 1;
-        CoreMap[i].file_offset = 16 * i;  // Each vertex starts with 16 bytes, plus 4 bytes header        
-        create_new_vertex();
+        CoreMap[i].file_offset = 16 * i;  // Each node starts with 16 bytes, plus 4 bytes header        
+        create_new_node();
     }
     // create_axis(256, 0, 0); // create axis first
-    // create_loop(GarbagevertexIndex, 0, 0);
+    // create_loop(GarbagenodeIndex, 0, 0);
 }

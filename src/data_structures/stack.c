@@ -26,12 +26,12 @@ void destroy_stack(Stack* stack) {
     }
 }
 
-bool stack_push(Stack* stack, uint vertex_index, ushort channel, int depth) {
+bool stack_push(Stack* stack, uint node_index, ushort channel, int depth) {
     if (!stack || stack_is_full(stack)) {
         return false;
     }
     
-    stack->entries[stack->top].vertex_index = vertex_index;
+    stack->entries[stack->top].node_index = node_index;
     stack->entries[stack->top].channel = channel;
     stack->entries[stack->top].depth = depth;
     stack->top++;

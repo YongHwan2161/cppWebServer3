@@ -1,17 +1,18 @@
 #include "../Graph_structure/axis.h"
 #include "../free_space.h"
 #include "../Graph_structure/channel.h"
+#include "../map.h"
 #include <stdio.h>
 
 int test_axis_creation() {
     printf("\nTesting axis creation...\n");
     
-    int test_vertex = 0;
+    int test_node = 0;
     int test_channel = 0;
     int failed_tests = 0;
     
     // Test 1: Create forward link axis
-    int result = create_axis(test_vertex, test_channel, AXIS_FORWARD);
+    int result = create_axis(test_node, test_channel, 0);
     if (result == AXIS_SUCCESS) {
         printf("✓ Successfully created forward axis\n");
     } else {
@@ -20,7 +21,7 @@ int test_axis_creation() {
     }
     
     // Test 2: Create backward link axis
-    result = create_axis(test_vertex, test_channel, AXIS_BACKWARD);
+    result = create_axis(test_node, test_channel, 1);
     if (result == AXIS_SUCCESS) {
         printf("✓ Successfully created backward axis\n");
     } else {
@@ -29,7 +30,7 @@ int test_axis_creation() {
     }
     
     // Test 3: Create time axis
-    result = create_axis(test_vertex, test_channel, AXIS_TIME);
+    result = create_axis(test_node, test_channel, 2);
     if (result == AXIS_SUCCESS) {
         printf("✓ Successfully created time axis\n");
     } else {
@@ -39,7 +40,7 @@ int test_axis_creation() {
     
     // Test 4: Try to create duplicate axis (should show warning)
     printf("\nTesting duplicate axis creation (expect warning):\n");
-    result = create_axis(test_vertex, test_channel, AXIS_FORWARD);
+    result = create_axis(test_node, test_channel, 0);
     if (result == AXIS_SUCCESS) {
         printf("✓ Duplicate axis handling works correctly\n");
     } else {
@@ -47,13 +48,13 @@ int test_axis_creation() {
         failed_tests++;
     }
     
-    // Test 5: Try to create axis in invalid vertex
-    printf("\nTesting invalid vertex (expect error):\n");
-    result = create_axis(256, test_channel, AXIS_FORWARD);
+    // Test 5: Try to create axis in invalid node
+    printf("\nTesting invalid node (expect error):\n");
+        result = create_axis(256, test_channel, 0);
     if (result == AXIS_ERROR) {
-        printf("✓ Invalid vertex handling works correctly\n");
+        printf("✓ Invalid node handling works correctly\n");
     } else {
-        printf("✗ Failed to handle invalid vertex properly\n");
+        printf("✗ Failed to handle invalid node properly\n");
         failed_tests++;
     }
     
@@ -61,8 +62,8 @@ int test_axis_creation() {
     return failed_tests;
 }
 
-int test_resize_vertex_space() {
-    printf("\nTesting resize_vertex_space functionality...\n");
+int test_resize_node_space() {
+    printf("\nTesting resize_node_space functionality...\n");
     int failed_tests = 0;
     
     // Test 1: Create initial axes to generate free blocks
@@ -85,8 +86,8 @@ int test_resize_vertex_space() {
         printf("✓ Correct number of initial free blocks\n");
     }
     
-    // Test 2: Create axis in vertex 1 to trigger resize
-    printf("\nTesting vertex resize with free block reuse...\n");
+    // Test 2: Create axis in node 1 to trigger resize
+    printf("\nTesting node resize with free block reuse...\n");
     result = create_axis(1, 0, 1);
     
     if (result != AXIS_SUCCESS) {
@@ -118,18 +119,18 @@ int test_resize_vertex_space() {
         }
     }
     
-    printf("\nResize vertex space tests completed: %d failed\n", failed_tests);
+    printf("\nResize node space tests completed: %d failed\n", failed_tests);
     return failed_tests;
 }
 
-int test_axis_create_delete(int vertex_index, int channel_index, int max_axis) {
+int test_axis_create_delete(int node_index, int channel_index, int max_axis) {
     printf("\nTesting axis creation and deletion (max axis: %d)...\n", max_axis);
     int failed_tests = 0;
-    uint vertex_position = get_vertex_position(vertex_index);
+    uint node_position = get_node_position(node_index);
     // Test 1: Create axes from 0 to max_axis
     printf("Creating axes 0 to %d...\n", max_axis);
     for (int i = 0; i <= max_axis; i++) {
-        int result = create_axis(vertex_index, channel_index, i);
+        int result = create_axis(node_index, channel_index, i);
         if (result != AXIS_SUCCESS) {
             printf("✗ Failed to create axis %d\n", i);
             failed_tests++;
@@ -139,7 +140,7 @@ int test_axis_create_delete(int vertex_index, int channel_index, int max_axis) {
     // Verify all axes were created
     printf("\nVerifying created axes...\n");
     for (int i = 0; i <= max_axis; i++) {
-        if (!has_axis(Core[vertex_position], channel_index, i)) {
+        if (!has_axis(Core[node_position], channel_index, i)) {
             printf("✗ Axis %d not found after creation\n", i);
             failed_tests++;
         }
@@ -148,7 +149,7 @@ int test_axis_create_delete(int vertex_index, int channel_index, int max_axis) {
     // Test 2: Delete all axes
     printf("\nDeleting all axes...\n");
     for (int i = max_axis; i >= 0; i--) {
-        int result = delete_axis(vertex_index, channel_index, i);
+        int result = delete_axis(node_index, channel_index, i);
         if (result != AXIS_SUCCESS) {
             printf("✗ Failed to delete axis %d\n", i);
             failed_tests++;
@@ -158,7 +159,7 @@ int test_axis_create_delete(int vertex_index, int channel_index, int max_axis) {
     // Verify all axes were deleted
     printf("\nVerifying axis deletion...\n");
     for (int i = 0; i <= max_axis; i++) {
-        if (has_axis(Core[vertex_position], channel_index, i)) {
+        if (has_axis(Core[node_position], channel_index, i)) {
             printf("✗ Axis %d still exists after deletion\n", i);
             failed_tests++;
         }

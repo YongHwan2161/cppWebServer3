@@ -9,13 +9,13 @@ The system provides functionality to insert a path of vertices into an existing 
 
 ### Process
 1. Input Validation
-   - Verify vertex indices
+   - Verify node indices
    - Validate channel existence
    - Check axis number
 
 2. Channel Validation
-   - Verify each path vertex is loaded
-   - Check channel exists in each vertex
+   - Verify each path node is loaded
+   - Check channel exists in each node
    - Ensure channel indices are valid
 
 3. Cycle Breaking
@@ -30,18 +30,18 @@ The system provides functionality to insert a path of vertices into an existing 
 
 ### Command Interface
 ```shell
-insert-path <vertex> <channel> <axis> <path_vertices_and_channels...>
+insert-path <node> <channel> <axis> <path_vertices_and_channels...>
 ```
 
 #### Parameters
-- vertex: Insertion point vertex index
+- node: Insertion point node index
 - channel: Insertion point channel index
 - axis: Axis number for the cycle
-- path_vertices_and_channels: Alternating vertex and channel indices for path
+- path_vertices_and_channels: Alternating node and channel indices for path
 
 #### Examples
 ```shell
-# Insert 2-vertex path into cycle
+# Insert 2-node path into cycle
 > insert-path 42 1 2 55 3 66 4
 Successfully inserted path of length 2 into cycle
 
@@ -50,15 +50,15 @@ Successfully inserted path of length 2 into cycle
 Error: No path vertices provided
 
 > insert-path 42 1 2 55
-Error: Missing channel for vertex 55
+Error: Missing channel for node 55
 
 # Channel doesn't exist
 > insert-path 42 1 2 55 10 66 4
-Error: Channel 10 does not exist in vertex 55 (max: 2)
+Error: Channel 10 does not exist in node 55 (max: 2)
 
-# Vertex not loaded
+# node not loaded
 > insert-path 42 1 2 255 1 66 4
-Error: Vertex 255 not loaded
+Error: node 255 not loaded
 ```
 
 ### Implementation Details
@@ -66,10 +66,10 @@ Error: Vertex 255 not loaded
 #### Path Insertion Process
 ```c
 // Break cycle at insertion point
-delete_link(insert_vertex, insert_channel, next_vertex, next_channel, axis_number);
+delete_link(insert_node, insert_channel, next_node, next_channel, axis_number);
 
 // Link path start to insertion point
-create_link(insert_vertex, insert_channel,
+create_link(insert_node, insert_channel,
            path_vertices[0], path_channels[0],
            axis_number);
 
@@ -80,9 +80,9 @@ for (int i = 0; i < path_length - 1; i++) {
                axis_number);
 }
 
-// Link path end to next cycle vertex
+// Link path end to next cycle node
 create_link(path_vertices[path_length - 1], path_channels[path_length - 1],
-           next_vertex, next_channel,
+           next_node, next_channel,
            axis_number);
 ```
 
@@ -95,7 +95,7 @@ create_link(path_vertices[path_length - 1], path_channels[path_length - 1],
 2. Path Handling
    - Sequential path linking
    - Channel preservation
-   - Proper vertex ordering
+   - Proper node ordering
 
 3. Error Handling
    - Invalid insertion point
@@ -130,18 +130,18 @@ The system provides functionality to delete a path of vertices from an existing 
 
 ### Command Interface
 ```shell
-delete-path <vertex> <channel> <axis> <path_length>
+delete-path <node> <channel> <axis> <path_length>
 ```
 
 #### Parameters
-- vertex: Starting vertex index
+- node: Starting node index
 - channel: Starting channel index
 - axis: Axis number for the cycle
 - path_length: Number of vertices to remove
 
 #### Examples
 ```shell
-# Delete 2-vertex path from cycle
+# Delete 2-node path from cycle
 > delete-path 42 1 2 2
 Successfully deleted path of length 2 from cycle
 
@@ -158,15 +158,15 @@ Error: Cycle too short for requested path length
 #### Path Deletion Process
 ```c
 // Break cycle at path boundaries
-delete_link(start_vertex, start_channel, first_path_vertex, first_path_channel, axis);
-delete_link(last_path_vertex, last_path_channel, next_vertex, next_channel, axis);
+delete_link(start_node, start_channel, first_path_node, first_path_channel, axis);
+delete_link(last_path_node, last_path_channel, next_node, next_channel, axis);
 
 // Create new link to close cycle
-create_link(start_vertex, start_channel, next_vertex, next_channel, axis);
+create_link(start_node, start_channel, next_node, next_channel, axis);
 
 // Clear channels in removed path
-for (each vertex in path) {
-    clear_channel(vertex, channel);
+for (each node in path) {
+    clear_channel(node, channel);
 }
 ```
 

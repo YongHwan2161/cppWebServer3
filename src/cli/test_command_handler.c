@@ -2,7 +2,7 @@
 #include "../tests/axis_tests.h"
 #include "../tests/link_tests.h"
 #include "../tests/channel_tests.h"
-#include "../Graph_structure/vertex.h"
+#include "../Graph_structure/node.h"
 #include "../Graph_structure/cycle.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,8 +20,8 @@ int handle_run_tests(char* args) {
     // Run axis creation tests
     failed += test_axis_creation();
     
-    // Run resize vertex space tests
-    failed += test_resize_vertex_space();
+    // Run resize node space tests
+    failed += test_resize_node_space();
     
     printf("\nAll tests completed. Total failed tests: %d\n", failed);
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
@@ -33,24 +33,24 @@ int handle_test_resize(char* args) {
         return CMD_ERROR;
     }
     
-    int failed = test_resize_vertex_space();
+    int failed = test_resize_node_space();
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
 int handle_test_axis_create_delete(char* args) {
-    int vertex_index, channel_index, max_axis;
+    int node_index, channel_index, max_axis;
     
     // Parse arguments
-    int parsed = sscanf(args, "%d %d %d", &vertex_index, &channel_index, &max_axis);
+    int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &max_axis);
     if (parsed != 3) {
         print_argument_error("test-axis-create-delete", 
-            "<vertex_index> <channel_index> <max_axis>", false);
+            "<node_index> <channel_index> <max_axis>", false);
         return CMD_ERROR;
     }
     
     // Validate input
-    if (vertex_index < 0 || vertex_index >= 256) {
-        printf("Error: vertex index must be between 0 and 255\n");
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: node index must be between 0 and 255\n");
         return CMD_ERROR;
     }
     
@@ -59,7 +59,7 @@ int handle_test_axis_create_delete(char* args) {
         return CMD_ERROR;
     }
     
-    int failed = test_axis_create_delete(vertex_index, channel_index, max_axis);
+    int failed = test_axis_create_delete(node_index, channel_index, max_axis);
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
@@ -74,84 +74,84 @@ int handle_test_free_offsets(char* args) {
 }
 
 int handle_test_multiple_link_creation(char* args) {
-    int vertex_index, channel_index, axis_number;
+    int node_index, channel_index, axis_number;
     
     // Parse arguments
-    int parsed = sscanf(args, "%d %d %d", &vertex_index, &channel_index, &axis_number);
+    int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &axis_number);
     if (parsed != 3) {
         print_argument_error("test-multiple-link", 
-            "<vertex_index> <channel_index> <axis_number>", false);
+            "<node_index> <channel_index> <axis_number>", false);
         return CMD_ERROR;
     }
     
     // Validate input
-    if (vertex_index < 0 || vertex_index >= 256) {
-        printf("Error: vertex index must be between 0 and 255\n");
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: node index must be between 0 and 255\n");
         return CMD_ERROR;
     }
     
-    int failed = test_multiple_link_creation(vertex_index, channel_index, axis_number);
+    int failed = test_multiple_link_creation(node_index, channel_index, axis_number);
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
 int handle_test_create_delete_links(char* args) {
-    int vertex_index, channel_index, axis_number;
+    int node_index, channel_index, axis_number;
     
     // Parse arguments
-    int parsed = sscanf(args, "%d %d %d", &vertex_index, &channel_index, &axis_number);
+    int parsed = sscanf(args, "%d %d %d", &node_index, &channel_index, &axis_number);
     if (parsed != 3) {
         print_argument_error("test-create-delete-links", 
-            "<vertex_index> <channel_index> <axis_number>", false);
+            "<node_index> <channel_index> <axis_number>", false);
         return CMD_ERROR;
     }
     
     // Validate input
-    if (vertex_index < 0 || vertex_index >= 256) {
-        printf("Error: vertex index must be between 0 and 255\n");
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: node index must be between 0 and 255\n");
         return CMD_ERROR;
     }
     
-    int failed = test_create_delete_links(vertex_index, channel_index, axis_number);
+    int failed = test_create_delete_links(node_index, channel_index, axis_number);
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
 int handle_test_multi_channel_links(char* args) {
-    int vertex_index;
+    int node_index;
     
     // Parse arguments
-    int parsed = sscanf(args, "%d", &vertex_index);
+    int parsed = sscanf(args, "%d", &node_index);
     if (parsed != 1) {
-        print_argument_error("test-multi-channel-links", "<vertex_index>", false);
+        print_argument_error("test-multi-channel-links", "<node_index>", false);
         return CMD_ERROR;
     }
     
     // Validate input
-    if (vertex_index < 0 || vertex_index >= 256) {
-        printf("Error: vertex index must be between 0 and 255\n");
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: node index must be between 0 and 255\n");
         return CMD_ERROR;
     }
     
-    int failed = test_multi_channel_links(vertex_index);
+    int failed = test_multi_channel_links(node_index);
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
 int handle_test_channel_creation(char* args) {
-    int vertex_index;
+    int node_index;
     
     // Parse arguments
-    int parsed = sscanf(args, "%d", &vertex_index);
+    int parsed = sscanf(args, "%d", &node_index);
     if (parsed != 1) {
-        print_argument_error("test-channel-creation", "<vertex_index>", false);
+        print_argument_error("test-channel-creation", "<node_index>", false);
         return CMD_ERROR;
     }
     
     // Validate input
-    if (vertex_index < 0 || vertex_index >= 256) {
-        printf("Error: vertex index must be between 0 and 255\n");
+    if (node_index < 0 || node_index >= 256) {
+        printf("Error: node index must be between 0 and 255\n");
         return CMD_ERROR;
     }
     
-    int failed = test_sequential_channel_creation(vertex_index);
+    int failed = test_sequential_channel_creation(node_index);
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
@@ -176,9 +176,9 @@ int handle_test_sequential_token_creation(char* args) {
         printf("Creating sentence for: %s\n", substr);
         
         // Create sentence from substring
-        uint start_vertex;
+        uint start_node;
         ushort start_channel;
-        int result = handle_create_sentence(substr, &start_vertex, &start_channel);
+        int result = handle_create_sentence(substr, &start_node, &start_channel);
         if (result == CMD_ERROR) {
             printf("Error: Failed to create sentence for %s\n", substr);
             failed++;
@@ -222,9 +222,9 @@ int handle_test_repeating_sentence(char* args) {
                    test_str, pattern, repeat);
             
             // Try to create sentence
-            uint start_vertex;
+            uint start_node;
             ushort start_channel;
-            int result = handle_create_sentence(test_str, &start_vertex, &start_channel);
+            int result = handle_create_sentence(test_str, &start_node, &start_channel);
             if (result == CMD_ERROR) {
                 printf("Error: Failed to create sentence for pattern '%s' repeated %d times\n",
                        pattern, repeat);

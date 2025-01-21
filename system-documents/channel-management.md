@@ -17,7 +17,7 @@ Channel은 노드의 채널 간 연결을 나타내는 메커니즘입니다.
 
 ### Creation Process
 ```c
-int create_sequential_channel(uint vertex_index);
+int create_sequential_channel(uint node_index);
 ```
 
 #### 프로세스
@@ -57,7 +57,7 @@ After:
 
 ### Usage Example
 ```c
-// Create new channel in vertex 0
+// Create new channel in node 0
 int result = create_sequential_channel(0);
 if (result == CHANNEL_SUCCESS) {
     printf("New channel created\n");
@@ -66,7 +66,7 @@ if (result == CHANNEL_SUCCESS) {
 
 ## Memory Layout
 
-### vertex Header Structure
+### node Header Structure
 ```
 [Size Power(2)][Actual Size(4)][Channel Count(2)][Channel Offsets(4*N)]
 ```
@@ -85,12 +85,12 @@ if (result == CHANNEL_SUCCESS) {
 ### Offset Calculations
 1. Channel Count 위치
    ```c
-   ushort channel_count = *(ushort*)(vertex + 6);  // Skip size power(2) + actual size(4)
+   ushort channel_count = *(ushort*)(node + 6);  // Skip size power(2) + actual size(4)
    ```
 
 2. Channel Offset Table
    ```c
-   uint channel_offset = *(uint*)(vertex + 8 + (channel_index * 4));
+   uint channel_offset = *(uint*)(node + 8 + (channel_index * 4));
    // 8 = size power(2) + actual size(4) + channel count(2)
    ```
 
@@ -118,9 +118,9 @@ uint next_channel_offset = previous_channel_end;
 
 ### 1. Channel Information
 ```c
-int get_channel_count(uchar* vertex);
-uint get_channel_offset(uchar* vertex, int channel_index);
-int get_channel_size(uchar* vertex, int channel_index);
+int get_channel_count(uchar* node);
+uint get_channel_offset(uchar* node, int channel_index);
+int get_channel_size(uchar* node, int channel_index);
 ```
 - 채널 개수 조회
 - 채널 위치 계산
@@ -128,7 +128,7 @@ int get_channel_size(uchar* vertex, int channel_index);
 
 ### 2. Channel Creation
 ```c
-int create_channel(int vertex_index);
+int create_channel(int node_index);
 ```
 - 새로운 채널 생성
 - 필요시 노드 크기 자동 조정
@@ -157,12 +157,12 @@ int create_channel(int vertex_index);
 ## Usage Example
 ```c
 // Get channel information
-int channel_count = get_channel_count(vertex);
-uint channel_offset = get_channel_offset(vertex, 0);
-int channel_size = get_channel_size(vertex, 0);
+int channel_count = get_channel_count(node);
+uint channel_offset = get_channel_offset(node, 0);
+int channel_size = get_channel_size(node, 0);
 
 // Create new channel
-int result = create_channel(vertex_index);
+int result = create_channel(node_index);
 if (result == CHANNEL_SUCCESS) {
     printf("New channel created\n");
 }
@@ -172,7 +172,7 @@ if (result == CHANNEL_SUCCESS) {
 
 ### Channel Creation Command
 ```
-create-channel <vertex_index>
+create-channel <node_index>
 ```
 
 #### Usage
@@ -182,26 +182,26 @@ create-channel <vertex_index>
 
 #### Example
 ```bash
-# Create channel 1 in vertex 0
+# Create channel 1 in node 0
 > create-channel 0
-Successfully created new channel in vertex 0
+Successfully created new channel in node 0
 
-# Create channel 2 in vertex 0
+# Create channel 2 in node 0
 > create-channel 0
-Successfully created new channel in vertex 0
+Successfully created new channel in node 0
 ```
 
 #### Error Cases
 1. 유효하지 않은 노드 인덱스
    ```bash
    > create-channel 256
-   Error: vertex index must be between 0 and 255
+   Error: node index must be between 0 and 255
    ```
 
 2. 메모리 할당 실패
    ```bash
    > create-channel 0
-   Failed to create channel in vertex 0
+   Failed to create channel in node 0
    ``` 
 
 ### Channel Creation Process
@@ -211,8 +211,8 @@ Successfully created new channel in vertex 0
    - 새로운 채널의 offset 정보 저장 (4 bytes)
    - 기존 데이터를 4바이트 뒤로 이동
    ```c
-   memmove(vertex + current_offset + 4,          // destination (4 bytes forward)
-           vertex + current_offset,               // source
+   memmove(node + current_offset + 4,          // destination (4 bytes forward)
+           node + current_offset,               // source
            current_actual_size - current_offset // size of data to move
    );
    ```
@@ -236,7 +236,7 @@ Final state (actual_size = N + 6):
 #### 크기 계산 과정
 1. 현재 크기 확인
    ```c
-   uint current_actual_size = *(uint*)(vertex + 2);
+   uint current_actual_size = *(uint*)(node + 2);
    uint required_size = current_actual_size + 6;  // channel entry(4) + axis count(2)
    ```
 
@@ -261,7 +261,7 @@ Final state (actual_size = N + 6):
 
 ### Sequential Channel Creation Test
 ```c
-int test_sequential_channel_creation(uint vertex_index);
+int test_sequential_channel_creation(uint node_index);
 ```
 
 #### Purpose
@@ -311,7 +311,7 @@ int test_sequential_channel_creation(uint vertex_index);
 ```shell
 > test-channel-creation 0
 Testing sequential channel creation...
-Target vertex: 0
+Target node: 0
 Creating channels sequentially...
 Final channel count: 10
 Channel creation test completed successfully
@@ -321,7 +321,7 @@ Channel creation test completed successfully
 ```shell
 > test-channel-creation 0
 Testing sequential channel creation...
-Target vertex: 0
+Target node: 0
 Failed to create channel 5
 Channel count mismatch after creation 5: expected 6, got 5
 Invalid channel offset for channel 5
@@ -348,7 +348,7 @@ Channel creation test completed with 3 failures
 
 ### Channel Clearing
 ```c
-int clear_channel(uint vertex_index, ushort channel_index);
+int clear_channel(uint node_index, ushort channel_index);
 ```
 
 #### Purpose
@@ -357,8 +357,8 @@ int clear_channel(uint vertex_index, ushort channel_index);
 #### Process
 1. 오프셋 계산
    ```c
-   uint channel_offset = get_channel_offset(vertex, channel_index);
-   uint channel_end_offset = get_channel_end_offset(vertex, channel_index);
+   uint channel_offset = get_channel_offset(node, channel_index);
+   uint channel_end_offset = get_channel_end_offset(node, channel_index);
    ```
    - 현재 채널의 시작과 끝 위치 확인
    - 채널 데이터 크기 계산
@@ -367,7 +367,7 @@ int clear_channel(uint vertex_index, ushort channel_index);
    ```c
    uint move_dest = channel_offset + 2;  // 새로운 위치 (axis count 이후)
    uint move_size = actual_size - channel_end_offset;  // 이동할 데이터 크기
-   memmove(vertex + move_dest, vertex + channel_end_offset, move_size);
+   memmove(node + move_dest, node + channel_end_offset, move_size);
    ```
    - 다음 채널의 데이터를 앞으로 이동
    - 채널 간 간격 유지
@@ -377,8 +377,8 @@ int clear_channel(uint vertex_index, ushort channel_index);
    ```c
    // 실제 크기 = 현재 크기 - (제거된 데이터 크기)
    // 제거된 데이터 크기 = channel_end_offset - move_dest
-   *(uint*)(vertex + 2) = actual_size - (channel_end_offset - move_dest);
-   *(ushort*)(vertex + channel_offset) = 0;  // axis count 초기화
+   *(uint*)(node + 2) = actual_size - (channel_end_offset - move_dest);
+   *(ushort*)(node + channel_offset) = 0;  // axis count 초기화
    ```
    - 노드의 실제 크기 감소
    - 제거된 데이터 크기만큼 감소
@@ -387,7 +387,7 @@ int clear_channel(uint vertex_index, ushort channel_index);
 4. 오프셋 조정
    ```c
    for (ushort i = channel_index + 1; i < channel_count; i++) {
-       *(uint*)(vertex + 8 + (i * 4)) -= channel_end_offset - move_dest;
+       *(uint*)(node + 8 + (i * 4)) -= channel_end_offset - move_dest;
    }
    ```
    - 후속 채널들의 오프셋 업데이트
@@ -440,7 +440,7 @@ if (result == CHANNEL_SUCCESS) {
 
 #### Clear Channel Command
 ```shell
-clear-channel <vertex_index> <channel_index>
+clear-channel <node_index> <channel_index>
 ```
 
 ##### 기능
@@ -453,11 +453,11 @@ clear-channel <vertex_index> <channel_index>
 ```shell
 # 노드 0의 채널 1 초기화
 > clear-channel 0 1
-Successfully cleared channel 1 in vertex 0
+Successfully cleared channel 1 in node 0
 
 # 잘못된 노드 인덱스
 > clear-channel 256 0
-Error: vertex index must be between 0 and 255
+Error: node index must be between 0 and 255
 ```
 
 ##### 프로세스
@@ -490,12 +490,12 @@ Error: vertex index must be between 0 and 255
 ## Multi-Channel Creation
 
 ### Overview
-The system provides functionality to create multiple channels at once in a vertex. This is useful when initializing vertices that need several channels for different purposes.
+The system provides functionality to create multiple channels at once in a node. This is useful when initializing vertices that need several channels for different purposes.
 
 ### Process
 1. Input Validation
    - Check number of channels is positive
-   - Verify vertex exists and is loaded
+   - Verify node exists and is loaded
    - Ensure space available
 
 2. Sequential Creation
@@ -512,13 +512,13 @@ The system provides functionality to create multiple channels at once in a verte
 
 #### Multi-Channel Creation
 ```c
-int create_multi_channels(uint vertex_index, int num_channels) {
+int create_multi_channels(uint node_index, int num_channels) {
     // Validate input
     if (num_channels < 1) return CHANNEL_ERROR;
     
     // Create channels sequentially
     for (int i = 0; i < num_channels; i++) {
-        if (create_channel(vertex_index) != CHANNEL_SUCCESS) {
+        if (create_channel(node_index) != CHANNEL_SUCCESS) {
             return CHANNEL_ERROR;
         }
     }
@@ -528,14 +528,14 @@ int create_multi_channels(uint vertex_index, int num_channels) {
 
 ### Usage Examples
 ```c
-// Create 3 channels in vertex 42
+// Create 3 channels in node 42
 if (create_multi_channels(42, 3) == CHANNEL_SUCCESS) {
     printf("Successfully created 3 channels\n");
 }
 
 // Error cases
 create_multi_channels(42, 0);  // Error: Invalid number of channels
-create_multi_channels(255, 1); // Error: Vertex not loaded
+create_multi_channels(255, 1); // Error: node not loaded
 ```
 
 ### Benefits
@@ -572,16 +572,16 @@ The system provides functionality to efficiently reuse empty channels or create 
 
 #### Implementation Details
 ```c
-int recycle_or_create_channel(uint vertex_index) {
+int recycle_or_create_channel(uint node_index) {
     // Check existing channels
-    for (each channel in vertex) {
+    for (each channel in node) {
         if (channel is empty) {
             return channel_index;
         }
     }
     
     // Create new if none empty
-    create_channel(vertex_index);
+    create_channel(node_index);
     return new_channel_index;
 }
 ```

@@ -11,19 +11,19 @@ typedef struct {
     int core_position;   // Position in Core array (-1 if not loaded)
     int is_loaded;      // 1 if loaded in RAM, 0 if not
     long file_offset;   // Offset position in data.bin
-} vertexMapping;
+} nodeMapping;
 ```
 
 ### Map File Format
 ```
-[Number of vertices(4)] [vertex 0 Offset(8)] [vertex 1 Offset(8)] ... [vertex 255 Offset(8)]
+[Number of vertices(4)] [node 0 Offset(8)] [node 1 Offset(8)] ... [node 255 Offset(8)]
 ```
 
 ## Operations
 
 ### Save Map Entry
 ```c
-int save_map(uint vertex_index);
+int save_map(uint node_index);
 ```
 
 #### Implementation Details
@@ -33,7 +33,7 @@ int save_map(uint vertex_index);
    - Total size = 4 + (256 * 8) = 2052 bytes
 
 2. Write Process
-   - 정확한 위치 계산: sizeof(uint) + (vertex_index * sizeof(long))
+   - 정확한 위치 계산: sizeof(uint) + (node_index * sizeof(long))
    - 해당 위치로 직접 이동 (fseek)
    - file_offset 값만 업데이트 (8 bytes)
    - 다른 데이터는 보존
@@ -85,16 +85,16 @@ CoreMap을 기본값으로 초기화합니다.
 
 ## Core Position Management
 
-### Get vertex Position
+### Get node Position
 ```c
-int get_vertex_position(uint vertex_index);
+int get_node_position(uint node_index);
 ```
 
 #### Purpose
 노드의 Core 배열 내 실제 위치를 반환합니다. 노드 인덱스와 Core 배열에서의 위치는 다를 수 있으므로, 이 함수를 통해 실제 위치를 확인해야 합니다.
 
 #### Parameters
-- vertex_index: 위치를 찾을 노드의 인덱스 (0-255)
+- node_index: 위치를 찾을 노드의 인덱스 (0-255)
 
 #### Returns
 - 성공: Core 배열에서의 위치 (0 이상)
@@ -115,29 +115,29 @@ int get_vertex_position(uint vertex_index);
 
 #### Usage Example
 ```c
-// Get vertex position and access data
-int position = get_vertex_position(vertex_index);
+// Get node position and access data
+int position = get_node_position(node_index);
 if (position >= 0) {
-    uchar* vertex_data = Core[position];
-    // Use vertex_data...
+    uchar* node_data = Core[position];
+    // Use node_data...
 }
 ```
 
 #### Error Cases
 1. 잘못된 노드 인덱스
    ```c
-   int pos = get_vertex_position(256);  // Returns -1
+   int pos = get_node_position(256);  // Returns -1
    ```
 
 2. 로드되지 않은 노드
    ```c
-   int pos = get_vertex_position(5);  // Returns -1 if vertex 5 is not loaded
+   int pos = get_node_position(5);  // Returns -1 if node 5 is not loaded
    ```
 
-### Core Position vs vertex Index
+### Core Position vs node Index
 
 #### 차이점
-1. vertex Index
+1. node Index
    - 고정된 식별자 (0-255)
    - 노드의 논리적 주소
    - 파일 저장/로드에 사용
@@ -150,12 +150,12 @@ if (position >= 0) {
 #### 사용 패턴
 ```c
 // Wrong way
-uchar* vertex = Core[vertex_index];  // Don't use index directly
+uchar* node = Core[node_index];  // Don't use index directly
 
 // Correct way
-int position = get_vertex_position(vertex_index);
+int position = get_node_position(node_index);
 if (position >= 0) {
-    uchar* vertex = Core[position];  // Use position
+    uchar* node = Core[position];  // Use position
 }
 ```
 
@@ -178,7 +178,7 @@ if (position >= 0) {
 ## Usage Example
 ```c
 // 단일 노드 맵 정보 저장
-if (save_map(vertex_index) != MAP_SUCCESS) {
+if (save_map(node_index) != MAP_SUCCESS) {
     printf("Warning: Failed to update map.bin\n");
 }
 
@@ -193,9 +193,9 @@ if (load_map() != MAP_SUCCESS) {
 
 ### Command Line Interface
 
-#### Get vertex Position Command
+#### Get node Position Command
 ```shell
-get-vertex-position <vertex_index>
+get-node-position <node_index>
 ```
 
 ##### 기능
@@ -217,16 +217,16 @@ get-vertex-position <vertex_index>
 ##### 사용 예시
 ```shell
 # 정상 케이스
-> get-vertex-position 0
-vertex 0 is at Core position 0
+> get-node-position 0
+node 0 is at Core position 0
 Memory address: 0x7f8b4c003a00
 
 # 에러 케이스
-> get-vertex-position 256
-Error: Invalid vertex index 256
+> get-node-position 256
+Error: Invalid node index 256
 
-> get-vertex-position 5
-Error: vertex 5 is not loaded in memory
+> get-node-position 5
+Error: node 5 is not loaded in memory
 ```
 
 ##### 주의사항
@@ -244,7 +244,7 @@ Error: vertex 5 is not loaded in memory
 
 #### Command Interface
 ```shell
-print-coremap [vertex_index]
+print-coremap [node_index]
 ```
 
 ##### 기능
@@ -271,7 +271,7 @@ print-coremap [vertex_index]
 CoreMap Status:
 Total Loaded vertices: 3
 
-vertex     Core Position   Is Loaded      File Offset
+node     Core Position   Is Loaded      File Offset
 --------------------------------------------------------
 0        0              Yes            0x00000000
 5        1              Yes            0x00000050
@@ -279,8 +279,8 @@ vertex     Core Position   Is Loaded      File Offset
 
 # 특정 노드 정보 표시
 > print-coremap 5
-CoreMap Status for vertex 5:
-vertex     Core Position   Is Loaded      File Offset
+CoreMap Status for node 5:
+node     Core Position   Is Loaded      File Offset
 --------------------------------------------------------
 5        1              Yes            0x00000050
 ```

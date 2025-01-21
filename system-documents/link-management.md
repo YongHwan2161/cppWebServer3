@@ -21,24 +21,24 @@ Link는 노드의 채널 간 연결을 나타내는 메커니즘입니다. 각 �
 3. Link Data Offset
    - channel_offset + axis_offset: 링크 카운트 위치
    - channel_offset + axis_offset + 2: 첫 번째 링크 데이터 시작
-   - 각 링크 엔트리: 6 bytes (vertex: 4, channel: 2)
+   - 각 링크 엔트리: 6 bytes (node: 4, channel: 2)
 
 ### Memory Access Pattern
 ```c
 // Link count access
-ushort* link_count = (ushort*)(vertex + channel_offset + axis_offset);
+ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
 
 // Link data access
-Link* link_data = (Link*)(vertex + channel_offset + axis_offset + 2 + (index * 6));
+Link* link_data = (Link*)(node + channel_offset + axis_offset + 2 + (index * 6));
 ```
 
 ## Link Creation Process
 
 ### 1. Offset 계산
 ```c
-uint channel_offset = get_channel_offset(vertex, source_ch);
-int axis_offset = get_axis_offset(vertex, source_ch, axis_number);
-ushort* link_count = (ushort*)(vertex + channel_offset + axis_offset);
+uint channel_offset = get_channel_offset(node, source_ch);
+int axis_offset = get_axis_offset(node, source_ch, axis_number);
+ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
 ```
 
 ### 2. 공간 계산
@@ -56,7 +56,7 @@ ushort required_size = link_data_offset + sizeof(Link);
 
 ### Link Data Format (6 bytes)
 ```
-[vertex Index(4)] [Channel Index(2)]
+[node Index(4)] [Channel Index(2)]
 ```
 
 ### Memory Layout
@@ -69,9 +69,9 @@ Axis with 2 links:
 ```
 Offset    Content          Description
 0000      02 00           Link count (2)
-0002      01 00 00 00     Link 1: vertex index (1)
+0002      01 00 00 00     Link 1: node index (1)
 0006      02 00           Link 1: Channel index (2)
-0008      02 00 00 00     Link 2: vertex index (2)
+0008      02 00 00 00     Link 2: node index (2)
 000C      01 00           Link 2: Channel index (1)
 ```
 
@@ -79,8 +79,8 @@ Offset    Content          Description
 
 ### Link Creation
 ```c
-int create_link(int source_vertex, int source_ch, 
-               int dest_vertex, int dest_ch, 
+int create_link(int source_node, int source_ch, 
+               int dest_node, int dest_ch, 
                int axis_number);
 ```
 
@@ -107,7 +107,7 @@ int create_link(int source_vertex, int source_ch,
 #### 데이터 삽입 과정
 1. 위치 검사
    ```c
-   ushort channel_count = *(ushort*)(vertex + 2);
+   ushort channel_count = *(ushort*)(node + 2);
    bool is_last_channel = (source_ch == channel_count - 1);
    bool is_last_axis = (axis_offset == last_axis_offset);
    ```
@@ -115,7 +115,7 @@ int create_link(int source_vertex, int source_ch,
 2. 데이터 이동 계산
    ```c
    uint move_start = link_insert_offset;
-   uint move_size = current_vertex_size - move_start;  // 남은 모든 데이터 이동
+   uint move_size = current_node_size - move_start;  // 남은 모든 데이터 이동
    ```
    - move_start: 새로운 링크가 삽입될 위치
    - move_size: 현재 노드 크기에서 삽입 위치를 뺀 크기
@@ -126,8 +126,8 @@ int create_link(int source_vertex, int source_ch,
 
 3. 데이터 이동 실행
    ```c
-   memmove(vertex + move_start + 6,
-           vertex + move_start,
+   memmove(node + move_start + 6,
+           node + move_start,
            move_size);
    ```
 
@@ -151,8 +151,8 @@ int create_link(int source_vertex, int source_ch,
 
 ### Link Deletion
 ```c
-int delete_link(int source_vertex, int source_ch, 
-               int dest_vertex, int dest_ch, 
+int delete_link(int source_node, int source_ch, 
+               int dest_node, int dest_ch, 
                int axis_number);
 ```
 
@@ -194,8 +194,8 @@ int delete_link(int source_vertex, int source_ch,
 #### Example Usage
 ```c
 // Delete forward link
-int result = delete_link(0, 0,    // source vertex/channel
-                        1, 0,     // destination vertex/channel
+int result = delete_link(0, 0,    // source node/channel
+                        1, 0,     // destination node/channel
                         AXIS_FORWARD);  // axis number
 
 if (result == LINK_SUCCESS) {
@@ -208,10 +208,10 @@ if (result == LINK_SUCCESS) {
 #### Space Requirements
 - Link count: 2 bytes
 - Link 데이터: 6 bytes per link
-  - vertex Index: 4 bytes
+  - node Index: 4 bytes
   - Channel Index: 2 bytes
 
-#### vertex Resizing
+#### node Resizing
 공간 부족 시:
 1. 새로운 크기 계산 (2의 제곱수)
 2. Free Space 검색
@@ -256,12 +256,12 @@ Link 생성 시 다음 파일들이 업데이트됩니다:
 
 1. 링크 생성
 ```
-create-link <src_vertex> <src_ch> <dst_vertex> <dst_ch> <axis>
+create-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>
 ```
 
 2. 링크 삭제
 ```
-delete-link <src_vertex> <src_ch> <dst_vertex> <dst_ch> <axis>
+delete-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>
 ```
 
 각 명령어는 다음을 검증합니다:
@@ -273,13 +273,13 @@ delete-link <src_vertex> <src_ch> <dst_vertex> <dst_ch> <axis>
 ## Usage Example
 ```c
 // Forward link 생성
-create_link(0, 0,    // source vertex/channel
-           1, 0,     // destination vertex/channel
+create_link(0, 0,    // source node/channel
+           1, 0,     // destination node/channel
            AXIS_FORWARD);  // axis number
 
 // Backward link 생성
-create_link(1, 0,    // source vertex/channel
-           0, 0,     // destination vertex/channel
+create_link(1, 0,    // source node/channel
+           0, 0,     // destination node/channel
            AXIS_BACKWARD); // axis number
 ```
 
@@ -303,7 +303,7 @@ create_link(1, 0,    // source vertex/channel
 #### 필요 공간 계산 방법
 1. 마지막 링크 위치 계산
    ```c
-   uint last_axis_offset = get_last_axis_offset(vertex, source_ch);
+   uint last_axis_offset = get_last_axis_offset(node, source_ch);
    uint last_link_offset = channel_offset + last_axis_offset + 2 + (current_link_count * 6);
    ```
    - last_axis_offset: 마지막 axis의 위치
@@ -318,13 +318,13 @@ create_link(1, 0,    // source vertex/channel
 #### 메모리 접근
 1. Link Count 읽기
    ```c
-   ushort* link_count = (ushort*)(vertex + channel_offset + axis_offset);
+   ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
    ```
 
 2. Link 데이터 쓰기
    ```c
    // 마지막 위치에 새 링크 추가
-   memcpy(vertex + last_link_offset, &link, sizeof(Link));
+   memcpy(node + last_link_offset, &link, sizeof(Link));
    ```
 
 #### 주의사항
@@ -345,9 +345,9 @@ create_link(1, 0,    // source vertex/channel
    ```c
    // Update offsets in current channel
    for (int i = 0; i < axis_count; i++) {
-       uint current_axis_offset = *(uint*)(vertex + axis_data_offset + (i * 6) + 2);
+       uint current_axis_offset = *(uint*)(node + axis_data_offset + (i * 6) + 2);
        if (current_axis_offset > axis_offset) {
-           *(uint*)(vertex + axis_data_offset + (i * 6) + 2) += 6;
+           *(uint*)(node + axis_data_offset + (i * 6) + 2) += 6;
        }
    }
    ```
@@ -359,7 +359,7 @@ create_link(1, 0,    // source vertex/channel
    // Update only channel offsets
    if (!is_last_channel) {
        for (int ch = source_ch + 1; ch < channel_count; ch++) {
-           uint* channel_offset_ptr = (uint*)(vertex + 4 + (ch * 4));
+           uint* channel_offset_ptr = (uint*)(node + 4 + (ch * 4));
            *channel_offset_ptr += 6;
        }
    }
@@ -380,24 +380,24 @@ create_link(1, 0,    // source vertex/channel
 
 #### 주의사항
 1. 포인터 재계산
-   - resize_vertex_space 호출 후 vertex 포인터가 변경될 수 있음
+   - resize_node_space 호출 후 node 포인터가 변경될 수 있음
    - link_count 포인터 재계산 필요
    ```c
    // 올바른 순서
-   memcpy(vertex + link_insert_offset, &link, sizeof(Link));
-   ushort* link_count = (ushort*)(vertex + channel_offset + axis_offset);  // 포인터 재계산
+   memcpy(node + link_insert_offset, &link, sizeof(Link));
+   ushort* link_count = (ushort*)(node + channel_offset + axis_offset);  // 포인터 재계산
    (*link_count)++;
    ```
 
 2. 잘못된 구현
    ```c
-   ushort* link_count = (ushort*)(vertex + channel_offset + axis_offset);
-   // ... resize_vertex_space 호출 ...
-   (*link_count)++;  // 오류: vertex가 변경되어 link_count가 잘못된 주소를 가리킴
+   ushort* link_count = (ushort*)(node + channel_offset + axis_offset);
+   // ... resize_node_space 호출 ...
+   (*link_count)++;  // 오류: node가 변경되어 link_count가 잘못된 주소를 가리킴
    ```
 
 3. 메모리 안전성
-   - 포인터는 항상 최신 vertex 주소 기준으로 계산
+   - 포인터는 항상 최신 node 주소 기준으로 계산
    - resize 후 이전 포인터 사용 금지
    - 모든 오프셋 재계산 필요
 
@@ -405,7 +405,7 @@ create_link(1, 0,    // source vertex/channel
 
 ### Multi-Channel Link Test
 ```c
-int test_multi_channel_links(uint vertex_index);
+int test_multi_channel_links(uint node_index);
 ```
 
 #### Purpose
@@ -482,20 +482,20 @@ if (failed > 0) {
 
 ### Get Link
 ```c
-int get_link(uint source_vertex, ushort source_ch, 
+int get_link(uint source_node, ushort source_ch, 
             ushort axis_number, ushort link_index,
-            uint* dest_vertex, ushort* dest_ch);
+            uint* dest_node, ushort* dest_ch);
 ```
 
 #### Purpose
-Retrieves link data (destination vertex and channel) at a specified index from a vertex's channel and axis.
+Retrieves link data (destination node and channel) at a specified index from a node's channel and axis.
 
 #### Parameters
-- source_vertex: Source vertex index
+- source_node: Source node index
 - source_ch: Source channel index
 - axis_number: Axis to check for link
 - link_index: Index of link to retrieve
-- dest_vertex: Pointer to store destination vertex index
+- dest_node: Pointer to store destination node index
 - dest_ch: Pointer to store destination channel index
 
 #### Returns
@@ -506,7 +506,7 @@ Retrieves link data (destination vertex and channel) at a specified index from a
 1. Input Validation
    - Check axis exists
    - Verify link index is valid
-   - Validate source vertex/channel
+   - Validate source node/channel
 
 2. Offset Calculation
    - Get channel offset
@@ -520,14 +520,14 @@ Retrieves link data (destination vertex and channel) at a specified index from a
 
 #### Usage Example
 ```c
-uint dest_vertex;
+uint dest_node;
 ushort dest_ch;
 
-// Get first link (index 0) from vertex 1, channel 0, axis 0
-int result = get_link(1, 0, 0, 0, &dest_vertex, &dest_ch);
+// Get first link (index 0) from node 1, channel 0, axis 0
+int result = get_link(1, 0, 0, 0, &dest_node, &dest_ch);
 if (result == LINK_SUCCESS) {
-    printf("Link destination: vertex %u, channel %u\n", 
-           dest_vertex, dest_ch);
+    printf("Link destination: node %u, channel %u\n", 
+           dest_node, dest_ch);
 } else {
     printf("Link not found\n");
 }
@@ -537,12 +537,12 @@ if (result == LINK_SUCCESS) {
 1. Invalid Parameters
    - Non-existent axis
    - Invalid link index
-   - Invalid vertex/channel
+   - Invalid node/channel
 
 2. Missing Data
    - No links in axis
    - Index out of bounds
-   - Unloaded vertex
+   - Unloaded node
 
 #### Implementation Notes
 1. Memory Access

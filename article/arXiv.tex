@@ -144,7 +144,7 @@ The system implements efficient cycle detection:
 Two primary path operations are supported:
 \begin{itemize}
     \item \textbf{Path Insertion}: Adding new vertices into existing cycles
-    \item \textbf{Path Deletion}: Removing vertex sequences while maintaining cycle integrity
+    \item \textbf{Path Deletion}: Removing node sequences while maintaining cycle integrity
 \end{itemize}
 
 \section{Sentence Processing}\label{Sec:Sentences}
@@ -174,8 +174,8 @@ The system provides robust UTF-8 support:
 \end{itemize}
 
 \section{Memory Management}\label{Sec:Memory}
-\subsection{vertex Structure}
-Each vertex follows a structured memory layout:
+\subsection{node Structure}
+Each node follows a structured memory layout:
 \begin{itemize}
     \item Allocated Size Power (2 bytes): Size expressed as a power of 2
     \item Actual Used Size (4 bytes): Current data utilization
@@ -208,28 +208,28 @@ The system defines three primary axis types:
 \subsection{Link Data Structure}
 Each link entry uses a compact 6-byte structure:
 \begin{itemize}
-    \item vertex Index (4 bytes): Target vertex identifier
+    \item node Index (4 bytes): Target node identifier
     \item Channel Index (2 bytes): Target channel identifier
 \end{itemize}
 
 \section{Core Memory Management}\label{Sec:CoreMemory}
-The system utilizes a CoreMap structure for efficient vertex management:
+The system utilizes a CoreMap structure for efficient node management:
 \begin{equation}
     CoreMap = \{core\_position: int, is\_loaded: int, file\_offset: long\}
 \end{equation}
 
 This enables:
 \begin{itemize}
-    \item Dynamic vertex loading/unloading
+    \item Dynamic node loading/unloading
     \item Efficient memory utilization
-    \item Quick vertex access and modification
+    \item Quick node access and modification
 \end{itemize}
 
 \section{Performance Analysis}\label{Sec:Performance}
 \subsection{Memory Efficiency}
 Our implementation achieves significant efficiency through:
 \begin{itemize}
-    \item Optimized vertex structure
+    \item Optimized node structure
     \item Efficient free space management
     \item Minimal memory overhead
 \end{itemize}
@@ -237,7 +237,7 @@ Our implementation achieves significant efficiency through:
 \subsection{Operation Complexity}
 Key operations demonstrate optimal complexity:
 \begin{itemize}
-    \item vertex Creation: O(1)
+    \item node Creation: O(1)
     \item Link Creation: O(log n)
     \item Channel Addition: O(1)
     \item Axis Management: O(1)

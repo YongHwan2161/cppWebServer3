@@ -7,19 +7,19 @@ The system provides commands for managing and retrieving token data from vertice
 
 ### Create Token
 ```shell
-create-token <first_vertex> <second_vertex>
+create-token <first_node> <second_node>
 ```
 
 #### Purpose
-Creates a new token vertex by combining two existing tokens. The new token's data will be the concatenation of the two input tokens' data.
+Creates a new token node by combining two existing tokens. The new token's data will be the concatenation of the two input tokens' data.
 
 #### Parameters
-- first_vertex: Index of first token vertex
-- second_vertex: Index of second token vertex
+- first_node: Index of first token node
+- second_node: Index of second token node
 
 #### Process
 1. Token Creation
-   - Create new vertex
+   - Create new node
    - Set up token data structure
    - Link to existing tokens
 
@@ -37,20 +37,20 @@ Creates a new token vertex by combining two existing tokens. The new token's dat
 ```shell
 # Create token from two existing tokens
 > create-token 42 43
-Successfully created token vertex 44 with data: Hello World
+Successfully created token node 44 with data: Hello World
 
 # Error cases
 > create-token
 Error: Missing arguments
-Usage: create-token <first_vertex> <second_vertex>
+Usage: create-token <first_node> <second_node>
 Example: create-token 42 43
 
 > create-token 256 42
-Error: Invalid vertex index
+Error: Invalid node index
 
 > create-token abc 42
 Error: Invalid arguments
-Usage: create-token <first_vertex> <second_vertex>
+Usage: create-token <first_node> <second_node>
 ```
 
 #### Notes
@@ -60,43 +60,43 @@ Usage: create-token <first_vertex> <second_vertex>
    - Hierarchical organization
 
 2. Memory Management
-   - Automatic vertex creation
+   - Automatic node creation
    - Proper link management
    - Resource cleanup
 
 3. Error Handling
-   - Invalid vertex indices
+   - Invalid node indices
    - Link creation failures
    - Data validation
 
 ## Implementation Details
 
 ### Token Creation Process
-1. Vertex Creation
+1. node Creation
    ```c
-   create_new_vertex();  // Create base vertex
-   create_axis(new_vertex, 0, 2);  // Create data axis
+   create_new_node();  // Create base node
+   create_axis(new_node, 0, 2);  // Create data axis
    ```
 
 2. Link Setup
    ```c
    // Search link
-   create_link(first_vertex, 0, new_vertex, 0, 0);
+   create_link(first_node, 0, new_node, 0, 0);
    
    // Data links
-   create_link(new_vertex, 0, first_vertex, 0, 2);
-   create_link(new_vertex, 0, second_vertex, 0, 2);
+   create_link(new_node, 0, first_node, 0, 2);
+   create_link(new_node, 0, second_node, 0, 2);
    ```
 
 3. Data Validation
    ```c
-   char* data = get_token_data(new_vertex);
+   char* data = get_token_data(new_node);
    // Verify combined token data
    ```
 
 ### Best Practices
 1. Input Validation
-   - Check vertex indices
+   - Check node indices
    - Verify token existence
    - Validate data structure
 

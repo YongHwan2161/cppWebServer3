@@ -8,7 +8,7 @@ The system provides a generic stack implementation used for various traversal op
 ### Structure
 ```c
 typedef struct {
-    uint vertex_index;
+    uint node_index;
     ushort channel;
     int depth;
 } StackEntry;
@@ -40,7 +40,7 @@ void destroy_stack(Stack* stack);
 
 #### Push Operation
 ```c
-bool stack_push(Stack* stack, uint vertex_index, ushort channel, int depth);
+bool stack_push(Stack* stack, uint node_index, ushort channel, int depth);
 ```
 - Adds new entry to stack top
 - Returns false if stack is full
@@ -64,7 +64,7 @@ if (!stack) {
 }
 
 // Push data
-if (!stack_push(stack, vertex_id, channel, 0)) {
+if (!stack_push(stack, node_id, channel, 0)) {
     // Handle stack full
 }
 

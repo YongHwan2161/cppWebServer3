@@ -29,8 +29,8 @@ void save_free_space(void);
 FreeBlock* find_free_block(uint size);
 FreeBlock* find_and_get_free_block(uint size);
 void add_free_block(uint size, long offset);
-void release_vertex_space(int vertex_index);
-uchar* resize_vertex_space(uchar* vertex, ushort required_size, uint vertex_index, uint* new_size);
-int check_and_resize_vertex(uchar* vertex, uint required_size, uint vertex_index);
+void release_node_space(int node_index);
+uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uint* new_size);
+int check_and_resize_node(uchar* node, uint required_size, uint node_index);
 
 #endif 

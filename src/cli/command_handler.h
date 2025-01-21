@@ -22,11 +22,11 @@ int handle_create_link(char* args);
 int handle_create_channel(char* args);
 int handle_clear_channel(char* args);
 
-int handle_get_vertex_position(char* args);
-int handle_load_vertex(char* args);
+int handle_get_node_position(char* args);
+int handle_load_node(char* args);
 
 
-int handle_print_vertex(char* args);
+int handle_print_node(char* args);
 int handle_print_free_space(char* args);
 
 void print_help(void);

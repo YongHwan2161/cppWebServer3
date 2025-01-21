@@ -16,17 +16,17 @@ typedef struct {
     int count;          // Number of vertices in cycle
 } cycleInfo;
 
-// Check if there is a cycle starting from given vertex/channel/axis
-bool has_cycle(unsigned int vertex_index, ushort channel_index, ushort axis_number);
+// Check if there is a cycle starting from given node/channel/axis
+bool has_cycle(unsigned int node_index, ushort channel_index, ushort axis_number);
 
 // Get detailed information about the cycle
-cycleInfo* get_cycle_info(unsigned int vertex_index, ushort channel_index, ushort axis_number);
+cycleInfo* get_cycle_info(unsigned int node_index, ushort channel_index, ushort axis_number);
 
 // Free cycle info structure
 void free_cycle_info(cycleInfo* info);
 
 // Add this function declaration
-bool is_in_garbage_cycle(unsigned int vertex_index);
+bool is_in_garbage_cycle(unsigned int node_index);
 
 // Add this function declaration
 int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number);
@@ -35,13 +35,13 @@ int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number
 // Returns LINK_SUCCESS or LINK_ERROR
 int create_sentence_cycle(uint* token_vertices, ushort* channels, int count);
 
-// Get sentence data starting from given vertex/channel
+// Get sentence data starting from given node/channel
 // Returns allocated string containing sentence data or NULL on error
-char* get_sentence_data(uint vertex_index, ushort channel_index);
+char* get_sentence_data(uint node_index, ushort channel_index);
 int handle_get_sentence(char* args);
-int handle_create_sentence(char* args, uint* start_vertex, ushort* start_channel);
+int handle_create_sentence(char* args, uint* start_node, ushort* start_channel);
 int handle_create_cycle(char* args);
-bool validate_cycle(int vertex_index, int channel_index, int axis_number);
+bool validate_cycle(int node_index, int channel_index, int axis_number);
 int handle_validate_cycle(char* args);
 int handle_print_cycle(char* args);
 int handle_delete_path(char* args);
@@ -52,12 +52,12 @@ int handle_delete_path(char* args);
 int handle_insert_path(char* args);
 
 // Insert a path into an existing cycle
-int insert_path_into_cycle(uint insert_vertex, ushort insert_channel,
+int insert_path_into_cycle(uint insert_node, ushort insert_channel,
                           uint* path_vertices, ushort* path_channels, 
                           int path_length, ushort axis_number);
 
 // Delete a path from an existing cycle
-int delete_path_from_cycle(uint start_vertex, ushort start_channel,
+int delete_path_from_cycle(uint start_node, ushort start_channel,
                           int path_length, ushort axis_number);
 
 #endif // cycle_H 

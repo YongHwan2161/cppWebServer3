@@ -21,21 +21,21 @@ The program will automatically:
 2. Initialize or load existing database
 3. Set up memory management structures
 
-# vertex
-- vertex는 데이터를 구분하는 기본 단위이다. 
-- vertex는 고유한 index가 0부터 순차적으로 부여된다. 
-- 처음 database가 초기화 될 때에는 0부터 255까지의 index가 자동으로 생성된다. 각각의 vertex는 index 번호가 vertex에 저장된 1바이트의 데이터를 나타낼 수 있다.  
-- 각 vertex의 정보는 바이트 단위로 binary file에 저장이 된다. 프로그램 실행중에는 필요한 vertex에 대한 index정보를 가리키는 별도의 테이블을 이용해서 필요한 노드 데이터를 저장장치(ssd or hdd)로부터 읽어들일 수 있다. 
-- 즉 데이터를 저장하는 데 필요한 바이너리 파일은 두 종류이다. 하나는 각각의 vertex data가 저장된 `data.bin` file이고, 다른 하나는 index마다 해당 index의 vertex data가 저장된 binarary file사에서의 offset을 mapping해 주는 `map.bin`파일이다. 
-- 데이터는 index 단위로 구분된다. 즉, 프로그램 실행시에는 vertex data들의 vector로 메모리에서 관리할 수 있다. 각 vector의 요소들은 바이트 단위의 배열(unsigned char[])이다. 
-- 각 노드 data의 시작은 data size를 저장하는 4byte로 시작한다. data size는 자기 자신은 제외한다. 즉 실제 vertex data를 나타내는데 100 bytes가 필요하다면 vertex size에는 96이 기록된다. 이렇게 하는 이유는 데이터를 읽거나 쓸 때 먼저 vertex size 4 bytes를 읽고, 읽은 값만큼 바로 읽거나 쓰면 되기 때문이다. vertex size에 4를 빼지 않은 값을 저장하면 데이터를 저장장치에 저장하거나 읽을 때 4 bytes를 항상 빼줘야 하기 때문에 비효율적이다.
+# node
+- node는 데이터를 구분하는 기본 단위이다. 
+- node는 고유한 index가 0부터 순차적으로 부여된다. 
+- 처음 database가 초기화 될 때에는 0부터 255까지의 index가 자동으로 생성된다. 각각의 node는 index 번호가 node에 저장된 1바이트의 데이터를 나타낼 수 있다.  
+- 각 node의 정보는 바이트 단위로 binary file에 저장이 된다. 프로그램 실행중에는 필요한 node에 대한 index정보를 가리키는 별도의 테이블을 이용해서 필요한 노드 데이터를 저장장치(ssd or hdd)로부터 읽어들일 수 있다. 
+- 즉 데이터를 저장하는 데 필요한 바이너리 파일은 두 종류이다. 하나는 각각의 node data가 저장된 `data.bin` file이고, 다른 하나는 index마다 해당 index의 node data가 저장된 binarary file사에서의 offset을 mapping해 주는 `map.bin`파일이다. 
+- 데이터는 index 단위로 구분된다. 즉, 프로그램 실행시에는 node data들의 vector로 메모리에서 관리할 수 있다. 각 vector의 요소들은 바이트 단위의 배열(unsigned char[])이다. 
+- 각 노드 data의 시작은 data size를 저장하는 4byte로 시작한다. data size는 자기 자신은 제외한다. 즉 실제 node data를 나타내는데 100 bytes가 필요하다면 node size에는 96이 기록된다. 이렇게 하는 이유는 데이터를 읽거나 쓸 때 먼저 node size 4 bytes를 읽고, 읽은 값만큼 바로 읽거나 쓰면 되기 때문이다. node size에 4를 빼지 않은 값을 저장하면 데이터를 저장장치에 저장하거나 읽을 때 4 bytes를 항상 빼줘야 하기 때문에 비효율적이다.
 - data size 다음에는 channel 개수를 알려주는 2 bytes가 기록된다. 
 - channel 개수 다음에는 각 채널의 offset을 가리키는 4 bytes * (채널 개수) 만큼의 데이터가 기록된다. 
-- 채널 데이터에 접근하기 위해서는 채널 수 정보 다음부터 원하는 채널번호의 offset을 찾아서 해당 offset으로 이동하면 된다. offset은 vertex data의 시작점을 기준으로 계산한다. 
+- 채널 데이터에 접근하기 위해서는 채널 수 정보 다음부터 원하는 채널번호의 offset을 찾아서 해당 offset으로 이동하면 된다. offset은 node data의 시작점을 기준으로 계산한다. 
 
-# vertex 구조
+# node 구조
 ## 기본 구조
-vertex의 기본 크기는 16 bytes (2^4)이며, 다음과 같은 구조를 가진다:
+node의 기본 크기는 16 bytes (2^4)이며, 다음과 같은 구조를 가진다:
 1. Allocated Size Power (2 bytes): 2의 지수로 표현된 할당된 노드 크기 (예: 4는 2^4=16 bytes를 의미)
 2. Actual Used Size (4 bytes): 실제 사용중인 데이터 크기
 3. Channel Count (2 bytes): 노드가 가진 채널의 수
@@ -86,7 +86,7 @@ vertex의 기본 크기는 16 bytes (2^4)이며, 다음과 같은 구조를 가�
 3. 크기 계산 예시
    ```c
    // 데이터 섹션의 마지막 오프셋
-   uint last_offset = *(uint*)(vertex + 2);  // actual size 직접 사용
+   uint last_offset = *(uint*)(node + 2);  // actual size 직접 사용
 
    // 이동해야 할 데이터 크기
    uint move_size = last_offset - insert_position;
@@ -100,17 +100,17 @@ vertex의 기본 크기는 16 bytes (2^4)이며, 다음과 같은 구조를 가�
 [Rest of the document remains the same...]
 
 ## cycle Detection
-The system provides functionality to detect and analyze circular paths in the vertex graph:
+The system provides functionality to detect and analyze circular paths in the node graph:
 
 ### cycle Information
 - cycles are detected by following links through vertices
-- A cycle exists when a path leads back to a previously visited vertex/channel
+- A cycle exists when a path leads back to a previously visited node/channel
 - cycle information includes all vertices and channels in the cycle
 
 ### Implementation
 1. Path Tracking
    - Maintains visited vertices list
-   - Records vertex and channel information
+   - Records node and channel information
    - Detects repeated visits
 
 2. cycle Analysis
@@ -126,10 +126,10 @@ The system provides functionality to detect and analyze circular paths in the ve
 ### Usage
 ```c
 // Check for cycle
-bool has_cycle = validate_cycle(vertex_index, channel_index, axis_number);
+bool has_cycle = validate_cycle(node_index, channel_index, axis_number);
 
 // Get detailed cycle information
-cycleInfo* info = get_cycle_info(vertex_index, channel_index, axis_number);
+cycleInfo* info = get_cycle_info(node_index, channel_index, axis_number);
 printf("cycle contains %d vertices\n", info->count);
 free_cycle_info(info);
 ```
@@ -154,7 +154,7 @@ This structure provides:
 - map.bin 파일은 각 노드의 offset을 저장하여 빠른 접근을 가능하게 한다
 
 # Channel
-- 채널은 노드마다 1개 이상 부여될 수 있는 개념이다. 같은 노드 내에서 서로 다른 채널을 가진 경우에는, vertex에 저장된 데이터는 공유하지만, 각각의 채널은 서로 독립적이다. 따라서 한 채널에서의 연결 관계들은 다른 채널의 연결 관계들과 완전히 독립적이다.
+- 채널은 노드마다 1개 이상 부여될 수 있는 개념이다. 같은 노드 내에서 서로 다른 채널을 가진 경우에는, node에 저장된 데이터는 공유하지만, 각각의 채널은 서로 독립적이다. 따라서 한 채널에서의 연결 관계들은 다른 채널의 연결 관계들과 완전히 독립적이다.
 - 각 노드는 적어도 하나의 채널을 가진다. 
 
 # Axis
@@ -162,26 +162,26 @@ This structure provides:
 - axis 3를 time axis로 정의하면 각 채널마다 axis 3로 채널이 생성된 시각에 대한 정보(8 bytes)를 저장하는 데이터와 연결시킬 수 있고, 그럼, 채널의 생성 시각, 수정시각 등 시간에 대한 정보를 forward, backward link들과는 독립적으로 관리할 수 있다. 이 데이터는 시각화할 때 별개의 UI를 적용하여 화면에 표시할 수도 있다.
 - 
 # Database 생성
-- 다음과 같이 `uchar**` 포인터를 사용하여 vertex에 대한 정보들을 저장한다. 
+- 다음과 같이 `uchar**` 포인터를 사용하여 node에 대한 정보들을 저장한다. 
 - `uchar*`는 byte array의 시작주소를 가리키는 pointer이다. 
 ```c
     uchar** Core;
 ```
-- pointer를 사용하여 데이터가 저장된 메모리 위치만 참조하므로, vertex data의 size를 포인터가 가리키는 메모리 주소의 처음부분에 저장해야 한다. vertex size를 나타내기 위해 4바이트를 사용한다. 
-- 채널 개수를 나타내기 위해 2바이트를 사용하고, 최소 채널이 1개 있어야 하므로, 채널 1개를 나타내기 위해 4바이트를 사용하고, 처음에는 채널0에 아무 연결 관계도 저장하지 않기 때문에, axis 개수로 2bytes 만 지정하면 된다. 총 12 bytes가 필요하며 다음과 같이 초기화하면 된다. 처음에는 256개의 vertex를 생성해야 한다. 
+- pointer를 사용하여 데이터가 저장된 메모리 위치만 참조하므로, node data의 size를 포인터가 가리키는 메모리 주소의 처음부분에 저장해야 한다. node size를 나타내기 위해 4바이트를 사용한다. 
+- 채널 개수를 나타내기 위해 2바이트를 사용하고, 최소 채널이 1개 있어야 하므로, 채널 1개를 나타내기 위해 4바이트를 사용하고, 처음에는 채널0에 아무 연결 관계도 저장하지 않기 때문에, axis 개수로 2bytes 만 지정하면 된다. 총 12 bytes가 필요하며 다음과 같이 초기화하면 된다. 처음에는 256개의 node를 생성해야 한다. 
 ```c
     uchar initValues[12] = {8, 0, 0, 0, 1, 0, 10, 0, 0, 0, 0, 0};
-    void create_new_vertex(int index) {
-        uchar* newvertex = (uchar*)malloc(12 * sizeof(uchar));
+    void create_new_node(int index) {
+        uchar* newnode = (uchar*)malloc(12 * sizeof(uchar));
         for (int i = 0; i < 12; ++i) {
-            newvertex[i] = initValues[i];
+            newnode[i] = initValues[i];
         }
-        Core[index] = newvertex;  // 생성된 vertex를 Core 배열의 해당 index 위치에 저장
+        Core[index] = newnode;  // 생성된 node를 Core 배열의 해당 index 위치에 저장
     }
     void create_DB() {
         printf("Creating new database...\n");
         Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
-        CoreMap = (vertexMapping*)malloc(256 * sizeof(vertexMapping));
+        CoreMap = (nodeMapping*)malloc(256 * sizeof(nodeMapping));
         
         // Initialize CoreMap with default values
         for (int i = 0; i < 256; ++i) {
@@ -202,42 +202,42 @@ This structure provides:
         
         // Create 256 vertices
         for (int i = 0; i < 256; ++i) {
-            create_new_vertex(i);
+            create_new_node(i);
             CoreSize++;
         }
     }
 ```
 
-- Core 배열은 각각의 vertex에 대한 포인터를 저장하는 배열이다. 각 vertex의 index는 Core 배열의 index와 일치한다.
-- create_new_vertex 함수는 vertex를 생성하고 이를 Core 배열의 해당 index 위치에 저장한다.
-- create_DB 함수는 Core 배열을 할당하고 256개의 vertex를 생성하여 각각의 index 위치에 저장한다.
+- Core 배열은 각각의 node에 대한 포인터를 저장하는 배열이다. 각 node의 index는 Core 배열의 index와 일치한다.
+- create_new_node 함수는 node를 생성하고 이를 Core 배열의 해당 index 위치에 저장한다.
+- create_DB 함수는 Core 배열을 할당하고 256개의 node를 생성하여 각각의 index 위치에 저장한다.
 
 # Database 저장
-- 데이터 베이스는 기본적으로 HDD 또는 SSD 등 영구적인 저장장치에 저장되어 있어야 하며, RAM에는 일시적으로 필요한 데이터만 올려서 사용해야 한다. 따라서 새로운 vertex를 생성하거나 기존의 vertex data를 수정할 때마다 데이터베이스가 저장된 binary file의 내용을 적절하게 수정해야 한다. 
+- 데이터 베이스는 기본적으로 HDD 또는 SSD 등 영구적인 저장장치에 저장되어 있어야 하며, RAM에는 일시적으로 필요한 데이터만 올려서 사용해야 한다. 따라서 새로운 node를 생성하거나 기존의 node data를 수정할 때마다 데이터베이스가 저장된 binary file의 내용을 적절하게 수정해야 한다. 
 
 ## Binary Files 구조
 1. data.bin
-   - 실제 vertex data가 저장되는 파일
-   - 각 vertex의 데이터가 연속적으로 저장됨
-   - 각 vertex의 데이터는 size(4bytes) + 실제 데이터로 구성
+   - 실제 node data가 저장되는 파일
+   - 각 node의 데이터가 연속적으로 저장됨
+   - 각 node의 데이터는 size(4bytes) + 실제 데이터로 구성
 
 2. map.bin
-   - vertex index와 data.bin에서의 offset을 매핑하는 파일
-   - 파일 시작에 전체 vertex 개수(4bytes) 저장
-   - 각 vertex의 offset 정보가 index 순서대로 저장(각 8bytes)
+   - node index와 data.bin에서의 offset을 매핑하는 파일
+   - 파일 시작에 전체 node 개수(4bytes) 저장
+   - 각 node의 offset 정보가 index 순서대로 저장(각 8bytes)
 
 ## 저장 구현
 ```c
-void save_vertex_to_file(FILE* data_file, FILE* map_file, int index) {
-    uchar* vertex = Core[index];
+void save_node_to_file(FILE* data_file, FILE* map_file, int index) {
+    uchar* node = Core[index];
     long offset = ftell(data_file);  // Get current position in data file
     
     // Write offset to map file
     fwrite(&offset, sizeof(long), 1, map_file);
     
-    // Write vertex data to data file
-    uint vertex_size = *(uint*)vertex;  // First 4 bytes contain size
-    fwrite(vertex, sizeof(uchar), vertex_size + 4, data_file);  // +4 to include size field
+    // Write node data to data file
+    uint node_size = *(uint*)node;  // First 4 bytes contain size
+    fwrite(node, sizeof(uchar), node_size + 4, data_file);  // +4 to include size field
 }
 
 void save_DB() {
@@ -253,9 +253,9 @@ void save_DB() {
     uint num_vertices = 256;
     fwrite(&num_vertices, sizeof(uint), 1, map_file);
     
-    // Save each vertex
+    // Save each node
     for (int i = 0; i < 256; i++) {
-        save_vertex_to_file(data_file, map_file, i);
+        save_node_to_file(data_file, map_file, i);
     }
     
     fclose(data_file);
@@ -263,18 +263,18 @@ void save_DB() {
 }
 ```
 
-- save_vertex_to_file 함수는 개별 vertex를 binary file에 저장하는 함수이다:
+- save_node_to_file 함수는 개별 node를 binary file에 저장하는 함수이다:
   1. 현재 data file의 위치(offset)를 구한다
   2. 이 offset을 map file에 저장한다
-  3. vertex의 실제 데이터를 data file에 저장한다
+  3. node의 실제 데이터를 data file에 저장한다
 
 - save_DB 함수는 전체 데이터베이스를 저장하는 함수이다:
   1. data.bin과 map.bin 파일을 생성한다
-  2. map.bin 파일의 시작에 전체 vertex 개수를 저장한다
-  3. 각 vertex를 순차적으로 저장한다
+  2. map.bin 파일의 시작에 전체 node 개수를 저장한다
+  3. 각 node를 순차적으로 저장한다
   4. 저장이 완료되면 파일들을 닫는다
 
-이러한 구조를 통해 프로그램이 다시 시작될 때 map.bin 파일을 읽어서 각 vertex의 위치를 빠르게 찾을 수 있으며, 필요한 vertex의 데이터만 data.bin 파일에서 읽어올 수 있다.
+이러한 구조를 통해 프로그램이 다시 시작될 때 map.bin 파일을 읽어서 각 node의 위치를 빠르게 찾을 수 있으며, 필요한 node의 데이터만 data.bin 파일에서 읽어올 수 있다.
 
 # Database 초기화
 - 프로그램이 시작될 때 다음과 같은 순서로 데이터베이스를 초기화한다:
@@ -307,35 +307,35 @@ int check_and_init_DB() {
 
 ## 파일 구조
 - binary-data/
-  - data.bin: 실제 vertex 데이터가 저장된 파일
-  - map.bin: vertex index와 data.bin의 offset 매핑 정보가 저장된 파일
+  - data.bin: 실제 node 데이터가 저장된 파일
+  - map.bin: node index와 data.bin의 offset 매핑 정보가 저장된 파일
 
 # Database 로딩
 - 기존 데이터베이스를 로딩하는 과정은 다음과 같다:
-  1. map.bin 파일에서 전체 vertex 개수를 읽는다
-  2. 각 vertex의 offset을 map.bin에서 순차적으로 읽는다
-  3. offset을 이용하여 data.bin에서 실제 vertex 데이터를 읽어온다
+  1. map.bin 파일에서 전체 node 개수를 읽는다
+  2. 각 node의 offset을 map.bin에서 순차적으로 읽는다
+  3. offset을 이용하여 data.bin에서 실제 node 데이터를 읽어온다
   4. 읽어온 데이터를 메모리에 할당하고 Core 배열에 저장한다
 
 ## 로딩 구현
 ```c
-void load_vertex_from_file(FILE* data_file, long offset, int index) {
+void load_node_from_file(FILE* data_file, long offset, int index) {
     // Move to the correct position in data file
     fseek(data_file, offset, SEEK_SET);
     
     // Read size first
-    uint vertex_size;
-    fread(&vertex_size, sizeof(uint), 1, data_file);
+    uint node_size;
+    fread(&node_size, sizeof(uint), 1, data_file);
     
-    // Allocate memory for the vertex
-    uchar* newvertex = (uchar*)malloc((vertex_size + 4) * sizeof(uchar));
+    // Allocate memory for the node
+    uchar* newnode = (uchar*)malloc((node_size + 4) * sizeof(uchar));
     
-    // Move back to read the whole vertex including size
+    // Move back to read the whole node including size
     fseek(data_file, offset, SEEK_SET);
-    fread(newvertex, sizeof(uchar), vertex_size + 4, data_file);
+    fread(newnode, sizeof(uchar), node_size + 4, data_file);
     
     // Store in Core
-    Core[index] = newvertex;
+    Core[index] = newnode;
 }
 
 void load_DB() {
@@ -354,11 +354,11 @@ void load_DB() {
     // Allocate Core array
     Core = (uchar**)malloc(num_vertices * sizeof(uchar*));
     
-    // Read each vertex's offset and load the vertex
+    // Read each node's offset and load the node
     for (int i = 0; i < num_vertices; i++) {
         long offset;
         fread(&offset, sizeof(long), 1, map_file);
-        load_vertex_from_file(data_file, offset, i);
+        load_node_from_file(data_file, offset, i);
     }
     
     fclose(data_file);
@@ -366,18 +366,18 @@ void load_DB() {
 }
 ```
 
-- load_vertex_from_file 함수는 개별 vertex를 binary file에서 읽어오는 함수이다:
+- load_node_from_file 함수는 개별 node를 binary file에서 읽어오는 함수이다:
   1. 주어진 offset 위치로 이동한다
-  2. vertex size를 읽어온다
+  2. node size를 읽어온다
   3. 필요한 메모리를 할당한다
-  4. 전체 vertex 데이터를 읽어온다
+  4. 전체 node 데이터를 읽어온다
   5. Core 배열의 해당 index 위치에 저장한다
 
 - load_DB 함수는 전체 데이터베이스를 로딩하는 함수이다:
   1. binary file들을 연다
-  2. 전체 vertex 개수를 읽는다
+  2. 전체 node 개수를 읽는다
   3. Core 배열을 할당한다
-  4. 각 vertex의 offset을 읽고 해당 vertex를 로딩한다
+  4. 각 node의 offset을 읽고 해당 node를 로딩한다
   5. 파일들을 닫는다
 
 이러한 구현을 통해 프로그램이 시작될 때 기존 데이터베이스를 효율적으로 메모리에 로딩할 수 있다.
@@ -394,7 +394,7 @@ typedef struct {
     int core_position;   // Position in Core array (-1 if not loaded)
     int is_loaded;      // 1 if loaded in RAM, 0 if not
     long file_offset;   // Offset position in data.bin
-} vertexMapping;
+} nodeMapping;
 ```
 
 ### 구조체 설명
@@ -420,7 +420,7 @@ typedef struct {
 ### 구현 예시
 ```c
 void init_core_mapping() {
-    CoreMap = (vertexMapping*)malloc(256 * sizeof(vertexMapping));
+    CoreMap = (nodeMapping*)malloc(256 * sizeof(nodeMapping));
     
     // Initialize with default values
     for (int i = 0; i < 256; i++) {
@@ -455,9 +455,9 @@ void init_core_mapping() {
 ### 구현된 함수들
 ```c
 void init_core_mapping(void);        // CoreMap 초기화
-int get_core_position(int vertex_index);  // Core에서의 위치 조회
-int load_vertex_to_core(int vertex_index);  // 노드를 Core에 로드
-void unload_vertex_from_core(int vertex_index);  // 노드를 Core에서 언로드
+int get_core_position(int node_index);  // Core에서의 위치 조회
+int load_node_to_core(int node_index);  // 노드를 Core에 로드
+void unload_node_from_core(int node_index);  // 노드를 Core에서 언로드
 ```
 
 ### 동작 방식
@@ -471,8 +471,8 @@ void unload_vertex_from_core(int vertex_index);  // 노드를 Core에서 언로�
    - 공간 부족 시 사용 빈도가 낮은 노드 언로드
    - Core 배열 재정렬 및 매핑 정보 업데이트
 
-## vertex Validation
-노드 접근 시 항상 validate_vertex() 함수를 통해 유효성을 검증해야 합니다.
+## node Validation
+노드 접근 시 항상 validate_node() 함수를 통해 유효성을 검증해야 합니다.
 
 ### 검증 항목
 1. 노드 인덱스 범위 (0-255)
@@ -494,20 +494,20 @@ void unload_vertex_from_core(int vertex_index);  // 노드를 Core에서 언로�
 ### 올바른 사용 예시
 ```c
 // 잘못된 방식
-create_axis(vertex_index, channel_index, axis_number);  // 유효성 검증을 함수에 떠넘김
+create_axis(node_index, channel_index, axis_number);  // 유효성 검증을 함수에 떠넘김
 
 // 올바른 방식
-if (!validate_vertex(vertex_index)) {
+if (!validate_node(node_index)) {
     return ERROR_CODE;
 }
 // 노드가 유효한 경우에만 함수 호출
-create_axis(vertex_index, channel_index, axis_number);
+create_axis(node_index, channel_index, axis_number);
 ```
 
 ### 함수 설계 원칙
 1. 인자 검증
    - 함수 호출 전 모든 인자의 유효성 검증
-   - validate_vertex()로 노드 유효성 확인
+   - validate_node()로 노드 유효성 확인
    - 채널, axis 등 다른 인자들도 검증
 
 2. 에러 처리
@@ -517,14 +517,14 @@ create_axis(vertex_index, channel_index, axis_number);
 
 3. 코드 구조
 ```c
-int some_function(uint vertex_index, ushort channel_index) {
+int some_function(uint node_index, ushort channel_index) {
     // 1. 노드 유효성 검증
-    if (!validate_vertex(vertex_index)) {
+    if (!validate_node(node_index)) {
         return ERROR_CODE;
     }
     
     // 2. 채널 유효성 검증
-    if (!validate_channel(vertex_index, channel_index)) {
+    if (!validate_channel(node_index, channel_index)) {
         return ERROR_CODE;
     }
     
@@ -573,10 +573,10 @@ The system provides functionality to detect and protect vertices in the garbage 
 
 1. Detection Function
 ```c
-bool is_in_garbage_cycle(uint vertex_index);
+bool is_in_garbage_cycle(uint node_index);
 ```
-- Checks if a vertex is part of garbage cycle
-- Starts from garbage vertex (0)
+- Checks if a node is part of garbage cycle
+- Starts from garbage node (0)
 - Follows garbage chain links
 
 2. Protection Mechanism
@@ -584,11 +584,11 @@ bool is_in_garbage_cycle(uint vertex_index);
 - Maintains garbage chain integrity
 - Ensures data consistency
 
-3. Usage in Vertex Deletion
+3. Usage in node Deletion
 ```c
 // Check before deletion
-if (is_in_garbage_cycle(vertex_index)) {
-    return VERTEX_ERROR_IN_GARBAGE_cycle;
+if (is_in_garbage_cycle(node_index)) {
+    return node_ERROR_IN_GARBAGE_cycle;
 }
 ```
 
@@ -606,7 +606,7 @@ if (is_in_garbage_cycle(vertex_index)) {
 3. System Reliability
    - Consistent garbage management
    - Protected garbage cycle
-   - Safe vertex deletion
+   - Safe node deletion
 
 ## cycle Management
 
@@ -618,7 +618,7 @@ int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number
 ```
 
 #### Parameters
-- vertices: Array of vertex indices to connect
+- vertices: Array of node indices to connect
 - channels: Array of channel indices corresponding to vertices
 - count: Number of vertices/channels in the cycle
 - axis_number: Axis to use for connections
@@ -654,8 +654,8 @@ if (result == LINK_SUCCESS) {
 
 #### Notes
 1. cycle Structure
-   - Each vertex connects to next in array
-   - Last vertex connects to first
+   - Each node connects to next in array
+   - Last node connects to first
    - All links use same axis
 
 2. Memory Management
@@ -670,16 +670,16 @@ if (result == LINK_SUCCESS) {
 
 ## Token Data Management
 
-### Token vertex Structure
+### Token node Structure
 Token vertices store data in a hierarchical tree structure:
 
 1. Data Organization
-   - Each token vertex represents a data unit
+   - Each token node represents a data unit
    - Data is split across child vertices
    - Leaf nodes (0-255) contain actual byte values
 
 2. Tree Structure
-   - Root: Token vertex
+   - Root: Token node
    - Internal Nodes: Intermediate data vertices
    - Leaves: Byte values (0-255)
    - Links: Axis 2 connections
@@ -688,12 +688,12 @@ Token vertices store data in a hierarchical tree structure:
 The system provides functionality to retrieve token data:
 
 ```c
-char* get_token_data(uint vertex_index);
+char* get_token_data(uint node_index);
 ```
 
 #### Process
 1. Stack-based Traversal
-   - Push root vertex to stack
+   - Push root node to stack
    - Process vertices depth-first
    - Collect leaf node values
 
@@ -711,7 +711,7 @@ char* get_token_data(uint vertex_index);
 1. Stack Structure
    ```c
    typedef struct {
-       uint vertex_index;
+       uint node_index;
        ushort channel;
        int depth;
    } StackEntry;
@@ -729,8 +729,8 @@ char* get_token_data(uint vertex_index);
 
 #### Usage Example
 ```c
-// Get data from token vertex
-char* data = get_token_data(token_vertex_index);
+// Get data from token node
+char* data = get_token_data(token_node_index);
 if (data) {
     printf("Token data: %s\n", data);
     free(data);  // Remember to free the result
@@ -746,7 +746,7 @@ if (data) {
 2. Error Handling
    - NULL return on errors
    - Stack overflow protection
-   - Invalid vertex detection
+   - Invalid node detection
 
 3. Memory Management
    - Caller owns returned string

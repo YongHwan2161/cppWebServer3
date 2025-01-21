@@ -13,16 +13,16 @@ typedef struct {
     int core_position;   // Position in Core array (-1 if not loaded)
     int is_loaded;      // 1 if loaded in RAM, 0 if not
     long file_offset;   // Offset position in data.bin
-} vertexMapping;
+} nodeMapping;
 
 extern uchar** Core;
-extern vertexMapping* CoreMap;
+extern nodeMapping* CoreMap;
 extern int CoreSize;        // Current number of vertices loaded in Core
 extern const unsigned int MaxCoreSize;  // Maximum number of vertices that can be in RAM
-extern const unsigned int GarbagevertexIndex;
+extern const unsigned int GarbagenodeIndex;
 
-extern unsigned int CurrentVertexIndex;
-extern unsigned int CurrentvertexCount;
+extern unsigned int CurrentnodeIndex;
+extern unsigned int CurrentnodeCount;
 
 extern const char* DATA_DIR;
 extern const char* DATA_FILE;

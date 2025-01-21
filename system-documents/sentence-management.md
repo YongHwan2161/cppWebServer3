@@ -8,7 +8,7 @@ The system provides functionality to create sentences by linking token vertices 
 ### Process
 1. Tokenization
    - Input text is tokenized using search_token
-   - Each token maps to existing vertex
+   - Each token maps to existing node
    - Tokens found sequentially from input
 
 2. Token Optimization
@@ -18,7 +18,7 @@ The system provides functionality to create sentences by linking token vertices 
    - Reduce sentence length through combination
 
 3. Token Combination
-   - Create new vertex for combined tokens
+   - Create new node for combined tokens
    - Remove old token path from cycle
    - Insert new combined token
    - Update token sequence
@@ -27,7 +27,7 @@ The system provides functionality to create sentences by linking token vertices 
    - Link optimized tokens sequentially
    - Create sentence cycle
    - Use axis 2 for connections
-   - Return start vertex and channel
+   - Return start node and channel
 
 ### Command Interface
 ```shell
@@ -39,22 +39,22 @@ Parameters:
 
 Returns:
 - Success/error status
-- Start vertex and channel for sentence access
+- Start node and channel for sentence access
 
 Example:
 ```shell
 > create-sentence "Hello World"
-Successfully created sentence starting at vertex 5, channel 2
+Successfully created sentence starting at node 5, channel 2
 ```
 
 ### Implementation Details
 ```c
-int handle_create_sentence(char* args, uint* start_vertex, ushort* start_channel);
+int handle_create_sentence(char* args, uint* start_node, ushort* start_channel);
 ```
 
 #### Parameters
 - args: Input text string
-- start_vertex: Pointer to store starting vertex index
+- start_node: Pointer to store starting node index
 - start_channel: Pointer to store starting channel index
 
 #### Return Values
@@ -65,7 +65,7 @@ int handle_create_sentence(char* args, uint* start_vertex, ushort* start_channel
 1. Input Processing
    - Validate input text
    - Initialize token arrays
-   - Set initial start vertex/channel
+   - Set initial start node/channel
 
 2. Token Processing
    - Search and create tokens
@@ -102,13 +102,13 @@ int handle_create_sentence(char* args, uint* start_vertex, ushort* start_channel
 
 ### Process
 1. Character Processing
-   - Convert each character to token vertex index
-   - Use ASCII value as vertex index (0-255)
-   - Each character maps to existing token vertex
+   - Convert each character to token node index
+   - Use ASCII value as node index (0-255)
+   - Each character maps to existing token node
 
 2. Token Mapping
-   - No new vertex creation needed
-   - Direct ASCII to vertex mapping
+   - No new node creation needed
+   - Direct ASCII to node mapping
    - Uses pre-existing token vertices
 
 3. Sentence Formation
@@ -123,7 +123,7 @@ create-sentence-str <text>
 
 #### Parameters
 - text: ASCII text to form sentence
-- Each character maps to vertex 0-255
+- Each character maps to node 0-255
 - Minimum 2 characters required
 
 #### Examples
@@ -149,9 +149,9 @@ Error: Invalid character (outside ASCII range)
 
 #### Character Mapping
 ```c
-// Map each character to token vertex
-uint token_vertex = (unsigned char)args[i];  // ASCII value 0-255
-tokens[count++] = token_vertex;
+// Map each character to token node
+uint token_node = (unsigned char)args[i];  // ASCII value 0-255
+tokens[count++] = token_node;
 ```
 
 #### Sentence Assembly
@@ -163,7 +163,7 @@ create_sentence_cycle(tokens, count);
 ### Notes
 1. Token Usage
    - Uses existing vertices 0-255
-   - No vertex creation needed
+   - No node creation needed
    - Direct ASCII mapping
 
 2. Memory Management
@@ -178,7 +178,7 @@ create_sentence_cycle(tokens, count);
 
 4. Performance
    - O(n) character processing
-   - No vertex creation overhead
+   - No node creation overhead
    - Efficient direct mapping
 
 5. Character Encoding
@@ -212,11 +212,11 @@ create_sentence_cycle(tokens, count);
 
 ### Command Interface
 ```shell
-get-sentence <vertex_index> <channel_index>
+get-sentence <node_index> <channel_index>
 ```
 
 #### Parameters
-- vertex_index: Starting vertex of sentence cycle
+- node_index: Starting node of sentence cycle
 - channel_index: Channel containing sentence cycle
 
 #### Output Format
@@ -233,28 +233,28 @@ The command displays sentence data in three formats:
 ```shell
 # Get English sentence
 > get-sentence 42 1
-Sentence data starting from vertex 42, channel 1:
+Sentence data starting from node 42, channel 1:
 Raw: Hello World
 HEX: 48 65 6C 6C 6F 20 57 6F 72 6C 64
 UTF-8: Hello World
 
 # Get Korean sentence
 > get-sentence 43 1
-Sentence data starting from vertex 43, channel 1:
+Sentence data starting from node 43, channel 1:
 Raw: 안녕하세요
 HEX: EC 95 88 EB 85 95 ED 95 98 EC 84 B8 EC 9A 94
 UTF-8: 안녕하세요
 
 # Get mixed language sentence
 > get-sentence 44 1
-Sentence data starting from vertex 44, channel 1:
+Sentence data starting from node 44, channel 1:
 Raw: Hello 世界
 HEX: 48 65 6C 6C 6F 20 E4 B8 96 E7 95 8C
 UTF-8: Hello 世界
 
 # Get sentence with invalid UTF-8
 > get-sentence 45 1
-Sentence data starting from vertex 45, channel 1:
+Sentence data starting from node 45, channel 1:
 Raw: HelloWorld
 HEX: 48 65 6C 6C 6F FF 57 6F 72 6C 64
 UTF-8: Hello\xFFWorld
@@ -321,7 +321,7 @@ When the sentence data exactly matches an existing token, special handling is re
    - Preserve token structure
 
 3. Self-Loop Creation
-   - Create link to same vertex
+   - Create link to same node
    - Use axis 2 for sentence structure
    - Same channel for source and destination
 
@@ -330,11 +330,11 @@ When the sentence data exactly matches an existing token, special handling is re
 // Handle single token case
 if (count == 1) {
     // Create new channel for self-loop
-    create_channel(token_vertex);
-    ushort new_channel = get_channel_count(vertex) - 1;
+    create_channel(token_node);
+    ushort new_channel = get_channel_count(node) - 1;
     
     // Create self-loop using axis 2
-    create_link(token_vertex, new_channel, token_vertex, new_channel, 2);
+    create_link(token_node, new_channel, token_node, new_channel, 2);
 }
 ```
 
@@ -366,7 +366,7 @@ The sentence creation process involves tokenizing input data and creating a cycl
 TokenSearchResult *result_first = search_token(current_pos, remaining_len);
 ```
 - Searches for longest matching token from input
-- Returns token vertex index and matched length
+- Returns token node index and matched length
 - Handles initial token discovery
 
 #### 2. Single Token Case
@@ -377,8 +377,8 @@ If input matches a single token completely:
 
 ```c
 if (remaining_len == result_first->matched_length) {
-    int channel_index = recycle_or_create_channel(result_first->vertex_index);
-    create_loop(result_first->vertex_index, channel_index, 2);
+    int channel_index = recycle_or_create_channel(result_first->node_index);
+    create_loop(result_first->node_index, channel_index, 2);
 }
 ```
 
@@ -400,7 +400,7 @@ For inputs requiring multiple tokens:
        create_channel(tokens[count]);
        channels[count] = channels[count-1] + 1;
    } else {
-       channels[count] = recycle_or_create_channel(result->vertex_index);
+       channels[count] = recycle_or_create_channel(result->node_index);
    }
    ```
    - Special handling for repeated tokens
@@ -423,7 +423,7 @@ For each token after the first:
 
 1. Channel Count Check
    ```c
-   prev_channel_count = get_channel_count(Core[get_vertex_position(tokens[count-1])]);
+   prev_channel_count = get_channel_count(Core[get_node_position(tokens[count-1])]);
    if (prev_channel_count <= 2) {
        need_search = false;
    }
@@ -451,12 +451,12 @@ For each token after the first:
 4. Token Combination
    ```c
    if (strcmp(next_token, result->token_data) == 0) {
-       int new_vertex = create_token_vertex(prev_vertex, result->vertex_index);
-       create_multi_channels(new_vertex, 2);
+       int new_node = create_token_node(prev_node, result->node_index);
+       create_multi_channels(new_node, 2);
        // Update sentence structure...
    }
    ```
-   - Creates combined token vertex
+   - Creates combined token node
    - Allocates necessary channels
    - Updates sentence links
 

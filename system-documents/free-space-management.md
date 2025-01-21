@@ -51,9 +51,9 @@ void add_free_block(uint size, long offset);
 [Block Count(4)][Block Data(8 * count)]
 ```
 
-### vertex Space Management
+### node Space Management
 ```c
-uchar* resize_vertex_space(uchar* vertex, uint required_size, int vertex_index, uint* new_size);
+uchar* resize_node_space(uchar* node, uint required_size, int node_index, uint* new_size);
 ```
 
 #### Process
@@ -64,9 +64,9 @@ uchar* resize_vertex_space(uchar* vertex, uint required_size, int vertex_index, 
 5. 오프셋 관리
 
 #### Parameters
-- vertex: 현재 노드 데이터
+- node: 현재 노드 데이터
 - required_size: 필요한 최소 크기
-- vertex_index: 노드 인덱스
+- node_index: 노드 인덱스
 - new_size: 할당된 새로운 크기 (출력)
 
 #### Returns
@@ -90,12 +90,12 @@ uchar* resize_vertex_space(uchar* vertex, uint required_size, int vertex_index, 
 
 ## Usage Example
 ```c
-// vertex resizing
+// node resizing
 uint new_size;
-uchar* new_vertex = resize_vertex_space(old_vertex, required_size, vertex_index, &new_size);
-if (new_vertex) {
+uchar* new_node = resize_node_space(old_node, required_size, node_index, &new_size);
+if (new_node) {
     // Update Core and recalculate offsets
-    Core[vertex_index] = new_vertex;
+    Core[node_index] = new_node;
     // ...
 }
 ```
@@ -136,16 +136,16 @@ Size (bytes)    Offset
 ### Usage
 - Monitor available space
 - Debug memory allocation
-- Track vertex deletion
+- Track node deletion
 - Verify space reclamation 
 
 ## Testing
 
-### Resize vertex Space Testing
-The resize_vertex_space functionality is tested through a series of operations that verify proper free space management:
+### Resize node Space Testing
+The resize_node_space functionality is tested through a series of operations that verify proper free space management:
 
 #### Test Setup
-1. Create multiple axes in vertex 0
+1. Create multiple axes in node 0
    ```shell
    create-axis 0 0 1
    create-axis 0 0 2
@@ -161,9 +161,9 @@ The resize_vertex_space functionality is tested through a series of operations t
    - Verifies correct block sizes
 
 2. Resize Trigger
-   - Creates axis in vertex 1
-   - Forces vertex resize using 32-byte free block
-   - Original 16-byte vertex space returns to free space
+   - Creates axis in node 1
+   - Forces node resize using 32-byte free block
+   - Original 16-byte node space returns to free space
 
 3. Final State Verification
    - Checks for two 16-byte free blocks
@@ -191,7 +191,7 @@ Size (bytes)    Offset
 
 #### Test Implementation
 ```c
-int test_resize_vertex_space(void);
+int test_resize_node_space(void);
 ```
 - Verifies free block allocation
 - Checks free space reclamation
@@ -246,11 +246,11 @@ This ensures the integrity of the free space management system by preventing:
 - Corruption of free block boundaries
 - Invalid memory access
 
-### vertex Size Management
+### node Size Management
 
-#### Check and Resize vertex
+#### Check and Resize node
 ```c
-int check_and_resize_vertex(uchar** vertex_ptr, uint required_size, uint vertex_index);
+int check_and_resize_node(uchar** node_ptr, uint required_size, uint node_index);
 ```
 
 ##### 기능
@@ -259,9 +259,9 @@ int check_and_resize_vertex(uchar** vertex_ptr, uint required_size, uint vertex_
 - 노드 포인터 업데이트
 
 ##### Parameters
-- vertex_ptr: 노드 포인터의 포인터 (resize 시 업데이트됨)
+- node_ptr: 노드 포인터의 포인터 (resize 시 업데이트됨)
 - required_size: 필요한 최소 크기
-- vertex_index: 노드 인덱스
+- node_index: 노드 인덱스
 
 ##### Return Values
 - FREE_SPACE_SUCCESS: 크기 조정 불필요
@@ -275,7 +275,7 @@ int check_and_resize_vertex(uchar** vertex_ptr, uint required_size, uint vertex_
    - 충분하면 즉시 반환
 
 2. 크기 조정
-   - resize_vertex_space 호출
+   - resize_node_space 호출
    - 새로운 메모리 할당
    - 데이터 복사
 
@@ -286,16 +286,16 @@ int check_and_resize_vertex(uchar** vertex_ptr, uint required_size, uint vertex_
 
 ##### Usage Example
 ```c
-uchar* vertex = Core[vertex_index];
+uchar* node = Core[node_index];
 uint required_size = current_size + new_data_size;
 
-int result = check_and_resize_vertex(&vertex, required_size, vertex_index);
+int result = check_and_resize_node(&node, required_size, node_index);
 if (result == FREE_SPACE_ERROR) {
     // Handle error
     return ERROR_CODE;
 }
 
-// vertex pointer may have been updated if resized
+// node pointer may have been updated if resized
 // Continue with operation...
 ```
 

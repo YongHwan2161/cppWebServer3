@@ -1,5 +1,8 @@
 {
     "files.associations": {
+        "*.sqlbook": "sql",
+        "*.ndjson": "jsonl",
+        "*.dbclient-js": "javascript",
         "*.asm": "asm-collection",
         "string": "cpp",
         "string_view": "cpp",
@@ -61,7 +64,8 @@
         "channel.h": "c",
         "stdlib.h": "c",
         "free_space.h": "c",
-        "vertex.h": "c"
+        "node.h": "c",
+        "axis.h": "c"
     },
     "makefile.launchConfigurations": [
         {
