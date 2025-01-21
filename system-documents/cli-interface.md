@@ -1076,7 +1076,7 @@ test-sequential-token
 ```
 
 #### Purpose
-Tests the token creation system by creating sentences with incrementally longer strings.
+Tests the token creation system by creating strings with incrementally longer strings.
 
 #### Arguments
 None. The command runs with predefined test strings.
@@ -1084,23 +1084,23 @@ None. The command runs with predefined test strings.
 #### Process
 1. Starts with 2-character string
 2. Incrementally adds characters
-3. Creates sentence for each string
+3. Creates string for each string
 4. Reports success/failure for each step
 
 #### Output Format
 ```
 Testing sequential token creation...
-Creating sentence for: AB
-Successfully created sentence for AB
-Creating sentence for: ABC
-Successfully created sentence for ABC
+Creating string for: AB
+Successfully created string for AB
+Creating string for: ABC
+Successfully created string for ABC
 ...
 Sequential token creation tests completed. Failed tests: 0
 ```
 
 #### Error Cases
 - Invalid arguments provided
-- Sentence creation failure
+- string creation failure
 - Memory allocation failure
 
 #### Usage Example
@@ -1119,7 +1119,7 @@ Usage: test-sequential-token
 
 #### Notes
 - No arguments should be provided
-- Tests complete sentence creation flow
+- Tests complete string creation flow
 - Reports total number of failures
 - Automatically handles cleanup
 
@@ -1271,43 +1271,43 @@ Error: Maximum number of vertices (256) reached
 
 ### Test Commands
 
-#### Test Repeating Sentence
+#### Test Repeating string
 ```
-test-repeating-sentence
+test-repeating-string
 ```
-Tests sentence creation with repeating patterns.
+Tests string creation with repeating patterns.
 
 Parameters: None
 
 Example:
 ```shell
-> test-repeating-sentence
-Testing repeating sentence creation...
+> test-repeating-string
+Testing repeating string creation...
 
 Testing patterns of length 1
-Creating sentence for: AA (pattern 'A' repeated 2 times)
-Successfully created sentence
+Creating string for: AA (pattern 'A' repeated 2 times)
+Successfully created string
 ...
 
 Testing patterns of length 2
-Creating sentence for: ABAB (pattern 'AB' repeated 2 times)
-Successfully created sentence
+Creating string for: ABAB (pattern 'AB' repeated 2 times)
+Successfully created string
 ...
 
-Repeating sentence tests completed. Failed tests: 0
+Repeating string tests completed. Failed tests: 0
 ```
 
 Error handling:
 ```shell
-> test-repeating-sentence extra_args
+> test-repeating-string extra_args
 Error: Invalid arguments
-Usage: test-repeating-sentence
+Usage: test-repeating-string
 ```
 
 The command will:
 1. Test patterns of length 1-10
 2. Test repetition counts 2-10
-3. Create sentences for all combinations
+3. Create strings for all combinations
 4. Report success/failure for each test
 5. Provide final summary of failed tests
 

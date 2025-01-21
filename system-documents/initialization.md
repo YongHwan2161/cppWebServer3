@@ -1,7 +1,88 @@
 # System Initialization
 
 ## Overview
-The initialization process ensures all necessary components are properly set up when the program starts. This includes checking and creating required directories and files, loading existing data, or creating new data structures as needed.
+The initialization process ensures all necessary components are properly set up when the program starts. This includes creating required directories and files, loading existing data, and establishing the root string.
+
+## Root String
+
+### Purpose
+The root string serves as the ancestor for all elements in the database. It provides:
+- Starting point for element navigation
+- Base for hierarchical structure
+- Access control through defined paths
+
+### Implementation
+```c
+typedef struct {
+    uint node;
+    ushort channel;
+} Coordinate;
+
+// Global coordinates
+Coordinate CurrentCoordinate;  // User's current position
+Coordinate RootCoordinate;    // Root string position
+```
+
+### Initialization Process
+1. System Setup
+   - Create data directory
+   - Initialize database
+   - Setup free space management
+
+2. Root String Creation
+   - Create "Hello world!" string
+   - Store starting coordinates
+   - Set current position to root
+
+3. Coordinate Management
+   - Track root position
+   - Maintain current position
+   - Enable navigation
+
+### Navigation
+- All elements branch from root
+- Access restricted to connected paths
+- Navigation through coordinates
+
+## Usage
+```c
+// Access current position
+printf("Current position: node %u, channel %u\n",
+       CurrentCoordinate.node, CurrentCoordinate.channel);
+
+// Check root position
+printf("Root position: node %u, channel %u\n",
+       RootCoordinate.node, RootCoordinate.channel);
+```
+
+## Element Layer
+The element layer exists above the token layer and has these characteristics:
+1. All elements branch from root
+2. Navigation restricted to defined paths
+3. No access to unconnected regions
+4. Root-based hierarchical structure
+
+## Coordinates
+- Represented as (node, channel) pairs
+- Used for position tracking
+- Enable direct location access
+- Managed as global state
+
+### Benefits
+1. Direct Access
+   - Immediate position lookup
+   - No path traversal needed
+   - Efficient navigation
+
+2. Position Tracking
+   - Current location awareness
+   - Root reference maintained
+   - Navigation history possible
+
+3. Access Control
+   - Path-based restrictions
+   - Root-connected traversal
+   - Structured navigation
 
 ## Initialization Process
 

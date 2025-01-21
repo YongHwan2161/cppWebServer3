@@ -173,17 +173,17 @@ int handle_test_sequential_token_creation(char* args) {
         char substr[27] = {0};  // Large enough for full test string + null
         strncpy(substr, test_str, len);
         
-        printf("Creating sentence for: %s\n", substr);
+        printf("Creating string for: %s\n", substr);
         
-        // Create sentence from substring
+        // Create string from substring
         uint start_node;
         ushort start_channel;
-        int result = handle_create_sentence(substr, &start_node, &start_channel);
+        int result = handle_create_string(substr, &start_node, &start_channel);
         if (result == CMD_ERROR) {
-            printf("Error: Failed to create sentence for %s\n", substr);
+            printf("Error: Failed to create string for %s\n", substr);
             failed++;
         } else {
-            printf("Successfully created sentence for %s\n", substr);
+            printf("Successfully created string for %s\n", substr);
         }
     }
     
@@ -191,13 +191,13 @@ int handle_test_sequential_token_creation(char* args) {
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }
 
-int handle_test_repeating_sentence(char* args) {
+int handle_test_repeating_string(char* args) {
     if (args) {
-        print_argument_error("test-repeating-sentence", "", false);
+        print_argument_error("test-repeating-string", "", false);
         return CMD_ERROR;
     }
     
-    printf("\nTesting repeating sentence creation...\n");
+    printf("\nTesting repeating string creation...\n");
     int failed = 0;
     
     // Test strings with different pattern lengths (1-10) and repetitions (2-10)
@@ -218,23 +218,23 @@ int handle_test_repeating_sentence(char* args) {
                 strcat(test_str, pattern);
             }
             
-            printf("Creating sentence for: %s (pattern '%s' repeated %d times)\n", 
+            printf("Creating string for: %s (pattern '%s' repeated %d times)\n", 
                    test_str, pattern, repeat);
             
-            // Try to create sentence
+            // Try to create string
             uint start_node;
             ushort start_channel;
-            int result = handle_create_sentence(test_str, &start_node, &start_channel);
+            int result = handle_create_string(test_str, &start_node, &start_channel);
             if (result == CMD_ERROR) {
-                printf("Error: Failed to create sentence for pattern '%s' repeated %d times\n",
+                printf("Error: Failed to create string for pattern '%s' repeated %d times\n",
                        pattern, repeat);
                 failed++;
             } else {
-                printf("Successfully created sentence\n");
+                printf("Successfully created string\n");
             }
         }
     }
     
-    printf("\nRepeating sentence tests completed. Failed tests: %d\n", failed);
+    printf("\nRepeating string tests completed. Failed tests: %d\n", failed);
     return (failed == 0) ? CMD_SUCCESS : CMD_ERROR;
 }

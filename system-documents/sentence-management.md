@@ -1,9 +1,9 @@
-# Sentence Management
+# string Management
 
 ## Overview
-The system provides functionality to create sentences by linking token vertices in a cycle using dedicated channels. Each sentence is represented as a cycle of tokens connected through axis 2 (sentence axis).
+The system provides functionality to create strings by linking token vertices in a cycle using dedicated channels. Each string is represented as a cycle of tokens connected through axis 2 (string axis).
 
-## Sentence Creation
+## string Creation
 
 ### Process
 1. Tokenization
@@ -15,7 +15,7 @@ The system provides functionality to create sentences by linking token vertices 
    - Check for existing token combinations
    - Search through channel links
    - Create combined tokens when possible
-   - Reduce sentence length through combination
+   - Reduce string length through combination
 
 3. Token Combination
    - Create new node for combined tokens
@@ -25,31 +25,31 @@ The system provides functionality to create sentences by linking token vertices 
 
 4. Cycle Formation
    - Link optimized tokens sequentially
-   - Create sentence cycle
+   - Create string cycle
    - Use axis 2 for connections
    - Return start node and channel
 
 ### Command Interface
 ```shell
-create-sentence <text>
+create-string <text>
 ```
 
 Parameters:
-- text: Input text to create sentence from
+- text: Input text to create string from
 
 Returns:
 - Success/error status
-- Start node and channel for sentence access
+- Start node and channel for string access
 
 Example:
 ```shell
-> create-sentence "Hello World"
-Successfully created sentence starting at node 5, channel 2
+> create-string "Hello World"
+Successfully created string starting at node 5, channel 2
 ```
 
 ### Implementation Details
 ```c
-int handle_create_sentence(char* args, uint* start_node, ushort* start_channel);
+int handle_create_string(char* args, uint* start_node, ushort* start_channel);
 ```
 
 #### Parameters
@@ -58,8 +58,8 @@ int handle_create_sentence(char* args, uint* start_node, ushort* start_channel);
 - start_channel: Pointer to store starting channel index
 
 #### Return Values
-- SUCCESS: Sentence created successfully
-- ERROR: Failed to create sentence
+- SUCCESS: string created successfully
+- ERROR: Failed to create string
 
 #### Process Flow
 1. Input Processing
@@ -89,7 +89,7 @@ int handle_create_sentence(char* args, uint* start_node, ushort* start_channel);
    - Efficient data representation
 
 2. Performance
-   - Faster sentence traversal
+   - Faster string traversal
    - Fewer cycle elements
    - Optimized memory usage
 
@@ -98,7 +98,7 @@ int handle_create_sentence(char* args, uint* start_node, ushort* start_channel);
    - Reduced redundancy
    - Consistent representation
 
-## String-Based Sentence Creation
+## String-Based string Creation
 
 ### Process
 1. Character Processing
@@ -111,37 +111,37 @@ int handle_create_sentence(char* args, uint* start_node, ushort* start_channel);
    - Direct ASCII to node mapping
    - Uses pre-existing token vertices
 
-3. Sentence Formation
+3. string Formation
    - Create cycle from mapped tokens
    - Link tokens sequentially
    - Maintain character order
 
 ### Command Interface
 ```shell
-create-sentence-str <text>
+create-string-str <text>
 ```
 
 #### Parameters
-- text: ASCII text to form sentence
+- text: ASCII text to form string
 - Each character maps to node 0-255
 - Minimum 2 characters required
 
 #### Examples
 ```shell
-# Create sentence from text
-> create-sentence-str Hello
-Successfully created sentence with 5 characters
+# Create string from text
+> create-string-str Hello
+Successfully created string with 5 characters
 
 # Error cases
-> create-sentence-str
+> create-string-str
 Error: Missing arguments
-Usage: create-sentence-str <text>
-Example: create-sentence-str Hello
+Usage: create-string-str <text>
+Example: create-string-str Hello
 
-> create-sentence-str H
-Error: At least 2 characters required for a sentence
+> create-string-str H
+Error: At least 2 characters required for a string
 
-> create-sentence-str Hello©World
+> create-string-str Hello©World
 Error: Invalid character (outside ASCII range)
 ```
 
@@ -154,10 +154,10 @@ uint token_node = (unsigned char)args[i];  // ASCII value 0-255
 tokens[count++] = token_node;
 ```
 
-#### Sentence Assembly
+#### string Assembly
 ```c
 // Create cycle using existing token vertices
-create_sentence_cycle(tokens, count);
+create_string_cycle(tokens, count);
 ```
 
 ### Notes
@@ -192,11 +192,11 @@ create_sentence_cycle(tokens, count);
      export LC_ALL=en_US.UTF-8
      ```
 
-## Sentence Retrieval
+## string Retrieval
 
 ### Process
 1. Cycle Validation
-   - Check for valid sentence cycle
+   - Check for valid string cycle
    - Verify cycle completeness
    - Validate starting point
 
@@ -212,15 +212,15 @@ create_sentence_cycle(tokens, count);
 
 ### Command Interface
 ```shell
-get-sentence <node_index> <channel_index>
+get-string <node_index> <channel_index>
 ```
 
 #### Parameters
-- node_index: Starting node of sentence cycle
-- channel_index: Channel containing sentence cycle
+- node_index: Starting node of string cycle
+- channel_index: Channel containing string cycle
 
 #### Output Format
-The command displays sentence data in three formats:
+The command displays string data in three formats:
 1. Raw: Data as stored in the database
 2. HEX: Hexadecimal representation of each byte
 3. UTF-8: Properly decoded Unicode text with support for:
@@ -231,30 +231,30 @@ The command displays sentence data in three formats:
 
 #### Examples
 ```shell
-# Get English sentence
-> get-sentence 42 1
-Sentence data starting from node 42, channel 1:
+# Get English string
+> get-string 42 1
+string data starting from node 42, channel 1:
 Raw: Hello World
 HEX: 48 65 6C 6C 6F 20 57 6F 72 6C 64
 UTF-8: Hello World
 
-# Get Korean sentence
-> get-sentence 43 1
-Sentence data starting from node 43, channel 1:
+# Get Korean string
+> get-string 43 1
+string data starting from node 43, channel 1:
 Raw: 안녕하세요
 HEX: EC 95 88 EB 85 95 ED 95 98 EC 84 B8 EC 9A 94
 UTF-8: 안녕하세요
 
-# Get mixed language sentence
-> get-sentence 44 1
-Sentence data starting from node 44, channel 1:
+# Get mixed language string
+> get-string 44 1
+string data starting from node 44, channel 1:
 Raw: Hello 世界
 HEX: 48 65 6C 6C 6F 20 E4 B8 96 E7 95 8C
 UTF-8: Hello 世界
 
-# Get sentence with invalid UTF-8
-> get-sentence 45 1
-Sentence data starting from node 45, channel 1:
+# Get string with invalid UTF-8
+> get-string 45 1
+string data starting from node 45, channel 1:
 Raw: HelloWorld
 HEX: 48 65 6C 6C 6F FF 57 6F 72 6C 64
 UTF-8: Hello\xFFWorld
@@ -307,8 +307,8 @@ else if (c < 0xF8) {    // 4-byte UTF-8
 
 ### Special Cases
 
-#### Single Token Sentences
-When the sentence data exactly matches an existing token, special handling is required:
+#### Single Token strings
+When the string data exactly matches an existing token, special handling is required:
 
 1. Detection
    - Single token found during tokenization
@@ -322,7 +322,7 @@ When the sentence data exactly matches an existing token, special handling is re
 
 3. Self-Loop Creation
    - Create link to same node
-   - Use axis 2 for sentence structure
+   - Use axis 2 for string structure
    - Same channel for source and destination
 
 #### Implementation Details
@@ -354,10 +354,10 @@ if (count == 1) {
    - Clear cycle structure
    - Easy maintenance 
 
-## Sentence Creation Process
+## string Creation Process
 
 ### Overview
-The sentence creation process involves tokenizing input data and creating a cycle of tokens. The process includes token optimization through combination when possible.
+The string creation process involves tokenizing input data and creating a cycle of tokens. The process includes token optimization through combination when possible.
 
 ### Detailed Process
 
@@ -387,12 +387,12 @@ For inputs requiring multiple tokens:
 
 1. Token Collection
    ```c
-   uint tokens[MAX_SENTENCE_TOKENS];
-   ushort channels[MAX_SENTENCE_TOKENS];
+   uint tokens[MAX_string_TOKENS];
+   ushort channels[MAX_string_TOKENS];
    ```
    - Stores token vertices and channels
    - Tracks token sequence
-   - Limited by MAX_SENTENCE_TOKENS
+   - Limited by MAX_string_TOKENS
 
 2. Repeat Token Handling
    ```c
@@ -415,7 +415,7 @@ For inputs requiring multiple tokens:
    }
    ```
    - Links consecutive tokens
-   - Uses axis 2 for sentence structure
+   - Uses axis 2 for string structure
    - Maintains token sequence
 
 #### 4. Token Optimization
@@ -445,7 +445,7 @@ For each token after the first:
 
 3. Skip Conditions
    - Empty axis 2 (cleared channels)
-   - Current sentence channel
+   - Current string channel
    - Invalid link configurations
 
 4. Token Combination
@@ -453,12 +453,12 @@ For each token after the first:
    if (strcmp(next_token, result->token_data) == 0) {
        int new_node = create_token_node(prev_node, result->node_index);
        create_multi_channels(new_node, 2);
-       // Update sentence structure...
+       // Update string structure...
    }
    ```
    - Creates combined token node
    - Allocates necessary channels
-   - Updates sentence links
+   - Updates string links
 
 ### Implementation Notes
 
@@ -469,7 +469,7 @@ For each token after the first:
    - Multiple channels for combined tokens
 
 2. Channel Selection
-   - Skip current sentence channel
+   - Skip current string channel
    - Skip cleared channels
    - Consider all other channels
 
@@ -526,19 +526,19 @@ For each token after the first:
 ### Usage Examples
 
 ```shell
-# Basic sentence creation
-> create-sentence "Hello World"
-Successfully created sentence cycle
+# Basic string creation
+> create-string "Hello World"
+Successfully created string cycle
 
 # Single token case
-> create-sentence "Hello"
-Created self-loop sentence for single token
+> create-string "Hello"
+Created self-loop string for single token
 
 # Error cases
-> create-sentence ""
+> create-string ""
 Error: Missing text argument
 
-> create-sentence "Very long text..."
+> create-string "Very long text..."
 Error: Maximum token limit exceeded
 ```
 
@@ -550,7 +550,7 @@ Error: Maximum token limit exceeded
    - Efficient combination detection
 
 2. Memory Usage
-   - Fixed-size token array (MAX_SENTENCE_TOKENS)
+   - Fixed-size token array (MAX_string_TOKENS)
    - Dynamic token data allocation
    - Proper resource cleanup
 

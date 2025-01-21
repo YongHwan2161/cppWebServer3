@@ -15,6 +15,12 @@ typedef struct {
     long file_offset;   // Offset position in data.bin
 } nodeMapping;
 
+// Add after other global declarations
+typedef struct {
+    uint node;
+    ushort channel;
+} Coordinate;
+
 extern uchar** Core;
 extern nodeMapping* CoreMap;
 extern int CoreSize;        // Current number of vertices loaded in Core
@@ -28,4 +34,7 @@ extern const char* DATA_DIR;
 extern const char* DATA_FILE;
 extern const char* MAP_FILE;
 
-#endif 
+extern Coordinate CurrentCoordinate;  // Current user position
+extern Coordinate RootCoordinate;     // Root string position
+
+#endif

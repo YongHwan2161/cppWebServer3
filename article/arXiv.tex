@@ -1,75 +1,81 @@
 % !TEX TS-program = xelatex
+%
+%====================================================
+% Channel Graph Theory - Final Version
+%====================================================
+\documentclass[12pt, a4paper]{article}
 
-% This is the LaTeX template
-% for "Constructions", a very simple
-% modification of the standard 
-% LaTeX article class. The 
-% main.tex file of this template
-% as well as localstuff.tex
-% can be used without attribution
-% under the public domain CC-0 license.
-% The bibliography style unified.bst
-% is used under the LaTeX Project 
-% Public License v1.3c.
+\usepackage[a4paper, left=3cm, right=3cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{fontspec}    % for xelatex
+\usepackage{xunicode}    % unicode support
+\usepackage{xltxtra}     % extra customizations for XeLaTeX
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{calc}
+\usepackage[hyphens]{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage{adjustbox}
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{doclicense}
 
-% Note that the file has to be compiled
-% in XeLaTeX! If you work in Overleaf,
-% XeLaTeX should already be selected 
-% (you can check this by taking a look at
-% Menu > Compiler). Some LaTeX editors
-% will also recognize the correct
-% compiler automatically because of
-% the "magic command" at the beginning
-% of this script.
+% If you want to use Korean properly with XeLaTeX,
+% you may need to load additional packages or set
+% a Korean font, e.g.:
+% \usepackage{kotex}
+% \setmainhangulfont{NanumMyeongjo}
 
-% to keep the present file readable,
-% packages & commands have been relocated
-% to localstuff.tex:
-\input{localstuff}
+%====================================================
+% Custom Font / Layout Settings
+%====================================================
+% change heading font (optional):
+\newfontfamily\headingfont[Color=000000]{Arial}
 
+% line spacing:
+\linespread{1.2}
 
-% For the **running head**, please enter a 
-% short title of the paper as well as 
-% the name/s of the author/s here (for
-% papers with more than 2 authors,
-% use First Author et al.). The full
-% title and the full list of authors and
-% affiliations is to be entered below (see
-% "Insert title and author/s").
+% Define "volume" for the top info row:
+\newcommand{\volume}{Vol.\,1}
 
-\fancyhead[LO]{Author Name}
+%====================================================
+% Running Heads
+%====================================================
+\fancyhf{} % clear all header and footer settings
+\fancyhead[LO]{Yonghwan Kim}
 \fancyhead[RE]{Channel Graph Theory}
 \fancyhead[RO, LE]{\thepage}
+\pagestyle{fancy}
 
-% Please enter the corresponding author(s) here:
-\newcommand{\correspondingauthor}[1]{Author Name, Your University, your.email@university.edu}
+%====================================================
+% Corresponding Author
+%====================================================
+\newcommand{\correspondingauthor}[1]{Yonghwan Kim, My University, \href{mailto:ant713800@gamil.com}{ant713800@gamil.com}}
 
-
-% if you want to customize the
-% hyphenation of individual words,
-% you can do so here. This can be
-% particularly helpful if you get
-% the notorious "overfull hbox"
-% error.
-
+%====================================================
+% Hyphenation rules (optional)
+%====================================================
 \hyphenation{
     hy-phe-na-tion
     num-bered
 }
 
-
 \raggedbottom
+
+%====================================================
+% BEGIN DOCUMENT
+%====================================================
+
 \begin{document}
-
-
-% make sure that first page doesn't
-% have running heads:
 \thispagestyle{plain}
 
-% first page header:
-% DOI and Creative Commons license
+%====================================================
+% First page header (DOI + license info)
+%====================================================
 \newcolumntype{Y}{>{\raggedleft\arraybackslash}X}
-
 \noindent
 \begin{tabularx}{\textwidth}{XY}
 \multirow{2}{*}{\doclicenseImage[imagewidth=0.5\linewidth]} & \small{\textit{Constructions} \volume \  (\the\year)} \\
@@ -84,192 +90,231 @@
 \begin{center}
 \vspace{4pt}
 \large
-    Author Name\textsuperscript{1}
+    Yonghwan Kim\textsuperscript{1}
     
 \small
-   \textsuperscript{1} Your University
+   \textsuperscript{1} My University
 
 \end{center}
 
-
-
+\vspace{6pt}
 \begin{small}
 \begin{center}
-\vspace{9pt}
-\textbf{Abstract}    
+\textbf{Abstract}
 \end{center}
 
 \begin{adjustwidth}{20pt}{20pt}
-\small \noindent 
-This paper introduces Channel Graph Theory, a novel approach to graph database management that introduces the concept of channels as independent connection pathways within vertices. We present a theoretical framework and practical implementation of a graph database system where vertices can maintain multiple independent sets of connections through distinct channels. The system incorporates axis-based link management, allowing for structured relationship categorization and efficient memory management. We demonstrate the effectiveness of this approach through a detailed analysis of its memory layout, data persistence strategies, and operational characteristics.
+\small 
+This paper introduces \textit{Channel Graph Theory}, a novel approach to graph database management that incorporates the concept of \textbf{channels} as independent connection pathways within vertices. In contrast to traditional graph databases—where edges directly link vertices without additional internal structure—Channel Graph Theory enriches each vertex with multiple, concurrently accessible channels. These allow vertices to hold several distinct sets of relationships, enabling advanced modeling of complex networks. We present theoretical foundations, detail an implementation strategy emphasizing axis-based link management, and discuss design choices for efficient memory allocation and data persistence. The performance analysis reveals that the channel-based approach can streamline graph operations, particularly in scenarios requiring multi-faceted or multilingual text representation, temporal tracking, and robust cycle management.
 \end{adjustwidth}
-
 
 \end{small}
 
-
-
-
+%====================================================
+% Introduction
+%====================================================
 \vspace{10pt}
 \section{Introduction}\label{Sec:Introduction}
-Graph databases have become increasingly important in managing complex interconnected data structures. Traditional graph databases typically represent relationships through direct edges between vertices. However, this approach can become limiting when dealing with multiple independent connection patterns between the same vertices. We present Channel Graph Theory, which introduces an additional layer of abstraction through the concept of channels, allowing vertices to maintain multiple independent sets of connections.
+Graph databases play a vital role in managing complex data structures interconnected through a variety of relationships. Traditional systems often rely on straightforward vertex-edge models, which may struggle when multiple disjoint or specialized link patterns exist between vertices. To address these limitations, we propose \emph{Channel Graph Theory}, an approach where each vertex can maintain multiple \emph{channels}—independent pathways that each represent a distinct set of relationships.
 
+We show how this architecture accommodates advanced modeling scenarios. In particular, Channel Graph Theory proves advantageous for string processing and memory management, two domains where large and diverse data relationships push conventional models to their limits.
+
+%====================================================
+% Channel Graph Theory
+%====================================================
 \section{Channel Graph Theory}\label{Sec:Theory}
 \subsection{Core Concepts}
 Channel Graph Theory is built upon three fundamental concepts:
 \begin{itemize}
-    \item \textbf{Vertices}: Basic units of data storage, each with a unique index (0-255)
-    \item \textbf{Channels}: Independent connection pathways within vertices, allowing multiple relationship sets
-    \item \textbf{Axes}: Connection properties that define the nature of links between channels
+    \item \textbf{Vertices}: The basic units of data storage, each holding a unique index in the range 0--255.
+    \item \textbf{Channels}: Independent connection pathways within vertices, enabling multiple sets of relationships without overlapping or interfering with one another.
+    \item \textbf{Axes}: Connection properties that define the characteristics of links between channels, facilitating flexible and organized link categorization.
 \end{itemize}
 
-\subsection{Sentence Structure}
-The system implements a sophisticated sentence management system through cycles:
+\subsection{string Structure}
+A key application of the channel-based model is text and string management:
 \begin{itemize}
-    \item \textbf{Token Management}: Efficient tokenization and storage of text data
-    \item \textbf{Cycle Formation}: Sentences represented as cycles of token vertices
-    \item \textbf{UTF-8 Support}: Full support for multilingual text including CJK characters
+    \item \textbf{Token Management}: Splits text data into tokens and assigns them to vertices for efficient lookup.
+    \item \textbf{Cycle Formation}: Uses cycles of token vertices to represent discrete strings or logical groupings, preserving semantic context.
+    \item \textbf{UTF-8 Support}: Ensures robust handling of multilingual data, including multi-byte characters such as CJK (Chinese, Japanese, Korean).
 \end{itemize}
 
+%====================================================
+% Cycle Management
+%====================================================
 \section{Cycle Management}\label{Sec:Cycles}
 \subsection{Cycle Detection}
-The system implements efficient cycle detection:
+Cycles are integral to maintaining string boundaries or thematic loops:
 \begin{itemize}
-    \item Path tracking with visited vertices
-    \item Maximum cycle length constraints
-    \item Memory-efficient implementation
+    \item \textbf{Path Tracking}: Employs a visited-vertex list for efficient detection of cycle closure.
+    \item \textbf{Maximum Cycle Length}: Implements a fixed threshold to avoid unbounded or unintended loops.
+    \item \textbf{Memory-efficient Implementation}: Uses lightweight structures to track visited paths, reducing overhead.
 \end{itemize}
 
 \subsection{Path Operations}
-Two primary path operations are supported:
+While preserving cycle integrity, two operations are paramount:
 \begin{itemize}
-    \item \textbf{Path Insertion}: Adding new vertices into existing cycles
-    \item \textbf{Path Deletion}: Removing node sequences while maintaining cycle integrity
+    \item \textbf{Path Insertion}: Introduces new vertices into an existing cycle, requiring careful link updates.
+    \item \textbf{Path Deletion}: Removes node sequences while preserving the overall cycle continuity.
 \end{itemize}
 
-\section{Sentence Processing}\label{Sec:Sentences}
+%====================================================
+% string Processing
+%====================================================
+\section{string Processing}\label{Sec:strings}
 \subsection{Token Optimization}
-The system employs sophisticated token optimization:
+Channel-based storage allows intelligent token optimization:
 \begin{itemize}
-    \item Automatic token combination detection
-    \item Channel-based pattern matching
-    \item Storage efficiency through token reuse
+    \item \textbf{Combination Detection}: Merges frequently co-occurring tokens into compact forms.
+    \item \textbf{Pattern Matching}: Uses channel-based indexing to speed up repeated phrase detection.
+    \item \textbf{Storage Efficiency}: Reuses tokens when possible, minimizing duplication.
 \end{itemize}
 
 \subsection{Channel Management}
-Channel handling is optimized for sentence structures:
+Channel handling is tuned for multi-channel string structures:
 \begin{equation}
-    Channel_{new} = \begin{cases}
-        Channel_{prev} + 1 & \text{for repeat tokens} \\
-        recycle\_or\_create() & \text{otherwise}
+    \mathrm{Channel}_{\mathrm{new}} = 
+    \begin{cases}
+        \mathrm{Channel}_{\mathrm{prev}} + 1 & \text{if token is repeated}\\
+        \mathrm{recycle\_or\_create()} & \text{otherwise}
     \end{cases}
 \end{equation}
 
 \subsection{UTF-8 Processing}
-The system provides robust UTF-8 support:
+Robust UTF-8 support ensures:
 \begin{itemize}
-    \item Multi-byte character handling (1-4 bytes)
-    \item Invalid sequence detection
-    \item Proper escape sequence generation
+    \item \textbf{Multi-byte Handling}: Correctly interprets 1--4 byte encodings.
+    \item \textbf{Invalid Sequence Detection}: Flags and isolates malformed byte sequences.
+    \item \textbf{Escape Sequence Generation}: Provides safe encodings for storage and transfer.
 \end{itemize}
 
+%====================================================
+% Memory Management
+%====================================================
 \section{Memory Management}\label{Sec:Memory}
-\subsection{node Structure}
-Each node follows a structured memory layout:
+\subsection{\texttt{node} Structure}
+Each node (vertex) follows a structured memory layout:
 \begin{itemize}
-    \item Allocated Size Power (2 bytes): Size expressed as a power of 2
-    \item Actual Used Size (4 bytes): Current data utilization
-    \item Channel Count (2 bytes): Number of active channels
-    \item Channel Offsets Table: Array of 4-byte offsets per channel
+    \item \textbf{Allocated Size Power (2 bytes)}: Expresses the node’s total size as a power of two for easy block alignment.
+    \item \textbf{Actual Used Size (4 bytes)}: Tracks the amount of memory currently utilized.
+    \item \textbf{Channel Count (2 bytes)}: Indicates how many channels are currently active in the node.
+    \item \textbf{Channel Offsets Table}: Lists the start addresses of each channel (4 bytes per channel offset).
 \end{itemize}
 
 \subsection{Free Space Management}
-The system implements a sophisticated free space management system:
+Efficient free space management is essential:
 \begin{equation}
-    FreeBlock = \{size: uint, offset: long\}
+    \mathrm{FreeBlock} = \{ \mathrm{size}: \mathrm{uint},\, \mathrm{offset}: \mathrm{long} \}
 \end{equation}
-
-This structure enables efficient space reuse and minimizes fragmentation through:
+Key strategies include:
 \begin{itemize}
-    \item Power-of-2 sizing strategy
-    \item Free block tracking and reuse
-    \item Dynamic space allocation
+    \item \textbf{Power-of-2 Sizing}: Reduces external fragmentation and accelerates allocations.
+    \item \textbf{Block Tracking and Reuse}: Maintains a global registry of free blocks to enable rapid finds.
+    \item \textbf{Dynamic Space Allocation}: Allows resizing or relocating nodes while maintaining data consistency.
 \end{itemize}
 
+%====================================================
+% Link Management
+%====================================================
 \section{Link Management}\label{Sec:Links}
 \subsection{Axis-Based Connection System}
-The system defines three primary axis types:
+Links are further categorized along specific axes:
 \begin{itemize}
-    \item Forward Links (Axis 0): Primary connection direction
-    \item Backward Links (Axis 1): Reverse connection tracking
-    \item Time-based Links (Axis 3): Temporal relationship management
+    \item \textbf{Forward Links (Axis 0)}: Represents primary directions of traversal or data flow.
+    \item \textbf{Backward Links (Axis 1)}: Maintains reverse tracking for bidirectional navigation.
+    \item \textbf{Time-based Links (Axis 3)}: Facilitates temporal or versioned relationships.
 \end{itemize}
 
 \subsection{Link Data Structure}
-Each link entry uses a compact 6-byte structure:
+Compact link entries minimize overhead:
 \begin{itemize}
-    \item node Index (4 bytes): Target node identifier
-    \item Channel Index (2 bytes): Target channel identifier
+    \item \textbf{node Index (4 bytes)}: Identifies the target node.
+    \item \textbf{Channel Index (2 bytes)}: Specifies the channel in the target node to link to.
 \end{itemize}
 
+%====================================================
+% Core Memory Management
+%====================================================
 \section{Core Memory Management}\label{Sec:CoreMemory}
-The system utilizes a CoreMap structure for efficient node management:
+The system utilizes a \texttt{CoreMap} structure for top-level node management:
 \begin{equation}
-    CoreMap = \{core\_position: int, is\_loaded: int, file\_offset: long\}
+    \mathrm{CoreMap} = \{\mathrm{core\_position}: \mathrm{int},\, \mathrm{is\_loaded}: \mathrm{int},\, \mathrm{file\_offset}: \mathrm{long}\}
 \end{equation}
-
-This enables:
+This design offers:
 \begin{itemize}
-    \item Dynamic node loading/unloading
-    \item Efficient memory utilization
-    \item Quick node access and modification
+    \item \textbf{Dynamic Loading/Unloading}: Automatically pages nodes in and out based on usage.
+    \item \textbf{Efficient Memory Utilization}: Avoids permanently loading infrequently used nodes.
+    \item \textbf{Fast Access}: Maintains quick references for frequently accessed nodes.
 \end{itemize}
 
+%====================================================
+% Performance Analysis
+%====================================================
 \section{Performance Analysis}\label{Sec:Performance}
 \subsection{Memory Efficiency}
-Our implementation achieves significant efficiency through:
+Our implementation demonstrates strong memory efficiency:
 \begin{itemize}
-    \item Optimized node structure
-    \item Efficient free space management
-    \item Minimal memory overhead
+    \item \textbf{Optimized Structures}: Minimizes overhead via channel-based organization.
+    \item \textbf{Free Space Reuse}: Dynamically recycles memory blocks to reduce fragmentation.
+    \item \textbf{Sparse Loading}: Loads only necessary nodes on demand.
 \end{itemize}
 
 \subsection{Operation Complexity}
-Key operations demonstrate optimal complexity:
+Common operations show favorable complexity:
 \begin{itemize}
-    \item node Creation: O(1)
-    \item Link Creation: O(log n)
-    \item Channel Addition: O(1)
-    \item Axis Management: O(1)
+    \item \textbf{Node Creation}: $O(1)$ using pre-allocated structures and power-of-2 block management.
+    \item \textbf{Link Creation}: $O(\log n)$, primarily due to searching and updating free space structures.
+    \item \textbf{Channel Addition}: $O(1)$, as channels are appended in a known offset table.
+    \item \textbf{Axis Management}: $O(1)$, leveraging direct index references.
 \end{itemize}
 
+%====================================================
+% Use Cases
+%====================================================
 \section{Use Cases}\label{Sec:UseCases}
-The system excels in scenarios requiring:
 \begin{itemize}
-    \item Multiple independent relationship sets
-    \item Temporal relationship tracking
-    \item Bidirectional relationship management
-    \item Complex graph traversal patterns
+    \item \textbf{Multi-relationship Modeling}: Social networks or knowledge graphs with overlapping user-group relationships.
+    \item \textbf{Temporal Data Tracking}: Historical records or versioned documents where time-based links are crucial.
+    \item \textbf{Bidirectional Searching}: Applications like route planning or genealogical data exploration requiring forward and backward tracing.
+    \item \textbf{Complex Text Data}: string parsing with multilingual tokenization and cycle-based representation.
 \end{itemize}
 
+%====================================================
+% Future Work
+%====================================================
 \section{Future Work}\label{Sec:Future}
-Future research directions include:
+Potential avenues for further research:
 \begin{itemize}
-    \item Distributed system implementation
-    \item Advanced caching strategies
-    \item Compression techniques
-    \item Query optimization frameworks
+    \item \textbf{Distributed Implementation}: Scaling Channel Graph Theory across multiple nodes or data centers.
+    \item \textbf{Advanced Caching Strategies}: Leveraging predictive models to prefetch high-demand nodes.
+    \item \textbf{Compression Techniques}: Reducing the footprint of large datasets without compromising performance.
+    \item \textbf{Query Optimization}: Developing a specialized language and engine for channel-based queries.
 \end{itemize}
 
+%====================================================
+% Conclusion
+%====================================================
 \section{Conclusion}\label{Sec:Conclusion}
-Channel Graph Theory provides a novel approach to graph database management that addresses the limitations of traditional systems. Through its channel-based architecture, cycle management, and sophisticated sentence processing capabilities, it offers both theoretical elegance and practical efficiency. The implementation demonstrates particular strength in handling multilingual text data and optimizing token storage through pattern recognition and cycle-based structures.
+Channel Graph Theory adds a layer of flexibility and scalability to traditional graph database concepts by allowing each vertex to host multiple, independent channels. This architecture simplifies the management of complex or overlapping relationships, significantly benefits text-based applications such as multilingual string processing, and enhances cycle detection and memory reuse strategies. Our initial implementation demonstrates efficient handling of both small-scale and large-scale datasets, underscoring the viability of Channel Graph Theory as a powerful, general-purpose solution for modern graph data challenges.
 
+%====================================================
+% Conflict of interest statement & Data availability
+%====================================================
 \section*{Conflict of interest statement}
-The authors declare no competing interests.
+The author declares no competing interests.
 
 \section*{Data availability statement}
-The implementation code and test data are available at [GitHub Repository URL].
+Implementation code and test data are available at:
+\begin{center}
+\url{https://github.com/YourRepository/ChannelGraphTheory}
+\end{center}
 
+%====================================================
+% Bibliography
+%====================================================
 \bibliography{bibliography}
 
+%====================================================
+% END DOCUMENT
+%====================================================
 \end{document}

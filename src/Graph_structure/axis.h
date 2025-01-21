@@ -11,7 +11,7 @@
 
 #define TOKEN_SEARCH_AXIS 0
 #define TOKEN_DATA_AXIS 1
-#define SENTENCE_AXIS 2
+#define string_AXIS 2
 
 // Function declarations
 ushort get_axis_count(uchar* node, ushort channel_index);

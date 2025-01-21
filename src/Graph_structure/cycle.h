@@ -31,24 +31,24 @@ bool is_in_garbage_cycle(unsigned int node_index);
 // Add this function declaration
 int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number);
 
-// Create a sentence cycle from an array of token vertices
+// Create a string cycle from an array of token vertices
 // Returns LINK_SUCCESS or LINK_ERROR
-int create_sentence_cycle(uint* token_vertices, ushort* channels, int count);
+int create_string_cycle(uint* token_vertices, ushort* channels, int count);
 
-// Get sentence data starting from given node/channel
-// Returns allocated string containing sentence data or NULL on error
-char* get_sentence_data(uint node_index, ushort channel_index);
-int handle_get_sentence(char* args);
-int handle_create_sentence(char* args, uint* start_node, ushort* start_channel);
+// Get string data starting from given node/channel
+// Returns allocated string containing string data or NULL on error
+char* get_string_data(uint node_index, ushort channel_index);
+int handle_get_string(char* args);
+int handle_create_string(char* args, uint* start_node, ushort* start_channel);
 int handle_create_cycle(char* args);
 bool validate_cycle(int node_index, int channel_index, int axis_number);
 int handle_validate_cycle(char* args);
 int handle_print_cycle(char* args);
 int handle_delete_path(char* args);
 
-// Create a sentence from an ASCII string
+// Create a string from an ASCII string
 // Returns SUCCESS or ERROR
-// int handle_create_sentence_from_string(char* args);
+// int handle_create_string_from_string(char* args);
 int handle_insert_path(char* args);
 
 // Insert a path into an existing cycle

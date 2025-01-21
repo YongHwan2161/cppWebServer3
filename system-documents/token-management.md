@@ -3,7 +3,7 @@
 ## Testing
 
 ### Sequential Token Creation Test
-The system provides a test to verify proper token creation through sentence creation:
+The system provides a test to verify proper token creation through string creation:
 
 #### Test Process
 1. String Building
@@ -11,13 +11,13 @@ The system provides a test to verify proper token creation through sentence crea
    - Incrementally adds characters ("ABC", "ABCD", etc.)
    - Tests up to full alphabet sequence
 
-2. Sentence Creation
-   - Uses handle_create_sentence for each string
+2. string Creation
+   - Uses handle_create_string for each string
    - Automatically handles token creation and linking
-   - Creates cycle structure for each sentence
+   - Creates cycle structure for each string
 
 3. Verification
-   - Ensures each sentence creation succeeds
+   - Ensures each string creation succeeds
    - Verifies complete token creation process
    - Tests cycle formation functionality
 
@@ -29,19 +29,19 @@ test-sequential-token
 #### Example Output
 ```
 Testing sequential token creation...
-Creating sentence for: AB
-Successfully created sentence for AB
-Creating sentence for: ABC
-Successfully created sentence for ABC
-Creating sentence for: ABCD
-Successfully created sentence for ABCD
+Creating string for: AB
+Successfully created string for AB
+Creating string for: ABC
+Successfully created string for ABC
+Creating string for: ABCD
+Successfully created string for ABCD
 ...
 Sequential token creation tests completed. Failed tests: 0
 ```
 
 #### Implementation Details
-1. Sentence Creation
-   - Uses handle_create_sentence function
+1. string Creation
+   - Uses handle_create_string function
    - Automatically handles token search and creation
    - Creates proper cycle structure
 
@@ -51,13 +51,13 @@ Sequential token creation tests completed. Failed tests: 0
    - Efficient token reuse
 
 3. Error Handling
-   - Sentence creation failures
+   - string creation failures
    - Invalid string handling
    - Resource management
 
 #### Benefits
 1. Integration Testing
-   - Tests complete sentence creation flow
+   - Tests complete string creation flow
    - Verifies token management system
    - Validates cycle creation
 
@@ -72,13 +72,13 @@ Sequential token creation tests completed. Failed tests: 0
    - Token reuse optimization
 
 #### Notes
-- Each sentence creation results in a cycle structure
+- Each string creation results in a cycle structure
 - Tokens are automatically created and combined as needed
 - System handles memory management automatically
 - Failures are clearly reported and tracked 
 
 ### Repeating Pattern Test
-The system provides a test to verify proper handling of repeating patterns in sentence creation:
+The system provides a test to verify proper handling of repeating patterns in string creation:
 
 #### Test Process
 1. Pattern Generation
@@ -91,30 +91,30 @@ The system provides a test to verify proper handling of repeating patterns in se
    - Creates test strings like "AA", "AAA", "ABABAB", etc.
    - Tests all combinations of pattern length and repetition count
 
-3. Sentence Creation
-   - Creates sentence for each test string
+3. string Creation
+   - Creates string for each test string
    - Verifies successful creation
    - Tracks any failures
 
 #### Command Interface
 ```shell
-test-repeating-sentence
+test-repeating-string
 ```
 
 #### Example Output
 ```
-Testing repeating sentence creation...
+Testing repeating string creation...
 
 Testing patterns of length 1
-Creating sentence for: AA (pattern 'A' repeated 2 times)
-Successfully created sentence
-Creating sentence for: AAA (pattern 'A' repeated 3 times)
-Successfully created sentence
+Creating string for: AA (pattern 'A' repeated 2 times)
+Successfully created string
+Creating string for: AAA (pattern 'A' repeated 3 times)
+Successfully created string
 ...
 
 Testing patterns of length 2
-Creating sentence for: ABAB (pattern 'AB' repeated 2 times)
-Successfully created sentence
+Creating string for: ABAB (pattern 'AB' repeated 2 times)
+Successfully created string
 ...
 ```
 
@@ -153,5 +153,5 @@ Successfully created sentence
 #### Notes
 - Tests 90 different combinations
 - Verifies memory handling
-- Ensures stable sentence creation
+- Ensures stable string creation
 - Reports specific failure cases 

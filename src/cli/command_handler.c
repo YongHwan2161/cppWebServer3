@@ -160,8 +160,8 @@ int handle_list_axes(char* args) {
             case TOKEN_DATA_AXIS:
                 axis_type = "(Token data)";
                 break;
-            case SENTENCE_AXIS:
-                axis_type = "(Sentence)";
+            case string_AXIS:
+                axis_type = "(string)";
                 break;
         }
         printf("- Axis %d %s\n", axis_numbers[i], axis_type);
@@ -343,7 +343,7 @@ int handle_print_node(char* args) {
             switch(axis_number) {
                 case TOKEN_SEARCH_AXIS: axis_type = "(Token search)"; break;
                 case TOKEN_DATA_AXIS: axis_type = "(Token data)"; break;
-                case SENTENCE_AXIS: axis_type = "(Sentence)"; break;
+                case string_AXIS: axis_type = "(string)"; break;
             }
             
             printf("  Axis %d %s (offset: 0x%04X):\n", axis_number, axis_type, axis_offset);
@@ -624,19 +624,19 @@ void print_help() {
     printf("  validate-free-offsets               Validate free block offsets\n");
     printf("  validate-cycle <node> <ch> <axis>  Check if path forms a cycle\n");
 
-    printf("  create-sentence-str <text>           Create sentence from ASCII text\n");
+    printf("  create-string-str <text>           Create string from ASCII text\n");
 
-    // Update the help text for sentence-related commands
-    printf("\nSentence Management:\n");
-    printf("  create-sentence <v1> <v2> ...        Create sentence from token vertices\n");
-    printf("  create-sentence-str <text>           Create sentence from ASCII text (0-255)\n");
-    printf("  get-sentence <node> <channel>      Get sentence data from cycle\n");
+    // Update the help text for string-related commands
+    printf("\nstring Management:\n");
+    printf("  create-string <v1> <v2> ...        Create string from token vertices\n");
+    printf("  create-string-str <text>           Create string from ASCII text (0-255)\n");
+    printf("  get-string <node> <channel>      Get string data from cycle\n");
 
     // Example usage text
-    printf("\nExample sentence creation:\n");
-    printf("  create-sentence 65 66 67             Create sentence from token vertices\n");
-    printf("  create-sentence-str ABC              Same as above, using ASCII text\n");
-    printf("  get-sentence 42 1                    Get sentence data in ASCII and HEX\n");
+    printf("\nExample string creation:\n");
+    printf("  create-string 65 66 67             Create string from token vertices\n");
+    printf("  create-string-str ABC              Same as above, using ASCII text\n");
+    printf("  get-string 42 1                    Get string data in ASCII and HEX\n");
 
     printf("\nToken Search:\n");
     printf("  search-token <text>              Search for matching token sequence\n");
@@ -763,8 +763,8 @@ int handle_command(char* command) {
         {
             return handle_test_sequential_token_creation(args);
         }
-        else if (strcmp(cmd, "test-repeating-sentence") == 0) {
-            return handle_test_repeating_sentence(args);
+        else if (strcmp(cmd, "test-repeating-string") == 0) {
+            return handle_test_repeating_string(args);
         }
         else
         {
@@ -868,18 +868,18 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "create-token") == 0) {
         return handle_create_token(args);
     }
-    else if (strcmp(cmd, "create-sentence") == 0) {
+    else if (strcmp(cmd, "create-string") == 0) {
         uint start_node;
         ushort start_channel;
-        int result = handle_create_sentence(args, &start_node, &start_channel);
+        int result = handle_create_string(args, &start_node, &start_channel);
         if (result == SUCCESS) {
-            printf("Successfully created sentence starting at node %u, channel %u\n", 
+            printf("Successfully created string starting at node %u, channel %u\n", 
                    start_node, start_channel);
         }
         return result;
     }
-    else if (strcmp(cmd, "get-sentence") == 0) {
-        return handle_get_sentence(args);
+    else if (strcmp(cmd, "get-string") == 0) {
+        return handle_get_string(args);
     }
     else if (strcmp(cmd, "search-token") == 0) {
         return handle_search_token(args);

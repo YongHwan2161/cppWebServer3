@@ -179,78 +179,78 @@ int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number
 
     return LINK_SUCCESS;
 }
-int create_sentence_cycle(uint* token_vertices, ushort* channels, int count) {
+int create_string_cycle(uint* token_vertices, ushort* channels, int count) {
     if (!token_vertices) {
         printf("Error: Invalid token array or count\n");
         return LINK_ERROR;
     }
-    // Create sentence cycle using the new channels
-    int result = create_cycle(token_vertices, channels, count, SENTENCE_AXIS);
+    // Create string cycle using the new channels
+    int result = create_cycle(token_vertices, channels, count, string_AXIS);
     
     return result;
 }
 
-char* get_sentence_data(uint node_index, ushort channel_index) {
+char* get_string_data(uint node_index, ushort channel_index) {
     // Get cycle info
-    cycleInfo* info = get_cycle_info(node_index, channel_index, SENTENCE_AXIS);
+    cycleInfo* info = get_cycle_info(node_index, channel_index, string_AXIS);
     if (!info || info->count < 2) {
-        printf("Error: No valid sentence cycle found\n");
+        printf("Error: No valid string cycle found\n");
         free_cycle_info(info);
         return NULL;
     }
 
-    // Allocate buffer for sentence data
-    char* sentence = (char*)malloc(1024);  // Add explicit cast to char*
-    if (!sentence) {
+    // Allocate buffer for string data
+    char* string = (char*)malloc(1024);  // Add explicit cast to char*
+    if (!string) {
         free_cycle_info(info);
         return NULL;
     }
-    int sentence_len = 0;
+    int string_len = 0;
 
     // Get token data for each node in cycle
     for (int i = 0; i < info->count; i++) {
         char* token_data = get_token_data(info->vertices[i]);
         if (!token_data) {
             printf("Error: Failed to get token data from node %u\n", info->vertices[i]);
-            free(sentence);
+            free(string);
             free_cycle_info(info);
             return NULL;
         }
 
-        // Add token data to sentence
+        // Add token data to string
         int token_len = strlen(token_data);
-        if (sentence_len + token_len >= 1023) {
-            printf("Error: Sentence too long\n");
+        if (string_len + token_len >= 1023) {
+            printf("Error: string too long\n");
             free(token_data);
-            free(sentence);
+            free(string);
             free_cycle_info(info);
             return NULL;
         }
 
         // Copy token data without adding spaces
-        memcpy(sentence + sentence_len, token_data, token_len);
-        sentence_len += token_len;
+        memcpy(string + string_len, token_data, token_len);
+        string_len += token_len;
 
         free(token_data);
     }
 
-    sentence[sentence_len] = '\0';
+    string[string_len] = '\0';
     free_cycle_info(info);
-    return sentence;
+    return string;
 } 
-#define MAX_SENTENCE_TOKENS 100
+#define MAX_string_TOKENS 100
 int clear_cycle(cycleInfo* info) {
     clear_channels(info->vertices, info->channels, info->count);
     return LINK_SUCCESS;
 }
-int handle_create_sentence(char* args, uint* start_node, ushort* start_channel) {
+int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
     if (!args || !*args) {
-        print_argument_error("create-sentence", "<text>", false);
+        print_argument_error("create-string", "<text>", false);
         return ERROR;
     }
 
-    uint tokens[MAX_SENTENCE_TOKENS];
-    ushort channels[MAX_SENTENCE_TOKENS];
+    uint tokens[MAX_string_TOKENS];
+    ushort channels[MAX_string_TOKENS];
     int count = 0;
     const char* current_pos = args;
     size_t remaining_len = strlen(args);
@@ -284,7 +284,7 @@ int handle_create_sentence(char* args, uint* start_node, ushort* start_channel) 
     }
     bool need_search = true;
     // Tokenize input using search_token
-    while (remaining_len > 0 && count < MAX_SENTENCE_TOKENS) {
+    while (remaining_len > 0 && count < MAX_string_TOKENS) {
         TokenSearchResult *result = search_token(current_pos, remaining_len);
         if (!result) break;
         
@@ -441,7 +441,7 @@ int handle_create_sentence(char* args, uint* start_node, ushort* start_channel) 
         return SUCCESS;
     }
 }
-int handle_get_sentence(char* args) {
+int handle_get_string(char* args) {
     // Set locale to support UTF-8
     setlocale(LC_ALL, "en_US.UTF-8");
     
@@ -450,19 +450,19 @@ int handle_get_sentence(char* args) {
     
     // Parse arguments
     if (sscanf(args, "%u %hu", &node_index, &channel_index) != 2) {
-        print_argument_error("get-sentence", "<node_index> <channel_index>", false);
+        print_argument_error("get-string", "<node_index> <channel_index>", false);
         return CMD_ERROR;
     }
     
-    // Get sentence data
-    char* data = get_sentence_data(node_index, channel_index);
+    // Get string data
+    char* data = get_string_data(node_index, channel_index);
     if (!data) {
-        printf("Error: Failed to get sentence data\n");
+        printf("Error: Failed to get string data\n");
         return CMD_ERROR;
     }
     
     // Print the data in multiple formats
-    printf("Sentence data starting from node %u, channel %u:\n", node_index, channel_index);
+    printf("string data starting from node %u, channel %u:\n", node_index, channel_index);
     
     // Print raw data as stored
     printf("Raw: %s\n", data);
