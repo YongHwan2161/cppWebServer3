@@ -620,6 +620,7 @@ void print_help() {
     printf("  get-string <node> <channel>         Get string data from cycle\n");
     printf("  search-token <text>                 Search for matching token sequence\n");
     printf("  integrate-tokens <node>             Integrate matching tokens in node\n");
+    printf("  optimize-string <node> <ch> <axis>   Optimize string cycle by combining tokens\n");
 
     // Path Operations
     printf("\nPath Operations:\n");
@@ -906,6 +907,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "integrate-tokens") == 0) {
         return handle_integrate_tokens(args);
+    }
+    else if (strcmp(cmd, "optimize-string") == 0) {
+        return handle_optimize_string(args);
     }
     else
     {

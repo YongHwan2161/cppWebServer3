@@ -307,7 +307,7 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
             return ERROR;
         }
         // need_search = false;
-        ushort prev_channel_count = 0;
+        // ushort prev_channel_count = 0;
         // if (count > 0) {
         // }
         // channel_count > 2
@@ -315,10 +315,10 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
         if (count > 0)
         {
             create_link(tokens[count - 1], channels[count - 1], tokens[count], channels[count], 2); // create a link between the previous token and the current token
-            prev_channel_count = get_channel_count(Core[get_node_position(tokens[count - 1])]);
-            if (prev_channel_count <= 2)
+            // prev_channel_count = get_channel_count(Core[get_node_position(tokens[count - 1])]);
+            // if (prev_channel_count <= 2)
                 // need_search = false;
-                continue;
+                // continue;
             // if (need_search)
             // {
             //     uint prev_node = tokens[count - 1];
@@ -443,6 +443,40 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
     } else {
         // printf("Successfully created link between the last token and the first token\n");
         return SUCCESS;
+    }
+}
+int optimize_string_cycle(uint* vertices, int count) {
+    for (int i = 0; i < count; i++) {
+        if (integrate_token_data(vertices[i]) != SUCCESS) {
+            printf("Error: Failed to integrate token data in node %u\n", vertices[i]);
+            return CMD_ERROR;
+        }
+    }
+    return CMD_SUCCESS;
+}
+int handle_optimize_string(char* args) {
+    uint vertices[MAX_cycle_vertices];
+    ushort channel = 0;
+    ushort axis_number = 0;
+    // int count = 0;
+    if (sscanf(args, "%u %hu %hu", &vertices[0], &channel, &axis_number) != 3) {
+        print_argument_error("optimize-string", "<node> <channel> <axis>", false);
+        return CMD_ERROR;
+    }
+    cycleInfo* info = get_cycle_info(vertices[0], channel, axis_number);
+    if (!info) {
+        printf("Error: No cycle found at node %u channel %hu axis %hu\n", 
+               vertices[0], channel, axis_number);
+        return CMD_ERROR;
+    }
+    if (optimize_string_cycle(info->vertices, info->count) == CMD_SUCCESS) {
+        printf("Successfully optimized string cycle\n");
+        free_cycle_info(info);
+        return CMD_SUCCESS;
+    } else {
+        printf("No optimizations possible or error occurred\n");
+        free_cycle_info(info);
+        return CMD_ERROR;
     }
 }
 int handle_get_string(char* args) {

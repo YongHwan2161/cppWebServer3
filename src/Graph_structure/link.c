@@ -197,3 +197,13 @@ int get_link(uint source_node, ushort source_ch,
     
     return LINK_SUCCESS;
 } 
+int get_link_count(uint source_node, ushort source_ch, ushort axis_number) {
+    uchar* node = Core[source_node];
+    if (!has_axis(node, source_ch, axis_number)) {
+        return 0;
+    }
+    uint channel_offset = get_channel_offset(node, source_ch);
+    uint axis_offset = get_axis_offset(node, source_ch, axis_number);
+    ushort* current_link_count = (ushort*)(node + channel_offset + axis_offset);
+    return *current_link_count;
+}

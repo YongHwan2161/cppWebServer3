@@ -190,3 +190,81 @@ for (each node in path) {
    - Minimal cycle disruption
    - Efficient path removal
    - Clean channel cleanup 
+
+## String Cycle Optimization
+
+### Overview
+The system provides functionality to optimize string cycles by combining adjacent tokens where possible, reducing the overall cycle length while maintaining the same string data.
+
+### Command Interface
+```shell
+optimize-string <node> <channel> <axis>
+```
+
+#### Parameters
+- node: Index of node containing the cycle
+- channel: Channel index
+- axis: Axis number (usually 2 for string cycles)
+
+#### Process
+1. Cycle Analysis
+   - Get cycle information
+   - Verify minimum length (2 vertices)
+   - Check token compatibility
+
+2. Token Combination
+   - Compare adjacent tokens
+   - Create combined tokens
+   - Update cycle structure
+
+3. Cycle Update
+   - Replace old tokens with combined tokens
+   - Maintain cycle integrity
+   - Preserve string data
+
+#### Examples
+```shell
+# Optimize string cycle
+> optimize-string 42 1 2
+Successfully optimized string cycle
+
+# Error cases
+> optimize-string 42
+Error: Missing arguments
+Usage: optimize-string <node> <channel> <axis>
+
+> optimize-string 42 1 2
+Error: No cycle found at node 42 channel 1 axis 2
+```
+
+### Implementation Details
+
+#### Optimization Process
+```c
+int optimize_string_cycle(uint node_index, ushort channel, ushort axis) {
+    // Get cycle info
+    cycleInfo* cycle = get_cycle_info(node_index, channel, axis);
+    
+    // Process adjacent vertices
+    for (int i = 0; i < cycle->count - 1; i++) {
+        // Compare and combine tokens
+        // Update cycle structure
+    }
+}
+```
+
+### Notes
+1. Performance
+   - Reduces cycle length
+   - Minimizes token count
+   - Optimizes traversal
+
+2. Data Preservation
+   - Maintains string content
+   - Preserves token relationships
+   - Ensures cycle integrity
+
+3. Error Handling
+   - Invalid cycle detection
+   - Token creation failures
+   - Structure validation 

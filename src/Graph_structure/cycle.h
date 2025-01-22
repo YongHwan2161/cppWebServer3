@@ -59,5 +59,6 @@ int insert_path_into_cycle(uint insert_node, ushort insert_channel,
 // Delete a path from an existing cycle
 int delete_path_from_cycle(uint start_node, ushort start_channel,
                           int path_length, ushort axis_number);
-
+int optimize_string_cycle(uint* vertices, int count);
+int handle_optimize_string(char* args);
 #endif // cycle_H 

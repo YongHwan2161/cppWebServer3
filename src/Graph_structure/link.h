@@ -22,5 +22,6 @@ int create_forward_link(uint source_node, ushort source_ch, uint dest_node, usho
 int create_backward_link(uint source_node, ushort source_ch, uint dest_node, ushort dest_ch);
 int delete_link(uint source_node, ushort source_ch, uint dest_node, ushort dest_ch, ushort axis_number);
 int get_link(uint source_node, ushort source_ch, ushort axis_number, ushort link_index, uint* dest_node, ushort* dest_ch);
+int get_link_count(uint source_node, ushort source_ch, ushort axis_number);
 
 #endif // LINK_H 
