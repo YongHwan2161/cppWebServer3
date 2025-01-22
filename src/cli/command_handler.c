@@ -12,6 +12,7 @@
 #include "test_command_handler.h"
 #include "validate_command_handler.h"
 #include "../Graph_structure/cycle.h"
+#include "../../CGDB.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -578,79 +579,87 @@ int handle_check_core_size() {
 void print_help() {
     printf("\nAvailable commands:\n");
 
+    // Node Management
+    printf("\nNode Management:\n");
     printf("  unload-node <node>                  Unload node from memory\n");
     printf("  load-node <node>                    Load node into memory\n");
-    printf("  create-node                        Create a new node\n");
+    printf("  create-node                         Create a new node\n");
+    printf("  delete-node <node_index>            Delete a node and add to garbage chain\n");
+    printf("  print-node <node_index>             Print node data in hexadecimal format\n");
 
+    // Axis Management
+    printf("\nAxis Management:\n");
     printf("  create-axis <node> <channel> <axis>  Create a new axis\n");
     printf("  check-axis <node> <channel> <axis>   Check if specific axis exists\n");
     printf("  list-axes <node> <channel>           List all axes in channel\n");
     printf("  delete-axis <node> <channel> <axis>  Delete an existing axis\n");
 
+    // Link Management
+    printf("\nLink Management:\n");
     printf("  create-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>  Create a link\n");
     printf("  create-loop <node> <ch> <axis>      Create a loop\n");
     printf("  delete-link <src_node> <src_ch> <dst_node> <dst_ch> <axis>  Delete a link\n");
 
+    // Channel Management
+    printf("\nChannel Management:\n");
     printf("  create-channel <node>               Create a new channel in node\n");
-    printf("  clear-channel <node> <channel>        Clear all data in a channel\n");
+    printf("  clear-channel <node> <channel>      Clear all data in a channel\n");
+    printf("  get-channel-offset <node> <channel> Get channel offset\n");
 
-    printf("  print-node <node_index>               Print node data in hexadecimal format\n");
-    printf("  print-free-space                     Print free space information\n");
-    printf("  get-channel-offset <node> <channel>    Get channel offset\n");
-    printf("  get-node-position <node>             Get node's position in Core array\n");
+    // System Information
+    printf("\nSystem Information:\n");
+    printf("  print-free-space                    Print free space information\n");
+    printf("  get-node-position <node>            Get node's position in Core array\n");
     printf("  print-coremap [node_index]          Print CoreMap status (with optional node index)\n");
-    printf("  check-core-size                    Show Core memory usage statistics\n");
-    
-    printf("  validate-cycle <node> <ch> <axis>  Check if path forms a cycle\n");
-    printf("  print-cycle <node> <ch> <axis>      Print cycle information\n");
-    printf("  print-garbage                     Print garbage cycle information\n");
+    printf("  check-core-size                     Show Core memory usage statistics\n");
 
+    // Token and String Management
+    printf("\nToken and String Management:\n");
+    printf("  create-string <v1> <v2> ...         Create string from token vertices\n");
+    printf("  create-string-str <text>            Create string from ASCII text (0-255)\n");
+    printf("  get-string <node> <channel>         Get string data from cycle\n");
+    printf("  search-token <text>                 Search for matching token sequence\n");
+    printf("  integrate-tokens <node>             Integrate matching tokens in node\n");
+
+    // Path Operations
+    printf("\nPath Operations:\n");
+    printf("  insert-path <node> <ch> <axis> <path>  Insert path into existing cycle\n");
+    printf("  delete-path <node> <ch> <axis> <length>  Delete path from existing cycle\n");
+
+    // Cycle Management
+    printf("\nCycle Management:\n");
+    printf("  validate-cycle <node> <ch> <axis>   Check if path forms a cycle\n");
+    printf("  print-cycle <node> <ch> <axis>      Print cycle information\n");
+    printf("  print-garbage                       Print garbage cycle information\n");
+
+    // Testing Commands
+    printf("\nTesting Commands:\n");
     printf("  run-tests                           Run all test cases\n");
     printf("  test-resize                         Run resize node space tests\n");
     printf("  test-axis-create-delete <node> <ch> <max>  Test axis creation/deletion\n");
     printf("  test-multiple-link <node> <ch> <axis>  Test multiple link creation\n");
     printf("  test-create-delete-links <node> <ch> <axis>  Test link creation/deletion cycle\n");
-    printf("  test-multi-channel-links <node>      Test link creation/deletion across multiple channels\n");
-    printf("  test-channel-creation <node>         Test sequential channel creation\n");
-    
-    printf("  help                                 Show this help message\n");
-    printf("  exit                                 Exit the program\n");
-    printf("  delete-node <node_index>            Delete a node and add to garbage chain\n");
-    printf("\nAxis types:\n");
+    printf("  test-multi-channel-links <node>     Test link creation/deletion across multiple channels\n");
+    printf("  test-channel-creation <node>        Test sequential channel creation\n");
+    printf("  validate-free-offsets               Validate free block offsets\n");
+
+    // General Commands
+    printf("\nGeneral Commands:\n");
+    printf("  help                                Show this help message\n");
+    printf("  exit                                Exit the program\n");
+
+    // Additional Information
+    printf("\nAxis Types:\n");
     printf("  0: Forward link\n");
     printf("  1: Backward link\n");
-    printf("  3: Time axis\n\n");
+    printf("  3: Time axis\n");
 
-    printf("  validate-free-offsets               Validate free block offsets\n");
-    printf("  validate-cycle <node> <ch> <axis>  Check if path forms a cycle\n");
-
-    printf("  create-string-str <text>           Create string from ASCII text\n");
-
-    // Update the help text for string-related commands
-    printf("\nstring Management:\n");
-    printf("  create-string <v1> <v2> ...        Create string from token vertices\n");
-    printf("  create-string-str <text>           Create string from ASCII text (0-255)\n");
-    printf("  get-string <node> <channel>      Get string data from cycle\n");
-
-    // Example usage text
-    printf("\nExample string creation:\n");
-    printf("  create-string 65 66 67             Create string from token vertices\n");
-    printf("  create-string-str ABC              Same as above, using ASCII text\n");
-    printf("  get-string 42 1                    Get string data in ASCII and HEX\n");
-
-    printf("\nToken Search:\n");
-    printf("  search-token <text>              Search for matching token sequence\n");
-    printf("                                   Returns longest matching token found\n");
-    printf("  Example: search-token AABBCCDD   Search for token starting with AABBCCDD\n");
-
-    printf("\nPath Operations:\n");
-    printf("  insert-path <node> <ch> <axis> <path>  Insert path into existing cycle\n");
-    printf("                                           Path format: <node1> <ch1> <node2> <ch2>...\n");
-    printf("  Example: insert-path 42 1 2 55 3 66 4    Insert 2-node path at node 42\n");
-
-    printf("  delete-path <node> <ch> <axis> <length>  Delete path from existing cycle\n");
-    printf("                                           Removes specified number of vertices\n");
-    printf("  Example: delete-path 42 1 2 3             Delete 3 vertices starting at node 42\n");
+    printf("\nExample Usage:\n");
+    printf("  create-string 65 66 67              Create string from token vertices\n");
+    printf("  create-string-str ABC               Same as above, using ASCII text\n");
+    printf("  search-token AABBCCDD              Search for token starting with AABBCCDD\n");
+    printf("  integrate-tokens 5                  Integrate matching tokens in node 5\n");
+    printf("\n");
 }
 
 int handle_command(char* command) {
@@ -763,8 +772,13 @@ int handle_command(char* command) {
         {
             return handle_test_sequential_token_creation(args);
         }
-        else if (strcmp(cmd, "test-repeating-string") == 0) {
+        else if (strcmp(cmd, "test-repeating-string") == 0)
+        {
             return handle_test_repeating_string(args);
+        }
+        else if (strcmp(cmd, "print-vertex") == 0)
+        {
+            return handle_print_vertex(args);
         }
         else
         {
@@ -890,6 +904,9 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "delete-path") == 0) {
         return handle_delete_path(args);
     }
+    else if (strcmp(cmd, "integrate-tokens") == 0) {
+        return handle_integrate_tokens(args);
+    }
     else
     {
         printf("Unknown command. Type 'help' for available commands.\n");
@@ -1014,5 +1031,22 @@ int handle_load_node(char* args) {
     CoreSize++;
 
     printf("Successfully loaded node %d into Core position %d\n", node_index, slot);
+    return CMD_SUCCESS;
+}
+
+int handle_print_vertex(char* args) {
+    if (args) {
+        print_argument_error("print-vertex", "", false);
+        return CMD_ERROR;
+    }
+    
+    printf("\nCurrent Vertex: (node %u, channel %u)\n", 
+           CurrentVertex.node, CurrentVertex.channel);
+    
+    if (CurrentVertex.node == RootVertex.node && 
+        CurrentVertex.channel == RootVertex.channel) {
+        printf("Currently at root position\n");
+    }
+    
     return CMD_SUCCESS;
 }

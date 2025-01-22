@@ -1,8 +1,9 @@
 #include "database.h"
 #include "init.h"
 #include "Graph_structure/node.h"
-#include "memory.h"
 #include "Graph_structure/link.h"
+#include "Graph_structure/cycle.h"
+#include "memory.h"
 #include <string.h>
 
 #ifdef _WIN32
@@ -61,4 +62,20 @@ void create_DB() {
     }
     // create_axis(256, 0, 0); // create axis first
     // create_loop(GarbagenodeIndex, 0, 0);
+            // Create root string "Hello world!"
+    uint start_node;
+    ushort start_channel;
+    if (handle_create_string("Hello world!", &start_node, &start_channel) != SUCCESS) {
+        printf("Error: Failed to create root string\n");
+    }
+    // Store root vertexs
+    RootVertex.node = start_node;
+    RootVertex.channel = start_channel;
+    
+    // Set current position to root
+    CurrentVertex = RootVertex;
+    
+    printf("Root string created at node %u, channel %u\n", 
+           RootVertex.node, RootVertex.channel);
+             
 }

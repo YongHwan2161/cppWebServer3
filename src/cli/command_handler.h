@@ -38,4 +38,6 @@ void print_argument_error(const char* command, const char* args_desc, bool is_mi
 int handle_validate_free_offsets(char* args);
 int handle_print_garbage();
 
+int handle_print_vertex(char* args);
+
 #endif // COMMAND_HANDLER_H 

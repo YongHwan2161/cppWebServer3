@@ -8,11 +8,6 @@
 #define AXIS_SUCCESS 0
 #define AXIS_ERROR -1
 
-
-#define TOKEN_SEARCH_AXIS 0
-#define TOKEN_DATA_AXIS 1
-#define string_AXIS 2
-
 // Function declarations
 ushort get_axis_count(uchar* node, ushort channel_index);
 uint get_axis_index(uchar* node, ushort channel_index, ushort axis_number);

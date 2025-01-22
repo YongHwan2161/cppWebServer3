@@ -155,3 +155,186 @@ Successfully created string
 - Verifies memory handling
 - Ensures stable string creation
 - Reports specific failure cases 
+
+## Token Integration
+
+### Overview
+The token integration process combines multiple tokens into a single token when possible, optimizing storage and improving efficiency by identifying and merging tokens that share the same next vertex in their string cycles.
+
+### Process
+1. Channel Validation
+   - Verify node has multiple channels (>1)
+   - Skip processing if insufficient channels
+   - Return SUCCESS for single-channel nodes
+
+2. Channel Analysis
+   ```c
+   for (int i = 1; i < channel_count; i++) {
+       // Skip invalid channels or string axis
+       if (get_axis_count(node_index, i) == 0 || 
+           has_axis(node_index, i, string_AXIS)) {
+           continue;
+       }
+       // Process channel...
+   }
+   ```
+
+3. Token Matching
+   - Get next vertex for current channel
+   - Compare with next vertices of subsequent channels
+   - Identify matching token sequences
+   ```c
+   Vertex next_vertex = get_next_vertex(node_index, i, string_AXIS);
+   // Compare with other channels...
+   if (next_vertex.node == next_vertex2.node) {
+       // Found matching tokens...
+   }
+   ```
+
+4. Token Combination
+   - Create new combined token node
+   - Set up channels for new node
+   - Update cycle structure
+   ```c
+   uint new_node = create_token_node(next_vertex.node, next_vertex2.node);
+   create_multi_channels(new_node, 2);
+   ```
+
+### Cycle Management
+
+#### Short Cycles (2 vertices)
+```c
+if (existing_cycle && existing_cycle->count == 2) {
+    clear_cycle(existing_cycle);
+    create_loop(new_node, 1, 2);
+}
+```
+
+#### Longer Cycles
+```c
+else {
+    delete_path_from_cycle(node_index, i, 2, 2);
+    uint new_path[1] = {new_node};
+    ushort new_channels[1] = {1};
+    insert_path_into_cycle(node_index, i,
+                          new_path, new_channels, 1, 2);
+}
+```
+
+### Helper Functions
+
+#### Get Next Vertex
+```c
+Vertex get_next_vertex(unsigned int node_index, 
+                      unsigned short channel, 
+                      unsigned short axis_number);
+```
+Returns the next vertex (node and channel) in the specified axis.
+
+### Implementation Notes
+
+1. Channel Processing
+   - Skip channels with no axes
+   - Skip channels with string axis
+   - Process each valid channel pair
+
+2. Token Creation
+   - Create new node only once per match
+   - Set up proper channel structure
+   - Handle cycle modifications
+
+3. Cycle Updates
+   - Special handling for 2-vertex cycles
+   - Path deletion and insertion for longer cycles
+   - Proper cleanup of existing cycles
+
+### Error Handling
+- Return SUCCESS for single-channel nodes
+- Return ERROR on channel creation failure
+- Clean up cycle info after use
+
+### Memory Management
+- Free cycle info structures
+- Create new nodes as needed
+- Clean up temporary data
+
+### Usage Example
+```c
+// Integrate tokens in node 5
+int result = integrate_token_data(5);
+if (result == SUCCESS) {
+    printf("Successfully integrated tokens\n");
+} else {
+    printf("Token integration failed\n");
+}
+```
+
+### Notes
+1. Performance Considerations
+   - Skip invalid channels early
+   - Optimize token comparison
+   - Minimize memory operations
+
+2. Error Handling
+   - Channel count validation
+   - Axis existence checks
+   - Token data verification
+
+3. Integration Rules
+   - Only combine valid token sequences
+   - Maintain string integrity
+   - Preserve token order
+
+## Command Interface
+
+### Integrate Tokens Command
+The system provides a command-line interface for token integration:
+
+```shell
+integrate-tokens <node_index>
+```
+
+#### Usage
+1. Basic Integration
+   ```shell
+   > integrate-tokens 5
+   Successfully integrated tokens in node 5
+   ```
+
+2. Error Handling
+   ```shell
+   > integrate-tokens
+   Error: Missing arguments
+   Usage: integrate-tokens <node_index>
+   ```
+
+#### Implementation
+```c
+int handle_integrate_tokens(char* args) {
+    int node_index;
+    if (sscanf(args, "%d", &node_index) != 1) {
+        print_argument_error("integrate-tokens", "<node_index>", false);
+        return CMD_ERROR;
+    }
+    return integrate_token_data(node_index) == SUCCESS ? 
+           CMD_SUCCESS : CMD_ERROR;
+}
+```
+
+#### Benefits
+1. Direct Access
+   - Simple command interface
+   - Clear success/failure feedback
+   - Immediate integration results
+
+2. Error Protection
+   - Input validation
+   - Node existence check
+   - Clear error messages
+
+3. Integration Control
+   - Per-node integration
+   - Manual optimization
+   - Selective processing
+
+[Rest of the document remains the same...] 

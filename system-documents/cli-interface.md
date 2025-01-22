@@ -1318,4 +1318,94 @@ Purpose:
 - Validate memory management
 - Check cycle creation with repeated elements
 
+### Navigation Commands
+
+#### Print Vertex
+```shell
+print-vertex
+```
+Displays the current position in the database structure.
+
+Parameters: None
+
+Example output:
+```shell
+Current Vertex: (node 5, channel 2)
+Currently at root position  # Only shown when at root
+```
+
+Error handling:
+```shell
+> print-vertex extra_args
+Error: Invalid arguments
+Usage: print-vertex
+```
+
+Purpose:
+- Show current navigation position
+- Verify root position
+- Track element location
+- Debug navigation issues
+
+Display Format:
+1. Current Position
+   - Node index
+   - Channel number
+   - Root position indicator
+
+2. Root Status
+   - Shows if at root position
+   - Helps with navigation
+   - Confirms position context
+
+### Token Management Commands
+
+#### Integrate Tokens
+```shell
+integrate-tokens <node_index>
+```
+
+##### Purpose
+Combines tokens in a node that share the same next vertex in their string cycles, optimizing storage and improving efficiency.
+
+##### Parameters
+- node_index: Index of node to analyze for token integration
+
+##### Examples
+```shell
+# Integrate tokens in node 5
+> integrate-tokens 5
+Successfully integrated tokens in node 5
+
+# Error cases
+> integrate-tokens
+Error: Missing arguments
+Usage: integrate-tokens <node_index>
+Example: integrate-tokens 5
+
+> integrate-tokens 256
+Error: Invalid node index
+
+> integrate-tokens abc
+Error: Invalid arguments
+Usage: integrate-tokens <node_index>
+```
+
+##### Process
+1. Input Validation
+   - Verify node index is valid
+   - Check node exists in Core
+   - Validate argument format
+
+2. Token Integration
+   - Analyze node channels
+   - Find matching token sequences
+   - Combine matching tokens
+   - Update cycle structure
+
+3. Output
+   - Success/failure status
+   - Error messages if applicable
+   - Node index confirmation
+
 [Rest of the document remains the same...] 

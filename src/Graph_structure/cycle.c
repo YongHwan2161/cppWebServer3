@@ -193,7 +193,7 @@ int create_string_cycle(uint* token_vertices, ushort* channels, int count) {
 char* get_string_data(uint node_index, ushort channel_index) {
     // Get cycle info
     cycleInfo* info = get_cycle_info(node_index, channel_index, string_AXIS);
-    if (!info || info->count < 2) {
+    if (!info || info->count < 1) {
         printf("Error: No valid string cycle found\n");
         free_cycle_info(info);
         return NULL;
@@ -303,7 +303,7 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
             free_search_result(result);
             return ERROR;
         }
-        need_search = true;
+        need_search = false;
         ushort prev_channel_count = 0;
         // if (count > 0) {
         // }
@@ -357,7 +357,7 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
                         {
                             bool found = false;
 
-                            for (int i = 0; i < count - 2; i++)
+                            for (int i = 0; i < count - 2; i++) 
                             {
                                 if (tokens[i] == tokens[count - 1] && tokens[i + 1] == tokens[count])
                                 {
@@ -398,13 +398,13 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
                             }
                             else
                             {
-                                delete_path_from_cycle(tokens[count - 1], channels[count - 1], 2, 2);
+                                delete_path_from_cycle(prev_node, ch, 2, 2);
                                 if (existing_cycle)
                                     free_cycle_info(existing_cycle);
 
                                 uint new_path[1] = {(uint)new_node};
-                                ushort new_channels[1] = {0};
-                                insert_path_into_cycle(tokens[count - 1], channels[count - 1],
+                                ushort new_channels[1] = {1};
+                                insert_path_into_cycle(prev_node, ch,
                                                        new_path, new_channels, 1, 2);
                             }
 
@@ -437,7 +437,7 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
         printf("Error: Failed to create link between the last token and the first token\n");
         return ERROR;
     } else {
-        printf("Successfully created link between the last token and the first token\n");
+        // printf("Successfully created link between the last token and the first token\n");
         return SUCCESS;
     }
 }
@@ -632,7 +632,19 @@ int handle_print_cycle(char* args) {
     free_cycle_info(info);
     return CMD_SUCCESS;
 }
+int replace_new_token(Vertex new_vertex, Vertex old_vertex, ushort axis_number) {
+    cycleInfo* info = get_cycle_info(old_vertex.node, old_vertex.channel, axis_number);
+    if (info->count == 0) {
+        return CMD_SUCCESS;
+    }
 
+    delete_link(info->vertices[info->count - 1], info->channels[info->count - 1], info->vertices[0], info->channels[0], axis_number);
+    delete_link(info->vertices[0], info->channels[0], info->vertices[1], info->channels[1], axis_number);
+    delete_link(info->vertices[1], info->channels[1], info->vertices[2], info->channels[2], axis_number);
+    create_link(info->vertices[info->count - 1], info->channels[info->count - 1], new_vertex.node, new_vertex.channel, axis_number);
+    create_link(new_vertex.node, new_vertex.channel, info->vertices[2], info->channels[2], axis_number);
+    return CMD_SUCCESS;
+}
 
 // Insert a path into an existing cycle at specified position
 int insert_path_into_cycle(uint insert_node, ushort insert_channel, 
@@ -820,15 +832,14 @@ int delete_path_from_cycle(uint start_node, ushort start_channel,
     }
 
     // Get vertices to be removed and end connection points
-    uint end_node = cycle->vertices[(start_pos + path_length) % cycle->count];
-    ushort end_channel = cycle->channels[(start_pos + path_length) % cycle->count];
-    uint next_node = cycle->vertices[(start_pos + path_length + 1) % cycle->count];
-    ushort next_channel = cycle->channels[(start_pos + path_length + 1) % cycle->count];
+    uint end_node = cycle->vertices[(path_length - 1) % cycle->count];
+    ushort end_channel = cycle->channels[(path_length - 1) % cycle->count];
+    uint next_node = cycle->vertices[(path_length) % cycle->count];
+    ushort next_channel = cycle->channels[(path_length) % cycle->count];
 
     // Break connections at path boundaries
-    if (delete_link(start_node, start_channel, 
-                   cycle->vertices[(start_pos + 1) % cycle->count],
-                   cycle->channels[(start_pos + 1) % cycle->count],
+    if (delete_link(cycle->vertices[cycle->count - 1], cycle->channels[cycle->count - 1], 
+                   cycle->vertices[0], cycle->channels[0],
                    axis_number) != LINK_SUCCESS ||
         delete_link(end_node, end_channel,
                    next_node, next_channel,
@@ -849,7 +860,7 @@ int delete_path_from_cycle(uint start_node, ushort start_channel,
 
     // Clear channels in removed path
     for (int i = 0; i < path_length; i++) {
-        int pos = (start_pos + 1 + i) % cycle->count;
+        int pos = (start_pos + i) % cycle->count;
         if (clear_channel(cycle->vertices[pos], cycle->channels[pos]) != CHANNEL_SUCCESS) {
             printf("Warning: Failed to clear channel in removed path\n");
         }

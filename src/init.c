@@ -9,8 +9,8 @@
 #include <sys/stat.h>
 #include <string.h>
 
-Coordinate CurrentCoordinate = {0, 0};
-Coordinate RootCoordinate = {0, 0};
+Vertex CurrentVertex = {0, 0};
+Vertex RootVertex = {0, 0};
 
 int check_and_create_directory() {
     struct stat st = {0};
@@ -69,24 +69,7 @@ int initialize_system() {
         printf("Error initializing database\n");
         return INIT_ERROR;
     }
-
-        // Create root string "Hello world!"
-    uint start_node;
-    ushort start_channel;
-    if (handle_create_string("Hello world!", &start_node, &start_channel) != SUCCESS) {
-        printf("Error: Failed to create root string\n");
-        return INIT_ERROR;
-    }
-    // Store root coordinates
-    RootCoordinate.node = start_node;
-    RootCoordinate.channel = start_channel;
-    
-    // Set current position to root
-    CurrentCoordinate = RootCoordinate;
-    
-    printf("Root string created at node %u, channel %u\n", 
-           RootCoordinate.node, RootCoordinate.channel);
-               
+  
         // Return NEW if either database or free space was newly created
         if (db_status == DB_NEW || fs_status == FREE_SPACE_NEW) {
             return DB_NEW;

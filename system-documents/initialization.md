@@ -16,11 +16,11 @@ The root string serves as the ancestor for all elements in the database. It prov
 typedef struct {
     uint node;
     ushort channel;
-} Coordinate;
+} Vertex;
 
-// Global coordinates
-Coordinate CurrentCoordinate;  // User's current position
-Coordinate RootCoordinate;    // Root string position
+// Global vertexs
+Vertex CurrentVertex;  // User's current position
+Vertex RootVertex;    // Root string position
 ```
 
 ### Initialization Process
@@ -31,10 +31,10 @@ Coordinate RootCoordinate;    // Root string position
 
 2. Root String Creation
    - Create "Hello world!" string
-   - Store starting coordinates
+   - Store starting vertexs
    - Set current position to root
 
-3. Coordinate Management
+3. Vertex Management
    - Track root position
    - Maintain current position
    - Enable navigation
@@ -42,17 +42,17 @@ Coordinate RootCoordinate;    // Root string position
 ### Navigation
 - All elements branch from root
 - Access restricted to connected paths
-- Navigation through coordinates
+- Navigation through vertexs
 
 ## Usage
 ```c
 // Access current position
 printf("Current position: node %u, channel %u\n",
-       CurrentCoordinate.node, CurrentCoordinate.channel);
+       CurrentVertex.node, CurrentVertex.channel);
 
 // Check root position
 printf("Root position: node %u, channel %u\n",
-       RootCoordinate.node, RootCoordinate.channel);
+       RootVertex.node, RootVertex.channel);
 ```
 
 ## Element Layer
@@ -62,7 +62,7 @@ The element layer exists above the token layer and has these characteristics:
 3. No access to unconnected regions
 4. Root-based hierarchical structure
 
-## Coordinates
+## Vertexs
 - Represented as (node, channel) pairs
 - Used for position tracking
 - Enable direct location access

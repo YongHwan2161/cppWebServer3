@@ -39,5 +39,6 @@ int handle_get_token_data(char* args);
 int handle_search_token(char* args);
 TokenSearchResult* search_token(const char* data, size_t length);
 void free_search_result(TokenSearchResult* result);
+int handle_integrate_tokens(char* args);
 
 #endif // node_H 

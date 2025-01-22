@@ -30,7 +30,7 @@ bool is_in_garbage_cycle(unsigned int node_index);
 
 // Add this function declaration
 int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number);
-
+int clear_cycle(cycleInfo* info);
 // Create a string cycle from an array of token vertices
 // Returns LINK_SUCCESS or LINK_ERROR
 int create_string_cycle(uint* token_vertices, ushort* channels, int count);
@@ -45,7 +45,7 @@ bool validate_cycle(int node_index, int channel_index, int axis_number);
 int handle_validate_cycle(char* args);
 int handle_print_cycle(char* args);
 int handle_delete_path(char* args);
-
+int replace_new_token(Vertex new_vertex, Vertex old_vertex, ushort axis_number);
 // Create a string from an ASCII string
 // Returns SUCCESS or ERROR
 // int handle_create_string_from_string(char* args);

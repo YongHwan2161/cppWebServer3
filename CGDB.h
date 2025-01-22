@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define TOKEN_SEARCH_AXIS 0
+#define TOKEN_DATA_AXIS 1
+#define string_AXIS 2
+
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned char uchar;
@@ -19,7 +23,7 @@ typedef struct {
 typedef struct {
     uint node;
     ushort channel;
-} Coordinate;
+} Vertex;
 
 extern uchar** Core;
 extern nodeMapping* CoreMap;
@@ -34,7 +38,7 @@ extern const char* DATA_DIR;
 extern const char* DATA_FILE;
 extern const char* MAP_FILE;
 
-extern Coordinate CurrentCoordinate;  // Current user position
-extern Coordinate RootCoordinate;     // Root string position
+extern Vertex CurrentVertex;  // Current user position
+extern Vertex RootVertex;     // Root string position
 
 #endif

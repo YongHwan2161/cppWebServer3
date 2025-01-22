@@ -517,3 +517,126 @@ int handle_search_token(char* args) {
     free_search_result(result);
     return CMD_SUCCESS;
 }
+Vertex get_next_vertex(unsigned int node_index, unsigned short channel, unsigned short axis_number) {
+    uint node_position = get_node_position(node_index);
+    uint channel_offset = get_channel_offset(Core[node_position], channel);
+    uint axis_offset = get_axis_offset(Core[node_position], channel, axis_number);
+    uint link_offset = channel_offset + axis_offset + 2;
+    Vertex vertex;
+    vertex.node = *(uint*)(Core[node_position] + link_offset);
+    vertex.channel = *(ushort*)(Core[node_position] + link_offset + 4);
+    return vertex;
+}
+int integrate_token_data(unsigned int node_index) {
+    // Check if node has enough channels for integration
+    uint node_position = get_node_position(node_index);
+    ushort channel_count = get_channel_count(Core[node_position]);
+    if (channel_count <= 1) {
+        return CMD_SUCCESS;
+    }
+    int new_channel_index = 1;
+    uint new_node = 0;
+    for (int i = 1; i < channel_count; i++) {
+        bool new_node_created = false;
+        if (get_axis_count(Core[node_position], i) == 0 || !has_axis(Core[node_position], i, string_AXIS)) {
+            continue;
+        }
+        Vertex next_vertex = get_next_vertex(node_index, i, string_AXIS);
+        for (int j = i + 1; j < channel_count; j++) {
+            if (get_axis_count(Core[node_position], j) == 0 || !has_axis(Core[node_position], j, string_AXIS)) {
+                continue;
+            }
+            Vertex next_vertex2 = get_next_vertex(node_index, j, string_AXIS);
+            if (next_vertex.node == next_vertex2.node) {
+                // Create combined token
+                if (!new_node_created)
+                {
+                    new_node = create_token_node(node_index, next_vertex.node);
+                    if (create_multi_channels(new_node, 1) != CHANNEL_SUCCESS)
+                    {
+                        printf("Error: Failed to create channels for node %u\n", new_node);
+                        return ERROR;
+                    }
+                    cycleInfo *existing_cycle = get_cycle_info(node_index, i, 2);
+
+                    if (existing_cycle && existing_cycle->count == 2)
+                    {
+                        // printf("existing_cycle->count == 2\n");
+                        clear_cycle(existing_cycle);
+                        create_loop(new_node, new_channel_index, 2);
+                        new_channel_index++;
+                    }
+                    else
+                    {
+                        Vertex new_vertex;
+                        new_vertex.node = new_node;
+                        new_vertex.channel = new_channel_index;
+                        Vertex old_vertex;
+                        old_vertex.node = existing_cycle->vertices[0];
+                        old_vertex.channel = existing_cycle->channels[0];
+                        replace_new_token(new_vertex, old_vertex, 2);
+                        // delete_path_from_cycle(node_index, i, 2, 2);
+                        // if (existing_cycle)
+                        //     free_cycle_info(existing_cycle);
+
+                        // uint new_path[1] = {(uint)new_node};
+                        // ushort new_channels[1] = {new_channel_index};
+                        // insert_path_into_cycle(node_index, i,
+                        //                        new_path, new_channels, 1, 2);
+                        new_channel_index++;
+                    }
+                    new_node_created = true;
+                }
+                cycleInfo *existing_cycle = get_cycle_info(node_index, j, 2);
+
+                if (existing_cycle && existing_cycle->count == 2)
+                {
+                    // printf("existing_cycle->count == 2\n");
+                    clear_cycle(existing_cycle);
+                    create_channel(new_node);
+                    create_loop(new_node, new_channel_index, 2);
+                    new_channel_index++;
+                }
+                else
+                {
+                    Vertex new_vertex;
+                    new_vertex.node = new_node;
+                    new_vertex.channel = new_channel_index;
+                    Vertex old_vertex;
+                    old_vertex.node = existing_cycle->vertices[0];
+                    old_vertex.channel = existing_cycle->channels[0];
+                    create_channel(new_node);
+                    replace_new_token(new_vertex, old_vertex, 2);
+                    new_channel_index++;
+                }
+            }
+        }
+    }
+    return SUCCESS;
+}
+
+int handle_integrate_tokens(char* args) {
+    int node_index;
+    
+    // Parse arguments
+    int parsed = sscanf(args, "%d", &node_index);
+    if (parsed != 1) {
+        print_argument_error("integrate-tokens", "<node_index>", false);
+        return CMD_ERROR;
+    }
+    
+    // Validate input
+    if (!validate_node(node_index)) {
+        return CMD_ERROR;
+    }
+    
+    // Integrate tokens
+    int result = integrate_token_data(node_index);
+    if (result == SUCCESS) {
+        printf("Successfully integrated tokens in node %d\n", node_index);
+        return CMD_SUCCESS;
+    } else {
+        printf("Failed to integrate tokens in node %d\n", node_index);
+        return CMD_ERROR;
+    }
+}
