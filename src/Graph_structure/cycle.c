@@ -264,25 +264,28 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
 
     if (remaining_len == (size_t)result_first->matched_length)
     { // if the remaining length is 0, then we are at the end of the string
-        printf("result->matched_length == remaining_len\n");
-        int channel_index = recycle_or_create_channel(result_first->node_index);
-        if (channel_index == CHANNEL_ERROR)
+        tokens[0] = result_first->node_index;
+        channels[0] = (ushort)recycle_or_create_channel(result_first->node_index);
+        if (channels[0] == (ushort)CHANNEL_ERROR)
         {
             printf("Error: Failed to create channel for node %u\n", result_first->node_index);
             free_search_result(result_first);
             return ERROR;
         }
 
-        if (create_loop(result_first->node_index, channel_index, 2) != LINK_SUCCESS)
+        if (create_loop(tokens[0], channels[0], 2) != LINK_SUCCESS)
         {
             printf("Error: Failed to create loop for node %u\n", result_first->node_index);
             free_search_result(result_first);
             return ERROR;
         }
+        *start_node = tokens[0];
+        *start_channel = channels[0];
         free_search_result(result_first);
+
         return SUCCESS;
     }
-    bool need_search = true;
+    // bool need_search = true;
     // Tokenize input using search_token
     while (remaining_len > 0 && count < MAX_string_TOKENS) {
         TokenSearchResult *result = search_token(current_pos, remaining_len);
@@ -303,7 +306,7 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
             free_search_result(result);
             return ERROR;
         }
-        need_search = false;
+        // need_search = false;
         ushort prev_channel_count = 0;
         // if (count > 0) {
         // }
@@ -314,112 +317,113 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
             create_link(tokens[count - 1], channels[count - 1], tokens[count], channels[count], 2); // create a link between the previous token and the current token
             prev_channel_count = get_channel_count(Core[get_node_position(tokens[count - 1])]);
             if (prev_channel_count <= 2)
-                need_search = false;
-            if (need_search)
-            {
-                uint prev_node = tokens[count - 1];
-                // Check each channel for matching next token
-                for (ushort ch = 1; ch < prev_channel_count; ch++)
-                {
-                    if (get_axis_count(Core[get_node_position(prev_node)], 2) == 0)
-                    {
-                        printf("axis 2 is empty\n");
-                        continue; // skip if the axis 2 is empty
-                    }
-                    if (ch == channels[count - 1])
-                        continue; // skip the current channel
+                // need_search = false;
+                continue;
+            // if (need_search)
+            // {
+            //     uint prev_node = tokens[count - 1];
+            //     // Check each channel for matching next token
+            //     for (ushort ch = 1; ch < prev_channel_count; ch++)
+            //     {
+            //         if (get_axis_count(Core[get_node_position(prev_node)], 2) == 0)
+            //         {
+            //             printf("axis 2 is empty\n");
+            //             continue; // skip if the axis 2 is empty
+            //         }
+            //         if (ch == channels[count - 1])
+            //             continue; // skip the current channel
                     
-                    uint next_node;
-                    ushort next_channel;
-                    if (get_link(prev_node, ch, (ushort)2, (ushort)0, &next_node, &next_channel) != LINK_SUCCESS)
-                        continue;
-                    if (next_node == tokens[count - 1] && next_channel == channels[count - 1]) // if the next node is itself -> it means loop
-                        continue; // skip if the next node is the same as itself
+            //         uint next_node;
+            //         ushort next_channel;
+            //         if (get_link(prev_node, ch, (ushort)2, (ushort)0, &next_node, &next_channel) != LINK_SUCCESS)
+            //             continue;
+            //         if (next_node == tokens[count - 1] && next_channel == channels[count - 1]) // if the next node is itself -> it means loop
+            //             continue; // skip if the next node is the same as itself
     
-                    // Compare next node's token data with current token
-                    char *next_token = get_token_data(next_node);
-                    printf("prev_node: %u, prev_channel: %u, next_node: %u, next_channel: %u, next_token: %s\n", prev_node, ch, next_node, next_channel, next_token);
-                    if (!next_token)
-                        continue;
+            //         // Compare next node's token data with current token
+            //         char *next_token = get_token_data(next_node);
+            //         printf("prev_node: %u, prev_channel: %u, next_node: %u, next_channel: %u, next_token: %s\n", prev_node, ch, next_node, next_channel, next_token);
+            //         if (!next_token)
+            //             continue;
 
-                    if (strcmp(next_token, result->token_data) == 0)
-                    {
-                        // Create combined token
-                        int new_node = create_token_node(prev_node, result->node_index);
-                        if (create_multi_channels(new_node, 2) != CHANNEL_SUCCESS)
-                        {
-                            printf("Error: Failed to create channels for node %u\n", new_node);
-                            free_search_result(result);
-                            return ERROR;
-                        }
+            //         if (strcmp(next_token, result->token_data) == 0)
+            //         {
+            //             // Create combined token
+            //             int new_node = create_token_node(prev_node, result->node_index);
+            //             if (create_multi_channels(new_node, 2) != CHANNEL_SUCCESS)
+            //             {
+            //                 printf("Error: Failed to create channels for node %u\n", new_node);
+            //                 free_search_result(result);
+            //                 return ERROR;
+            //             }
 
-                        if (new_node >= 0)
-                        {
-                            bool found = false;
+            //             if (new_node >= 0)
+            //             {
+            //                 bool found = false;
 
-                            for (int i = 0; i < count - 2; i++) 
-                            {
-                                if (tokens[i] == tokens[count - 1] && tokens[i + 1] == tokens[count])
-                                {
-                                    clear_channel(tokens[i], channels[i]);
-                                    clear_channel(tokens[i + 1], channels[i + 1]);
-                                    clear_channel(tokens[count - 2], channels[count - 2]);
-                                    clear_channel(tokens[count - 1], channels[count - 1]);
-                                    clear_channel(tokens[count], channels[count]);
-                                    tokens[i] = new_node;
-                                    channels[i] = 1;
-                                    tokens[count - 1] = new_node;
-                                    channels[count - 1] = 2;
-                                    create_link(tokens[i], channels[i], tokens[i + 2], channels[i + 2], 2);
-                                    for (int j = i + 1; j < count - 1; j++)
-                                    {
-                                        tokens[j] = tokens[j + 1];
-                                        channels[j] = channels[j + 1];
-                                    }
-                                    if (count > 3)
-                                    {
-                                        create_link(tokens[count - 3], channels[count - 3], tokens[count - 2], channels[count - 2], 2); // create a link between the previous token and the current token
-                                    }
-                                    count -= 2;
-                                    found = true;
-                                    break;
-                                }
-                            }
-                            if (found)
-                                break;
+            //                 for (int i = 0; i < count - 2; i++) 
+            //                 {
+            //                     if (tokens[i] == tokens[count - 1] && tokens[i + 1] == tokens[count])
+            //                     {
+            //                         clear_channel(tokens[i], channels[i]);
+            //                         clear_channel(tokens[i + 1], channels[i + 1]);
+            //                         clear_channel(tokens[count - 2], channels[count - 2]);
+            //                         clear_channel(tokens[count - 1], channels[count - 1]);
+            //                         clear_channel(tokens[count], channels[count]);
+            //                         tokens[i] = new_node;
+            //                         channels[i] = 1;
+            //                         tokens[count - 1] = new_node;
+            //                         channels[count - 1] = 2;
+            //                         create_link(tokens[i], channels[i], tokens[i + 2], channels[i + 2], 2);
+            //                         for (int j = i + 1; j < count - 1; j++)
+            //                         {
+            //                             tokens[j] = tokens[j + 1];
+            //                             channels[j] = channels[j + 1];
+            //                         }
+            //                         if (count > 3)
+            //                         {
+            //                             create_link(tokens[count - 3], channels[count - 3], tokens[count - 2], channels[count - 2], 2); // create a link between the previous token and the current token
+            //                         }
+            //                         count -= 2;
+            //                         found = true;
+            //                         break;
+            //                     }
+            //                 }
+            //                 if (found)
+            //                     break;
 
-                            cycleInfo *existing_cycle = get_cycle_info(prev_node, ch, 2);
+            //                 cycleInfo *existing_cycle = get_cycle_info(prev_node, ch, 2);
 
-                            if (existing_cycle && existing_cycle->count == 2)
-                            {
-                                printf("existing_cycle->count == 2\n");
-                                clear_cycle(existing_cycle);
-                                create_loop(new_node, 1, 2);
-                            }
-                            else
-                            {
-                                delete_path_from_cycle(prev_node, ch, 2, 2);
-                                if (existing_cycle)
-                                    free_cycle_info(existing_cycle);
+            //                 if (existing_cycle && existing_cycle->count == 2)
+            //                 {
+            //                     printf("existing_cycle->count == 2\n");
+            //                     clear_cycle(existing_cycle);
+            //                     create_loop(new_node, 1, 2);
+            //                 }
+            //                 else
+            //                 {
+            //                     delete_path_from_cycle(prev_node, ch, 2, 2);
+            //                     if (existing_cycle)
+            //                         free_cycle_info(existing_cycle);
 
-                                uint new_path[1] = {(uint)new_node};
-                                ushort new_channels[1] = {1};
-                                insert_path_into_cycle(prev_node, ch,
-                                                       new_path, new_channels, 1, 2);
-                            }
+            //                     uint new_path[1] = {(uint)new_node};
+            //                     ushort new_channels[1] = {1};
+            //                     insert_path_into_cycle(prev_node, ch,
+            //                                            new_path, new_channels, 1, 2);
+            //                 }
 
-                            // Update tokens array
-                            clear_channel(tokens[count - 1], channels[count - 1]); // clear the channel of the previous token
-                            tokens[count - 1] = new_node;
-                            channels[count - 1] = 2;
-                            count--;
-                        }
-                        free(next_token);
-                        break;
-                    }
-                    free(next_token);
-                }
-            }
+            //                 // Update tokens array
+            //                 clear_channel(tokens[count - 1], channels[count - 1]); // clear the channel of the previous token
+            //                 tokens[count - 1] = new_node;
+            //                 channels[count - 1] = 2;
+            //                 count--;
+            //             }
+            //             free(next_token);
+            //             break;
+            //         }
+            //         free(next_token);
+            //     }
+            // }
         }
 
         // update the current position and remaining length
@@ -635,6 +639,12 @@ int handle_print_cycle(char* args) {
 int replace_new_token(Vertex new_vertex, Vertex old_vertex, ushort axis_number) {
     cycleInfo* info = get_cycle_info(old_vertex.node, old_vertex.channel, axis_number);
     if (info->count == 0) {
+        return CMD_SUCCESS;
+    }
+    if (info->count == 2) {
+        delete_link(info->vertices[0], info->channels[0], info->vertices[1], info->channels[1], axis_number);
+        delete_link(info->vertices[1], info->channels[1], info->vertices[0], info->channels[0], axis_number);
+        create_loop(new_vertex.node, new_vertex.channel, axis_number);
         return CMD_SUCCESS;
     }
 

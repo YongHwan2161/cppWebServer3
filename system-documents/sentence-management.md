@@ -1,102 +1,87 @@
-# string Management
+# String Management
 
 ## Overview
 The system provides functionality to create strings by linking token vertices in a cycle using dedicated channels. Each string is represented as a cycle of tokens connected through axis 2 (string axis).
 
-## string Creation
+## String Creation
 
 ### Process
-1. Tokenization
-   - Input text is tokenized using search_token
-   - Each token maps to existing node
-   - Tokens found sequentially from input
+1. Token Search
+   ```c
+   TokenSearchResult *result_first = search_token(current_pos, remaining_len);
+   ```
+   - Search for matching token sequence
+   - Return token node index and matched length
+   - Handle search failures
 
-2. Token Optimization
-   - Check for existing token combinations
-   - Search through channel links
-   - Create combined tokens when possible
-   - Reduce string length through combination
+2. Single Token Case
+   ```c
+   if (remaining_len == result_first->matched_length) {
+       tokens[0] = result_first->node_index;
+       channels[0] = recycle_or_create_channel(result_first->node_index);
+       create_loop(tokens[0], channels[0], 2);
+   }
+   ```
+   - Handle single token strings
+   - Create self-loop for single token
+   - Reuse or create new channel
 
-3. Token Combination
-   - Create new node for combined tokens
-   - Remove old token path from cycle
-   - Insert new combined token
-   - Update token sequence
+3. Multiple Token Processing
+   ```c
+   while (remaining_len > 0 && count < MAX_STRING_TOKENS) {
+       TokenSearchResult *result = search_token(current_pos, remaining_len);
+       tokens[count] = result->node_index;
+       
+       // Handle repeated tokens
+       if (tokens[count] == tokens[count-1]) {
+           create_channel(tokens[count]);
+           channels[count] = channels[count-1] + 1;
+       } else {
+           channels[count] = recycle_or_create_channel(result->node_index);
+       }
+   }
+   ```
+   - Process each token sequentially
+   - Handle token repetition
+   - Manage channel allocation
 
-4. Cycle Formation
-   - Link optimized tokens sequentially
-   - Create string cycle
-   - Use axis 2 for connections
-   - Return start node and channel
+### Channel Management
+1. Token Repetition
+   - Create new channel for repeated tokens
+   - Increment channel number sequentially
+   - Maintain token sequence integrity
+
+2. Channel Allocation
+   - Reuse empty channels when possible
+   - Create new channels when needed
+   - Track channel assignments
+
+### Implementation Notes
+1. Memory Management
+   - Fixed token array size (MAX_STRING_TOKENS)
+   - Proper result cleanup
+   - Channel resource management
+
+2. Error Handling
+   - Token search failures
+   - Channel creation errors
+   - Array bounds checking
+
+3. Performance
+   - Efficient channel reuse
+   - Minimal memory allocation
+   - Sequential processing
 
 ### Command Interface
 ```shell
-create-string <text>
+create-string-str <text>
 ```
-
-Parameters:
-- text: Input text to create string from
-
-Returns:
-- Success/error status
-- Start node and channel for string access
 
 Example:
 ```shell
-> create-string "Hello World"
-Successfully created string starting at node 5, channel 2
+> create-string-str "Hello World"
+Successfully created string starting at node 5, channel 0
 ```
-
-### Implementation Details
-```c
-int handle_create_string(char* args, uint* start_node, ushort* start_channel);
-```
-
-#### Parameters
-- args: Input text string
-- start_node: Pointer to store starting node index
-- start_channel: Pointer to store starting channel index
-
-#### Return Values
-- SUCCESS: string created successfully
-- ERROR: Failed to create string
-
-#### Process Flow
-1. Input Processing
-   - Validate input text
-   - Initialize token arrays
-   - Set initial start node/channel
-
-2. Token Processing
-   - Search and create tokens
-   - Optimize token combinations
-   - Track start position
-
-3. Cycle Creation
-   - Link tokens in sequence
-   - Create final cycle link
-   - Return start position
-
-4. Error Handling
-   - Return start position even on error
-   - Clear error state appropriately
-   - Provide detailed error messages
-
-### Benefits
-1. Storage Optimization
-   - Reduced token count
-   - Shared token combinations
-   - Efficient data representation
-
-2. Performance
-   - Faster string traversal
-   - Fewer cycle elements
-   - Optimized memory usage
-
-3. Data Deduplication
-   - Common patterns combined
-   - Reduced redundancy
-   - Consistent representation
 
 ## String-Based string Creation
 
@@ -541,22 +526,3 @@ Error: Missing text argument
 > create-string "Very long text..."
 Error: Maximum token limit exceeded
 ```
-
-### Implementation Notes
-
-1. Performance Considerations
-   - Token search optimization
-   - Channel recycling
-   - Efficient combination detection
-
-2. Memory Usage
-   - Fixed-size token array (MAX_string_TOKENS)
-   - Dynamic token data allocation
-   - Proper resource cleanup
-
-3. Limitations
-   - Maximum token count (100)
-   - Channel count restrictions
-   - Token combination depth
-
-[Rest of the document remains the same...] 

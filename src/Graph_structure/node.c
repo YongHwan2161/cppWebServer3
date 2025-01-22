@@ -574,15 +574,12 @@ int integrate_token_data(unsigned int node_index) {
                         Vertex old_vertex;
                         old_vertex.node = existing_cycle->vertices[0];
                         old_vertex.channel = existing_cycle->channels[0];
+                        if (existing_cycle->count > 2)
+                        
                         replace_new_token(new_vertex, old_vertex, 2);
-                        // delete_path_from_cycle(node_index, i, 2, 2);
                         // if (existing_cycle)
                         //     free_cycle_info(existing_cycle);
 
-                        // uint new_path[1] = {(uint)new_node};
-                        // ushort new_channels[1] = {new_channel_index};
-                        // insert_path_into_cycle(node_index, i,
-                        //                        new_path, new_channels, 1, 2);
                         new_channel_index++;
                     }
                     new_node_created = true;

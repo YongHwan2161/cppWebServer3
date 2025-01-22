@@ -119,7 +119,7 @@ int delete_link(uint source_node, ushort source_ch,
     }
     
     if (!found) {
-        printf("Error: Link not found\n");
+        printf("Error: Link not found, delete_link failed\n");
         return LINK_ERROR;
     }
     
