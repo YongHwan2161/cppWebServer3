@@ -172,7 +172,7 @@ The token integration process combines multiple tokens into a single token when 
    for (int i = 1; i < channel_count; i++) {
        // Skip invalid channels or string axis
        if (get_axis_count(node_index, i) == 0 || 
-           has_axis(node_index, i, string_AXIS)) {
+           has_axis(node_index, i, STRING_AXIS)) {
            continue;
        }
        // Process channel...
@@ -184,7 +184,7 @@ The token integration process combines multiple tokens into a single token when 
    - Compare with next vertices of subsequent channels
    - Identify matching token sequences
    ```c
-   Vertex next_vertex = get_next_vertex(node_index, i, string_AXIS);
+   Vertex next_vertex = get_next_vertex(node_index, i, STRING_AXIS);
    // Compare with other channels...
    if (next_vertex.node == next_vertex2.node) {
        // Found matching tokens...

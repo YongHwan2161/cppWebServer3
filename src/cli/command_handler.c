@@ -161,7 +161,7 @@ int handle_list_axes(char* args) {
             case TOKEN_DATA_AXIS:
                 axis_type = "(Token data)";
                 break;
-            case string_AXIS:
+            case STRING_AXIS:
                 axis_type = "(string)";
                 break;
         }
@@ -228,7 +228,9 @@ int handle_create_bidirectional_link(char* args) {
             false);
         return CMD_ERROR;
     }
-    return create_bidirectional_link(source_node, source_ch, dest_node, dest_ch);
+    Vertex source_vertex = {source_node, source_ch};
+    Vertex dest_vertex = {dest_node, dest_ch};
+    return create_bidirectional_link(source_vertex, dest_vertex);
 }
 int handle_delete_link(char* args) {
     int source_node, source_ch, dest_node, dest_ch, axis_number;
@@ -344,7 +346,7 @@ int handle_print_node(char* args) {
             switch(axis_number) {
                 case TOKEN_SEARCH_AXIS: axis_type = "(Token search)"; break;
                 case TOKEN_DATA_AXIS: axis_type = "(Token data)"; break;
-                case string_AXIS: axis_type = "(string)"; break;
+                case STRING_AXIS: axis_type = "(string)"; break;
             }
             
             printf("  Axis %d %s (offset: 0x%04X):\n", axis_number, axis_type, axis_offset);
@@ -777,7 +779,7 @@ int handle_command(char* command) {
         {
             return handle_test_repeating_string(args);
         }
-        else if (strcmp(cmd, "print-vertex") == 0)
+        else if (strcmp(cmd, "c") == 0)
         {
             return handle_print_vertex(args);
         }
@@ -1047,9 +1049,63 @@ int handle_print_vertex(char* args) {
     printf("\nCurrent Vertex: (node %u, channel %u)\n", 
            CurrentVertex.node, CurrentVertex.channel);
     
+    // Print current vertex string data
+    char* current_string = get_string_data(CurrentVertex.node, CurrentVertex.channel);
+    if (current_string) {
+        printf("String: \"%s\"\n", current_string);
+        free(current_string);
+    } else {
+        printf("String: <empty>\n");
+    }
+    
+    // Check if at root position
     if (CurrentVertex.node == RootVertex.node && 
         CurrentVertex.channel == RootVertex.channel) {
         printf("Currently at root position\n");
+    }
+
+    // Print parent relationship
+    uint parent_node=0;
+    ushort parent_ch=0;
+    int parent_count = 0;
+    printf("Parents:\n");
+    int link_count = get_link_count(CurrentVertex.node, CurrentVertex.channel, BACKWARD_AXIS);
+    if (link_count > 0)
+    {
+        for (int i = 0; i < link_count; i++)
+        {
+            if (get_link(CurrentVertex.node, CurrentVertex.channel,
+                         BACKWARD_AXIS, i, &parent_node, &parent_ch) == LINK_SUCCESS)
+            {
+                char *parent_string = get_string_data(parent_node, parent_ch);
+                printf("  %d: (node %u, channel %u) \"%s\"\n",
+                       i + 1, parent_node, parent_ch,
+                       parent_string ? parent_string : "<empty>");
+                if (parent_string)
+                    free(parent_string);
+                parent_count++;
+            }
+        }
+    }
+
+    // Print children relationships
+    printf("Children:\n");
+    uint child_node;
+    ushort child_ch;
+    int child_count = 0;
+    
+    for (int i = 0; get_link(CurrentVertex.node, CurrentVertex.channel, 
+                            FORWARD_AXIS, i, &child_node, &child_ch) == LINK_SUCCESS; i++) {
+        char* child_string = get_string_data(child_node, child_ch);
+        printf("  %d: (node %u, channel %u) \"%s\"\n", 
+               i + 1, child_node, child_ch,
+               child_string ? child_string : "<empty>");
+        if (child_string) free(child_string);
+        child_count++;
+    }
+    
+    if (child_count == 0) {
+        printf("  No children\n");
     }
     
     return CMD_SUCCESS;

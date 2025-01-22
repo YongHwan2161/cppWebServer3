@@ -6,6 +6,7 @@
 #include "link.h"
 #include "node.h"
 #include "../cli/command_handler.h"
+#include "../../CGDB.h"
 #include <stdlib.h>
 #include <locale.h>
 
@@ -185,14 +186,14 @@ int create_string_cycle(uint* token_vertices, ushort* channels, int count) {
         return LINK_ERROR;
     }
     // Create string cycle using the new channels
-    int result = create_cycle(token_vertices, channels, count, string_AXIS);
+    int result = create_cycle(token_vertices, channels, count, STRING_AXIS);
     
     return result;
 }
 
 char* get_string_data(uint node_index, ushort channel_index) {
     // Get cycle info
-    cycleInfo* info = get_cycle_info(node_index, channel_index, string_AXIS);
+    cycleInfo* info = get_cycle_info(node_index, channel_index, STRING_AXIS);
     if (!info || info->count < 1) {
         printf("Error: No valid string cycle found\n");
         free_cycle_info(info);
@@ -243,7 +244,7 @@ int clear_cycle(cycleInfo* info) {
     clear_channels(info->vertices, info->channels, info->count);
     return LINK_SUCCESS;
 }
-int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
+int handle_create_string(char* args, uint* start_node, ushort* start_channel, bool is_root) {
     if (!args || !*args) {
         print_argument_error("create-string", "<text>", false);
         return ERROR;
@@ -441,12 +442,17 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel) {
         printf("Error: Failed to create link between the last token and the first token\n");
         return ERROR;
     } else {
+        create_property(tokens[0], channels[0], STRING_START_NODE);
+        Vertex start_vertex = {tokens[0], channels[0]};
+        if (!is_root){
+            create_bidirectional_link(CurrentVertex, start_vertex);
+        }
         // printf("Successfully created link between the last token and the first token\n");
         return SUCCESS;
     }
 }
 int optimize_string_cycle(uint* vertices, int count) {
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count - 1; i++) {
         if (integrate_token_data(vertices[i]) != SUCCESS) {
             printf("Error: Failed to integrate token data in node %u\n", vertices[i]);
             return CMD_ERROR;

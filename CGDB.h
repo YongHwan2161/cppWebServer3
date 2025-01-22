@@ -4,9 +4,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// axis 정의
 #define TOKEN_SEARCH_AXIS 0
 #define TOKEN_DATA_AXIS 1
-#define string_AXIS 2
+#define STRING_AXIS 2
+#define PROPERTY_AXIS 3
+#define FORWARD_AXIS 4
+#define BACKWARD_AXIS 5
+
+
+// 문자열 시작 노드 node property
+#define STRING_START_NODE 0
 
 typedef unsigned int uint;
 typedef unsigned short ushort;
@@ -30,8 +38,8 @@ extern nodeMapping* CoreMap;
 extern int CoreSize;        // Current number of vertices loaded in Core
 extern const unsigned int MaxCoreSize;  // Maximum number of vertices that can be in RAM
 extern const unsigned int GarbagenodeIndex;
+extern const unsigned int pointer_current_vertex;
 
-extern unsigned int CurrentnodeIndex;
 extern unsigned int CurrentnodeCount;
 
 extern const char* DATA_DIR;

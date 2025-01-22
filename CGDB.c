@@ -3,6 +3,7 @@
 #include "src/database.h"
 #include "src/free_space.h"
 #include "src/Graph_structure/axis.h"
+#include "src/Graph_structure/node.h"
 #include "src/cli/command_handler.h"
 #include "src/memory.h"
 #include <sys/stat.h>
@@ -14,7 +15,7 @@ int CoreSize = 0;
 const unsigned int MaxCoreSize = 1024;  // Maximum vertices in RAM at once
 unsigned int CurrentnodeCount = 0;
 const unsigned int GarbagenodeIndex = 256;
-unsigned int CurrentnodeIndex = 0;
+const unsigned int pointer_current_vertex = 257;
 
 const char* DATA_DIR = "binary-data";
 const char* DATA_FILE = "binary-data/data.bin";
@@ -35,7 +36,9 @@ int main() {
     
     printf("CGDB Command Line Interface\n");
     printf("Type 'help' for available commands\n");
-    
+
+    load_current_vertex();
+
     char command[256];
     while (1) {
         printf("\n> ");

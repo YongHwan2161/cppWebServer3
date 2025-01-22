@@ -195,7 +195,7 @@ Robust UTF-8 support ensures:
 \subsection{\texttt{node} Structure}
 Each node (vertex) follows a structured memory layout:
 \begin{itemize}
-    \item \textbf{Allocated Size Power (2 bytes)}: Expresses the node’s total size as a power of two for easy block alignment.
+    \item \textbf{Allocated Size Power (2 bytes)}: Expresses the node's total size as a power of two for easy block alignment.
     \item \textbf{Actual Used Size (4 bytes)}: Tracks the amount of memory currently utilized.
     \item \textbf{Channel Count (2 bytes)}: Indicates how many channels are currently active in the node.
     \item \textbf{Channel Offsets Table}: Lists the start addresses of each channel (4 bytes per channel offset).
@@ -218,18 +218,41 @@ Key strategies include:
 %====================================================
 \section{Link Management}\label{Sec:Links}
 \subsection{Axis-Based Connection System}
-Links are further categorized along specific axes:
+The system implements four distinct axis types for specialized link management:
 \begin{itemize}
-    \item \textbf{Forward Links (Axis 0)}: Represents primary directions of traversal or data flow.
-    \item \textbf{Backward Links (Axis 1)}: Maintains reverse tracking for bidirectional navigation.
-    \item \textbf{Time-based Links (Axis 3)}: Facilitates temporal or versioned relationships.
+    \item \textbf{Token Search Axis (0)}: Implements a binary tree structure for efficient token data retrieval. Each axis maintains exactly two link entries, enabling logarithmic-time search operations through the token hierarchy.
+    
+    \item \textbf{Token Data Axis (1)}: Facilitates token separation and lookup in data arrays. This axis optimizes the reuse of existing tokens and manages efficient data partitioning.
+    
+    \item \textbf{String Axis (2)}: Creates cyclic structures connecting token vertices to represent longer strings. This enables efficient storage and sequential access to string data while maintaining semantic relationships.
+    
+    \item \textbf{Property Axis (3)}: Defines vertex characteristics through node index references. Using channel 0 as the default, this axis provides an extensible system for attribute definition, with node 0 typically indicating string start points.
 \end{itemize}
 
-\subsection{Link Data Structure}
-Compact link entries minimize overhead:
+\subsection{Axis Implementation}
+The axis system follows a structured memory layout:
+\begin{equation}
+    \mathrm{AxisEntry} = \{\mathrm{number}: \mathrm{uint16},\, \mathrm{offset}: \mathrm{uint32}\}
+\end{equation}
+
+Key features include:
 \begin{itemize}
-    \item \textbf{node Index (4 bytes)}: Identifies the target node.
-    \item \textbf{Channel Index (2 bytes)}: Specifies the channel in the target node to link to.
+    \item \textbf{Binary Tree Structure}: Token search axis maintains a strict binary organization for efficient traversal.
+    \item \textbf{Cyclic Management}: String axis enables cycle creation and maintenance for string representation.
+    \item \textbf{Property Extension}: Flexible property system allowing arbitrary attribute definition through node indexing.
+\end{itemize}
+
+\subsection{Memory Organization}
+Axis data is organized hierarchically:
+\begin{verbatim}
+[Axis Count(2)] [Axis Table(6*N)] [Axis Data]
+  where N = number of axes
+\end{verbatim}
+
+Each axis entry occupies 6 bytes:
+\begin{itemize}
+    \item 2 bytes: Axis number
+    \item 4 bytes: Offset to axis data
 \end{itemize}
 
 %====================================================

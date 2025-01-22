@@ -65,14 +65,17 @@ int create_link(uint source_node, ushort source_ch,
     }
     return LINK_SUCCESS;
 }
-int create_forward_link(uint source_node, ushort source_ch,
-                        uint dest_node, ushort dest_ch) {
-    create_link(source_node, source_ch, dest_node, dest_ch, 0);
+int create_forward_link(Vertex source_vertex, Vertex dest_vertex) {
+    create_link(source_vertex.node, source_vertex.channel, dest_vertex.node, dest_vertex.channel, FORWARD_AXIS);
     return LINK_SUCCESS;
 }
-int create_backward_link(uint source_node, ushort source_ch,
-                        uint dest_node, ushort dest_ch) {
-    create_link(source_node, source_ch, dest_node, dest_ch, 1);
+int create_backward_link(Vertex source_vertex, Vertex dest_vertex) {
+    create_link(source_vertex.node, source_vertex.channel, dest_vertex.node, dest_vertex.channel, BACKWARD_AXIS);
+    return LINK_SUCCESS;
+}
+int create_bidirectional_link(Vertex source_vertex, Vertex dest_vertex) {
+    create_forward_link(source_vertex, dest_vertex);
+    create_backward_link(dest_vertex, source_vertex);
     return LINK_SUCCESS;
 }
 /**
@@ -88,12 +91,7 @@ int create_loop(uint source_node, ushort source_ch, ushort axis_number) {
     create_link(source_node, source_ch, source_node, source_ch, axis_number);
     return LINK_SUCCESS;
 }
-int create_bidirectional_link(uint source_node, ushort source_ch, 
-                        uint dest_node, ushort dest_ch) {
-    create_forward_link(source_node, source_ch, dest_node, dest_ch);
-    create_backward_link(dest_node, dest_ch, source_node, source_ch);
-    return LINK_SUCCESS;
-}
+
 int delete_link(uint source_node, ushort source_ch, 
                uint dest_node, ushort dest_ch, 
                ushort axis_number) {
@@ -153,6 +151,15 @@ int delete_link(uint source_node, ushort source_ch,
     }
     return LINK_SUCCESS;
 }
+int delete_first_link(uint source_node, ushort source_ch, ushort axis_number) {
+    uint first_link_node;
+    ushort first_link_channel;
+    if (get_link(source_node, source_ch, axis_number, 0, &first_link_node, &first_link_channel) == LINK_ERROR) {
+        return LINK_ERROR;
+    }
+    delete_link(source_node, source_ch, first_link_node, first_link_channel, axis_number);
+    return LINK_SUCCESS;
+}
 /**
  * @brief Get link data at specified index
  * 
@@ -168,7 +175,7 @@ int get_link(uint source_node, ushort source_ch,
             ushort axis_number, ushort link_index,
             uint* dest_node, ushort* dest_ch) {
     
-    if (!ensure_axis_exists(source_node, source_ch, axis_number)) {
+    if (!has_axis(Core[source_node], source_ch, axis_number)) {
         printf("Error: Axis %d does not exist in node %d, channel %d\n",
                axis_number, source_node, source_ch);
         return LINK_ERROR;
@@ -191,9 +198,9 @@ int get_link(uint source_node, ushort source_ch,
     uint link_data_offset = channel_offset + axis_offset + 2 + (link_index * 6);
     
     // Get link data
-    Link* link = (Link*)(node + link_data_offset);
-    *dest_node = link->node;
-    *dest_ch = link->channel;
+    Vertex* vertex = (Vertex*)(node + link_data_offset);
+    *dest_node = vertex->node;
+    *dest_ch = vertex->channel;
     
     return LINK_SUCCESS;
 } 
@@ -206,4 +213,15 @@ int get_link_count(uint source_node, ushort source_ch, ushort axis_number) {
     uint axis_offset = get_axis_offset(node, source_ch, axis_number);
     ushort* current_link_count = (ushort*)(node + channel_offset + axis_offset);
     return *current_link_count;
+}
+int create_property(uint node_index, ushort channel_index, uint property_node) {
+    create_axis(node_index, channel_index, PROPERTY_AXIS);
+    create_link(node_index, channel_index, property_node, 0, PROPERTY_AXIS);
+    return AXIS_SUCCESS;
+}
+int get_property(uint node_index, ushort channel_index) {
+    uint property_node;
+    ushort property_channel;
+    get_link(node_index, channel_index, PROPERTY_AXIS, 0, &property_node, &property_channel);
+    return property_node;
 }

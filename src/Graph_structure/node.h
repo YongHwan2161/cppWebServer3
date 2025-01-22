@@ -41,4 +41,8 @@ TokenSearchResult* search_token(const char* data, size_t length);
 void free_search_result(TokenSearchResult* result);
 int handle_integrate_tokens(char* args);
 int integrate_token_data(unsigned int node_index);
+
+int update_current_vertex();
+int update_current_vertex_to_root();
+int load_current_vertex();
 #endif // node_H 

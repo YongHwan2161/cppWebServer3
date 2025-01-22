@@ -538,15 +538,15 @@ int integrate_token_data(unsigned int node_index) {
     uint new_node = 0;
     for (int i = 1; i < channel_count; i++) {
         bool new_node_created = false;
-        if (get_link_count(node_index, i, string_AXIS) == 0) {
+        if (get_link_count(node_index, i, STRING_AXIS) == 0) {
             continue;
         }
-        Vertex next_vertex = get_next_vertex(node_index, i, string_AXIS);
+        Vertex next_vertex = get_next_vertex(node_index, i, STRING_AXIS);
         for (int j = i + 1; j < channel_count; j++) {
-            if (get_link_count(node_index, j, string_AXIS) == 0) {
+            if (get_link_count(node_index, j, STRING_AXIS) == 0) {
                 continue;
             }
-            Vertex next_vertex2 = get_next_vertex(node_index, j, string_AXIS);
+            Vertex next_vertex2 = get_next_vertex(node_index, j, STRING_AXIS);
             if (next_vertex.node == next_vertex2.node) {
                 // Create combined token
                 if (!new_node_created)
@@ -641,4 +641,20 @@ int handle_integrate_tokens(char* args) {
         printf("Failed to integrate tokens in node %d\n", node_index);
         return CMD_ERROR;
     }
+}
+int load_current_vertex() {
+    if (get_link(pointer_current_vertex, 0, PROPERTY_AXIS, 0, &CurrentVertex.node, &CurrentVertex.channel) == LINK_SUCCESS) {
+        return SUCCESS;
+    }
+    return ERROR;
+}
+int update_current_vertex() {
+    delete_first_link(pointer_current_vertex, 0, STRING_AXIS);
+    create_link(pointer_current_vertex, 0, CurrentVertex.node, CurrentVertex.channel, PROPERTY_AXIS);
+    return SUCCESS;
+}
+int update_current_vertex_to_root() {
+    delete_first_link(pointer_current_vertex, 0, STRING_AXIS);
+    create_link(pointer_current_vertex, 0, RootVertex.node, RootVertex.channel, PROPERTY_AXIS);
+    return SUCCESS;
 }

@@ -1320,92 +1320,71 @@ Purpose:
 
 ### Navigation Commands
 
-#### Print Vertex
+#### Print Vertex Information (shortcut: 'c')
 ```shell
-print-vertex
+c
 ```
-Displays the current position in the database structure.
 
-Parameters: None
+#### Purpose
+Displays information about the current vertex position, its string content, and its relationships in the hierarchy.
 
-Example output:
+#### Output Format
 ```shell
 Current Vertex: (node 5, channel 2)
+String: "Hello World"
 Currently at root position  # Only shown when at root
+
+Parents:
+  1: (node 3, channel 1) "Parent String"
+  2: (node 4, channel 0) "Another Parent"
+  # Or "No parents" if none exist
+
+Children:
+  1: (node 6, channel 0) "Child String 1"
+  2: (node 7, channel 1) "Child String 2"
+  # Or "No children" if none exist
 ```
 
-Error handling:
-```shell
-> print-vertex extra_args
-Error: Invalid arguments
-Usage: print-vertex
-```
-
-Purpose:
-- Show current navigation position
-- Verify root position
-- Track element location
-- Debug navigation issues
-
-Display Format:
+#### Information Displayed
 1. Current Position
-   - Node index
-   - Channel number
+   - Node index and channel
+   - Current string content
    - Root position indicator
 
-2. Root Status
-   - Shows if at root position
-   - Helps with navigation
-   - Confirms position context
+2. Hierarchical Relations
+   - Parent vertices with their strings
+   - Child vertices with their strings
+   - Number of parents and children
+
+3. String Content
+   - Shows string data for current vertex
+   - Displays strings for all related vertices
+   - Indicates empty strings with <empty>
+
+#### Error Handling
+```shell
+> c extra_args
+Error: Invalid arguments
+Usage: c
+```
+
+#### Usage Notes
+1. Navigation Aid
+   - Shows current location with content
+   - Displays available paths with their strings
+   - Helps with content-aware traversal
+
+2. Relationship Display
+   - Parent-child connections with strings
+   - Hierarchical structure visualization
+   - Full context of relationships
+
+3. String Management
+   - Immediate string content visibility
+   - Related strings overview
+   - Content verification
 
 ### Token Management Commands
 
 #### Integrate Tokens
-```shell
-integrate-tokens <node_index>
 ```
-
-##### Purpose
-Combines tokens in a node that share the same next vertex in their string cycles, optimizing storage and improving efficiency.
-
-##### Parameters
-- node_index: Index of node to analyze for token integration
-
-##### Examples
-```shell
-# Integrate tokens in node 5
-> integrate-tokens 5
-Successfully integrated tokens in node 5
-
-# Error cases
-> integrate-tokens
-Error: Missing arguments
-Usage: integrate-tokens <node_index>
-Example: integrate-tokens 5
-
-> integrate-tokens 256
-Error: Invalid node index
-
-> integrate-tokens abc
-Error: Invalid arguments
-Usage: integrate-tokens <node_index>
-```
-
-##### Process
-1. Input Validation
-   - Verify node index is valid
-   - Check node exists in Core
-   - Validate argument format
-
-2. Token Integration
-   - Analyze node channels
-   - Find matching token sequences
-   - Combine matching tokens
-   - Update cycle structure
-
-3. Output
-   - Success/failure status
-   - Error messages if applicable
-   - Node index confirmation
-
-[Rest of the document remains the same...] 

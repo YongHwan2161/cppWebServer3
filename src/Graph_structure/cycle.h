@@ -39,7 +39,7 @@ int create_string_cycle(uint* token_vertices, ushort* channels, int count);
 // Returns allocated string containing string data or NULL on error
 char* get_string_data(uint node_index, ushort channel_index);
 int handle_get_string(char* args);
-int handle_create_string(char* args, uint* start_node, ushort* start_channel);
+int handle_create_string(char* args, uint* start_node, ushort* start_channel, bool is_root);
 int handle_create_cycle(char* args);
 bool validate_cycle(int node_index, int channel_index, int axis_number);
 int handle_validate_cycle(char* args);

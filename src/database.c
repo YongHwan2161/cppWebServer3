@@ -51,29 +51,29 @@ int initialize_database() {
 void create_DB() {
     printf("Creating new database...\n");
     Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
-    CoreMap = (nodeMapping*)malloc(257 * sizeof(nodeMapping));
+    CoreMap = (nodeMapping*)malloc(258 * sizeof(nodeMapping));
     
     // Initialize CoreMap with default values
-    for (int i = 0; i < 256; ++i) {
+    for (int i = 0; i < 258; ++i) {
         CoreMap[i].core_position = i;
         CoreMap[i].is_loaded = 1;
         CoreMap[i].file_offset = 16 * i;  // Each node starts with 16 bytes, plus 4 bytes header        
         create_new_node();
     }
-    // create_axis(256, 0, 0); // create axis first
-    // create_loop(GarbagenodeIndex, 0, 0);
+    create_axis(256, 0, 0); // create axis first
+    create_loop(GarbagenodeIndex, 0, 0);
             // Create root string "Hello world!"
     uint start_node;
     ushort start_channel;
-    if (handle_create_string("Hello world!", &start_node, &start_channel) != SUCCESS) {
+    if (handle_create_string("root", &start_node, &start_channel, true) != SUCCESS) {
         printf("Error: Failed to create root string\n");
+        return;
     }
     // Store root vertexs
-    RootVertex.node = start_node;
-    RootVertex.channel = start_channel;
-    
+    RootVertex = (Vertex){start_node, start_channel};
     // Set current position to root
     CurrentVertex = RootVertex;
+    update_current_vertex();
     
     printf("Root string created at node %u, channel %u\n", 
            RootVertex.node, RootVertex.channel);
