@@ -4,14 +4,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define ERROR -1
+#define SUCCESS 0
 // axis 정의
 #define TOKEN_SEARCH_AXIS 0
 #define TOKEN_DATA_AXIS 1
 #define STRING_AXIS 2
 #define PROPERTY_AXIS 3
-#define FORWARD_AXIS 4
-#define BACKWARD_AXIS 5
-
+#define CHILD_AXIS 4
+#define PARENT_AXIS 5
 
 // 문자열 시작 노드 node property
 #define STRING_START_NODE 0
@@ -32,6 +33,12 @@ typedef struct {
     uint node;
     ushort channel;
 } Vertex;
+
+typedef struct {
+    Vertex* vertices;
+    int count;
+} Vertices;
+
 
 extern uchar** Core;
 extern nodeMapping* CoreMap;

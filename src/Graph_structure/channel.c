@@ -41,7 +41,7 @@ int create_channel(uint node_index) {
     node_position = get_node_position(node_index);
     node = Core[node_position];
     ushort* channel_count = (ushort*)(node + 6);  // Skip size power(2) and actual size(4)
-    printf("channel_count: %d\n", *channel_count);
+    // printf("channel_count: %d\n", *channel_count);
     uint current_offset = 8 + ((uint)*channel_count * 4);  // Header + existing channel offsets
     uint channel_data_offset = current_actual_size + 4;  // New channel data goes at the end
     insert_uint(node, current_offset, channel_data_offset, current_actual_size - current_offset);

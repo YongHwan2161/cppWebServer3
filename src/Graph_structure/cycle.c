@@ -446,6 +446,7 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel, bo
         Vertex start_vertex = {tokens[0], channels[0]};
         if (!is_root){
             create_bidirectional_link(CurrentVertex, start_vertex);
+            optimize_string_cycle(tokens, count);
         }
         // printf("Successfully created link between the last token and the first token\n");
         return SUCCESS;

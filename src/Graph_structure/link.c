@@ -12,7 +12,7 @@ int create_link(uint source_node, ushort source_ch,
 {
     if (!ensure_axis_exists(source_node, source_ch, axis_number))
     {
-        printf("Error: Axis %d does not exist in node %d, channel %d\n",
+        printf("Error: Axis %d does not exist in node %d, channel %d: create_link\n",
                axis_number, source_node, source_ch);
         return LINK_ERROR;
     }
@@ -66,11 +66,11 @@ int create_link(uint source_node, ushort source_ch,
     return LINK_SUCCESS;
 }
 int create_forward_link(Vertex source_vertex, Vertex dest_vertex) {
-    create_link(source_vertex.node, source_vertex.channel, dest_vertex.node, dest_vertex.channel, FORWARD_AXIS);
+    create_link(source_vertex.node, source_vertex.channel, dest_vertex.node, dest_vertex.channel, CHILD_AXIS);
     return LINK_SUCCESS;
 }
 int create_backward_link(Vertex source_vertex, Vertex dest_vertex) {
-    create_link(source_vertex.node, source_vertex.channel, dest_vertex.node, dest_vertex.channel, BACKWARD_AXIS);
+    create_link(source_vertex.node, source_vertex.channel, dest_vertex.node, dest_vertex.channel, PARENT_AXIS);
     return LINK_SUCCESS;
 }
 int create_bidirectional_link(Vertex source_vertex, Vertex dest_vertex) {
@@ -176,7 +176,7 @@ int get_link(uint source_node, ushort source_ch,
             uint* dest_node, ushort* dest_ch) {
     
     if (!has_axis(Core[source_node], source_ch, axis_number)) {
-        printf("Error: Axis %d does not exist in node %d, channel %d\n",
+        printf("Error: Axis %d does not exist in node %d, channel %d: get_link\n",
                axis_number, source_node, source_ch);
         return LINK_ERROR;
     }
@@ -188,10 +188,10 @@ int get_link(uint source_node, ushort source_ch,
     
     // Get link count
     ushort* current_link_count = (ushort*)(node + channel_offset + axis_offset);
-    
+
     // Check if link_index is valid
     if (link_index >= *current_link_count) {
-        return LINK_ERROR;
+        return ERROR;
     }
     
     // Calculate offset to link data

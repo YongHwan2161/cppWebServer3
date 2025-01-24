@@ -79,6 +79,7 @@ int initialize_system() {
 
 void cleanup_system() {
     // Free CoreMap
+
     if (CoreMap) {
         free(CoreMap);
         CoreMap = NULL;

@@ -62,7 +62,7 @@ void create_DB() {
     }
     create_axis(256, 0, 0); // create axis first
     create_loop(GarbagenodeIndex, 0, 0);
-            // Create root string "Hello world!"
+            // Create root string "root"
     uint start_node;
     ushort start_channel;
     if (handle_create_string("root", &start_node, &start_channel, true) != SUCCESS) {

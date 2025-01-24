@@ -888,7 +888,7 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "create-string") == 0) {
         uint start_node;
         ushort start_channel;
-        int result = handle_create_string(args, &start_node, &start_channel);
+        int result = handle_create_string(args, &start_node, &start_channel, false);
         if (result == SUCCESS) {
             printf("Successfully created string starting at node %u, channel %u\n", 
                    start_node, start_channel);
@@ -1069,13 +1069,13 @@ int handle_print_vertex(char* args) {
     ushort parent_ch=0;
     int parent_count = 0;
     printf("Parents:\n");
-    int link_count = get_link_count(CurrentVertex.node, CurrentVertex.channel, BACKWARD_AXIS);
+    int link_count = get_link_count(CurrentVertex.node, CurrentVertex.channel, PARENT_AXIS);
     if (link_count > 0)
     {
         for (int i = 0; i < link_count; i++)
         {
             if (get_link(CurrentVertex.node, CurrentVertex.channel,
-                         BACKWARD_AXIS, i, &parent_node, &parent_ch) == LINK_SUCCESS)
+                         PARENT_AXIS, i, &parent_node, &parent_ch) == LINK_SUCCESS)
             {
                 char *parent_string = get_string_data(parent_node, parent_ch);
                 printf("  %d: (node %u, channel %u) \"%s\"\n",
@@ -1095,7 +1095,7 @@ int handle_print_vertex(char* args) {
     int child_count = 0;
     
     for (int i = 0; get_link(CurrentVertex.node, CurrentVertex.channel, 
-                            FORWARD_AXIS, i, &child_node, &child_ch) == LINK_SUCCESS; i++) {
+                            CHILD_AXIS, i, &child_node, &child_ch) == LINK_SUCCESS; i++) {
         char* child_string = get_string_data(child_node, child_ch);
         printf("  %d: (node %u, channel %u) \"%s\"\n", 
                i + 1, child_node, child_ch,
