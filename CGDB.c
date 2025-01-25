@@ -4,6 +4,7 @@
 #include "src/free_space.h"
 #include "src/Graph_structure/axis.h"
 #include "src/Graph_structure/node.h"
+#include "src/Graph_structure/vertex.h"
 #include "src/cli/command_handler.h"
 #include "src/memory.h"
 #include <sys/stat.h>
@@ -16,7 +17,7 @@ const unsigned int MaxCoreSize = 1024;  // Maximum vertices in RAM at once
 unsigned int CurrentnodeCount = 0;
 const unsigned int GarbagenodeIndex = 256;
 const unsigned int pointer_current_vertex = 257;
-
+const unsigned int pointer_root_vertex = 258;
 const char* DATA_DIR = "binary-data";
 const char* DATA_FILE = "binary-data/data.bin";
 const char* MAP_FILE = "binary-data/map.bin";
@@ -38,6 +39,7 @@ int main() {
     printf("Type 'help' for available commands\n");
 
     load_current_vertex();
+    load_root_vertex();
 
     char command[256];
     while (1) {

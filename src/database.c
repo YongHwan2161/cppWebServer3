@@ -3,6 +3,7 @@
 #include "Graph_structure/node.h"
 #include "Graph_structure/link.h"
 #include "Graph_structure/cycle.h"
+#include "Graph_structure/vertex.h"
 #include "memory.h"
 #include <string.h>
 
@@ -51,10 +52,10 @@ int initialize_database() {
 void create_DB() {
     printf("Creating new database...\n");
     Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
-    CoreMap = (nodeMapping*)malloc(258 * sizeof(nodeMapping));
+    CoreMap = (nodeMapping*)malloc(259 * sizeof(nodeMapping));
     
     // Initialize CoreMap with default values
-    for (int i = 0; i < 258; ++i) {
+    for (int i = 0; i < 259; ++i) {
         CoreMap[i].core_position = i;
         CoreMap[i].is_loaded = 1;
         CoreMap[i].file_offset = 16 * i;  // Each node starts with 16 bytes, plus 4 bytes header        
@@ -74,6 +75,7 @@ void create_DB() {
     // Set current position to root
     CurrentVertex = RootVertex;
     update_current_vertex();
+    update_root_vertex();
     
     printf("Root string created at node %u, channel %u\n", 
            RootVertex.node, RootVertex.channel);

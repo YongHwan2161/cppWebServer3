@@ -46,6 +46,7 @@ extern int CoreSize;        // Current number of vertices loaded in Core
 extern const unsigned int MaxCoreSize;  // Maximum number of vertices that can be in RAM
 extern const unsigned int GarbagenodeIndex;
 extern const unsigned int pointer_current_vertex;
+extern const unsigned int pointer_root_vertex;
 
 extern unsigned int CurrentnodeCount;
 

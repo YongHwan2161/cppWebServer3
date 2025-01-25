@@ -573,7 +573,7 @@ int integrate_token_data(unsigned int node_index) {
                         if (is_root_vertex(current_vertex)) {
                             if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
                                 RootVertex = (Vertex){new_node, channel_count - 1};
-                                CurrentVertex = (Vertex){new_node, channel_count - 1};
+                                move_current_vertex((Vertex){new_node, channel_count - 1});
                             }
                         }
                         if (is_start_string_vertex(start_vertex)) {
@@ -597,7 +597,7 @@ int integrate_token_data(unsigned int node_index) {
                         if (is_root_vertex(current_vertex)) {
                             if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
                                 RootVertex = (Vertex){new_node, channel_count - 1};
-                                CurrentVertex = (Vertex){new_node, channel_count - 1};
+                                move_current_vertex((Vertex){new_node, channel_count - 1});
                             }
                         }
                         Vertex new_vertex = (Vertex){new_node, channel_count - 1};
@@ -623,6 +623,12 @@ int integrate_token_data(unsigned int node_index) {
                         return CMD_ERROR;
                     }
                     ushort channel_count = get_channel_count(Core[new_node]);
+                        if (is_root_vertex(current_vertex)) {
+                            if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
+                                RootVertex = (Vertex){new_node, channel_count - 1};
+                                move_current_vertex((Vertex){new_node, channel_count - 1});
+                            }
+                        }
                     if (is_start_string_vertex(start_vertex)) {
                         migrate_parent_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
                         migrate_child_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
@@ -641,6 +647,12 @@ int integrate_token_data(unsigned int node_index) {
                         return CMD_ERROR;
                     }
                     ushort channel_count = get_channel_count(Core[new_node]);
+                        if (is_root_vertex(current_vertex)) {
+                            if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
+                                RootVertex = (Vertex){new_node, channel_count - 1};
+                                move_current_vertex((Vertex){new_node, channel_count - 1});
+                            }
+                        }
                     Vertex new_vertex = (Vertex){new_node, channel_count - 1};
                     Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
                     if (is_start_string_vertex(start_vertex)) {
@@ -682,20 +694,4 @@ int handle_integrate_tokens(char* args) {
         printf("Failed to integrate tokens in node %d\n", node_index);
         return CMD_ERROR;
     }
-}
-int load_current_vertex() {
-    if (get_link(pointer_current_vertex, 0, PROPERTY_AXIS, 0, &CurrentVertex.node, &CurrentVertex.channel) == LINK_SUCCESS) {
-        return SUCCESS;
-    }
-    return ERROR;
-}
-int update_current_vertex() {
-    delete_first_link(pointer_current_vertex, 0, STRING_AXIS);
-    create_link(pointer_current_vertex, 0, CurrentVertex.node, CurrentVertex.channel, PROPERTY_AXIS);
-    return SUCCESS;
-}
-int update_current_vertex_to_root() {
-    delete_first_link(pointer_current_vertex, 0, STRING_AXIS);
-    create_link(pointer_current_vertex, 0, RootVertex.node, RootVertex.channel, PROPERTY_AXIS);
-    return SUCCESS;
 }

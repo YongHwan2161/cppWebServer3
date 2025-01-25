@@ -138,3 +138,48 @@ bool is_root_vertex(Vertex vertex) {
     }
     return false;
 }
+int move_current_vertex(Vertex vertex) {
+    CurrentVertex = vertex;
+    update_current_vertex();
+    return SUCCESS;
+}
+int handle_move_current_vertex(char* args) {
+    Vertex vertex;
+    sscanf(args, "%u %hu", &vertex.node, &vertex.channel);
+    return move_current_vertex(vertex);
+}
+int load_current_vertex() {
+    if (get_link(pointer_current_vertex, 0, PROPERTY_AXIS, 0, &CurrentVertex.node, &CurrentVertex.channel) == LINK_SUCCESS) {
+        return SUCCESS;
+    }
+    return ERROR;
+}
+int load_root_vertex() {
+    if (get_link(pointer_root_vertex, 0, PROPERTY_AXIS, 0, &RootVertex.node, &RootVertex.channel) == LINK_SUCCESS) {
+        return SUCCESS;
+    }
+    return ERROR;
+}
+int update_current_vertex() {
+    delete_first_link(pointer_current_vertex, 0, PROPERTY_AXIS);
+    create_link(pointer_current_vertex, 0, CurrentVertex.node, CurrentVertex.channel, PROPERTY_AXIS);
+    return SUCCESS;
+}
+int update_root_vertex() {
+    delete_first_link(pointer_root_vertex, 0, PROPERTY_AXIS);
+    create_link(pointer_root_vertex, 0, RootVertex.node, RootVertex.channel, PROPERTY_AXIS);
+    return SUCCESS;
+}
+int update_current_vertex_to_root() {
+    delete_first_link(pointer_current_vertex, 0, PROPERTY_AXIS);
+    create_link(pointer_current_vertex, 0, RootVertex.node, RootVertex.channel, PROPERTY_AXIS);
+    return SUCCESS;
+}
+int handle_get_current_vertex() {
+    printf("Current vertex: node %u, channel %u\n", CurrentVertex.node, CurrentVertex.channel);
+    return SUCCESS;
+}
+int handle_get_root_vertex() {
+    printf("Root vertex: node %u, channel %u\n", RootVertex.node, RootVertex.channel);
+    return SUCCESS;
+}

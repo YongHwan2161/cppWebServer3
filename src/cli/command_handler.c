@@ -1,17 +1,18 @@
 #include "../Graph_structure/axis.h"
 #include "../Graph_structure/channel.h"
 #include "../Graph_structure/link.h"
+#include "../Graph_structure/node.h"
+#include "../Graph_structure/cycle.h"
+#include "../Graph_structure/vertex.h"
 #include "../free_space.h"
 #include "../tests/axis_tests.h"
 #include "../tests/link_tests.h"
 #include "../tests/channel_tests.h"
-#include "../Graph_structure/node.h"
 #include "../map.h"
 #include "../memory.h"
 #include "command_handler.h"
 #include "test_command_handler.h"
 #include "validate_command_handler.h"
-#include "../Graph_structure/cycle.h"
 #include "../../CGDB.h"
 #include <stdio.h>
 #include <string.h>
@@ -791,6 +792,12 @@ int handle_command(char* command) {
                 return CMD_SUCCESS;
             }
         }
+        else if (strcmp(cmd, "get-current") == 0){
+            return handle_get_current_vertex();
+        }
+        else if (strcmp(cmd, "get-root") == 0){
+            return handle_get_root_vertex();
+        }
         else
         {
             printf("Unknown command. Type 'help' for available commands.\n");
@@ -893,7 +900,7 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "create-token") == 0) {
         return handle_create_token(args);
     }
-    else if (strcmp(cmd, "create-string") == 0) {
+    else if (strcmp(cmd, "/") == 0) {
         uint start_node;
         ushort start_channel;
         int result = handle_create_string(args, &start_node, &start_channel, false);
@@ -924,6 +931,9 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "save-node") == 0)
     {
         return handle_save_node(args);
+    }
+    else if (strcmp(cmd, "move") == 0){
+        return handle_move_current_vertex(args);
     }
     else
     {
@@ -1082,23 +1092,32 @@ int handle_print_vertex(char* args) {
     ushort parent_ch=0;
     int parent_count = 0;
     printf("Parents:\n");
-    int link_count = get_link_count(CurrentVertex.node, CurrentVertex.channel, PARENT_AXIS);
-    if (link_count > 0)
-    {
-        for (int i = 0; i < link_count; i++)
+    if (has_axis(Core[CurrentVertex.node], CurrentVertex.channel, PARENT_AXIS)) {
+        int link_count = get_link_count(CurrentVertex.node, CurrentVertex.channel, PARENT_AXIS);
+        if (link_count > 0)
         {
-            if (get_link(CurrentVertex.node, CurrentVertex.channel,
-                         PARENT_AXIS, i, &parent_node, &parent_ch) == LINK_SUCCESS)
+            for (int i = 0; i < link_count; i++)
             {
-                char *parent_string = get_string_data(parent_node, parent_ch);
-                printf("  %d: (node %u, channel %u) \"%s\"\n",
-                       i + 1, parent_node, parent_ch,
-                       parent_string ? parent_string : "<empty>");
-                if (parent_string)
-                    free(parent_string);
-                parent_count++;
+                if (get_link(CurrentVertex.node, CurrentVertex.channel,
+                             PARENT_AXIS, i, &parent_node, &parent_ch) == LINK_SUCCESS)
+                {
+                    char *parent_string = get_string_data(parent_node, parent_ch);
+                    printf("  %d: (node %u, channel %u) \"%s\"\n",
+                           i + 1, parent_node, parent_ch,
+                           parent_string ? parent_string : "<empty>");
+                    if (parent_string){
+                        free(parent_string);
+                    }
+                    parent_count++;
+                }
             }
         }
+        else{
+            printf("No parents found\n");
+        }
+    }
+    else{
+        printf("No parents found\n");
     }
 
     // Print children relationships
@@ -1106,20 +1125,34 @@ int handle_print_vertex(char* args) {
     uint child_node;
     ushort child_ch;
     int child_count = 0;
-    
-    for (int i = 0; get_link(CurrentVertex.node, CurrentVertex.channel, 
-                            CHILD_AXIS, i, &child_node, &child_ch) == LINK_SUCCESS; i++) {
-        char* child_string = get_string_data(child_node, child_ch);
-        printf("  %d: (node %u, channel %u) \"%s\"\n", 
-               i + 1, child_node, child_ch,
-               child_string ? child_string : "<empty>");
-        if (child_string) free(child_string);
-        child_count++;
+    if (has_axis(Core[CurrentVertex.node], CurrentVertex.channel, CHILD_AXIS))
+    {
+        int link_count = get_link_count(CurrentVertex.node, CurrentVertex.channel, CHILD_AXIS);
+        if (link_count > 0)
+        {
+            for (int i = 0; i < link_count; i++)
+            {
+                if (get_link(CurrentVertex.node, CurrentVertex.channel,
+                             CHILD_AXIS, i, &child_node, &child_ch) == LINK_SUCCESS)
+                {
+                    char *child_string = get_string_data(child_node, child_ch);
+                    printf("  %d: (node %u, channel %u) \"%s\"\n",
+                           i + 1, child_node, child_ch,
+                           child_string ? child_string : "<empty>");
+                    if (child_string){
+                        free(child_string);
+                    }
+                    child_count++;
+                }
+            }
+        }
+        else
+        {
+            printf("No children found\n");
+        }
     }
-    
-    if (child_count == 0) {
-        printf("  No children\n");
+    else{
+        printf("No children found\n");
     }
-    
     return CMD_SUCCESS;
 }
