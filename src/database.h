@@ -11,4 +11,5 @@
 // Function declarations
 int initialize_database(void);
 void create_DB(void);
+long get_last_file_offset();
 #endif 

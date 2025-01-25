@@ -9,5 +9,5 @@ Vertices get_child_vertices(Vertex vertex);
 int migrate_parent_vertices(Vertex source_vertex, Vertex target_vertex);
 int migrate_child_vertices(Vertex source_vertex, Vertex target_vertex);
 bool is_start_string_vertex(Vertex vertex);
-
+bool is_root_vertex(Vertex vertex);
 #endif

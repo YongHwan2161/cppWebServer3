@@ -197,7 +197,10 @@ int delete_axis(uint node_index, ushort channel_index, ushort axis_number) {
     }
     return AXIS_SUCCESS;
 }
-
+int delete_property_axis(uint node_index, ushort channel_index) {
+    delete_axis(node_index, channel_index, PROPERTY_AXIS);
+    return AXIS_SUCCESS;
+}
 uint get_last_axis_offset(uchar* node, ushort channel_index) {
     uint channel_offset = get_channel_offset(node, channel_index);
     ushort axis_count = *(ushort*)(node + channel_offset);

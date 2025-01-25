@@ -4,9 +4,14 @@
 #include "channel.h"
 #include "link.h"
 #include "../map.h"
+#include "node.h"
+#include <string.h>
+
 int free_vertices(Vertices vertices) {
-    if (vertices.vertices) {
+    if (vertices.vertices != NULL) {
         free(vertices.vertices);
+        vertices.vertices = NULL;
+        vertices.count = 0;
     }
     return SUCCESS;
 }
@@ -50,27 +55,40 @@ Vertices get_child_vertices(Vertex vertex) {
     return get_connected_vertices(vertex, CHILD_AXIS);
 }
 
+int change_vertex(unsigned int node_index, unsigned int offset, Vertex vertex) {
+    memcpy(Core[node_index] + offset, &vertex.node, sizeof(uint));
+    memcpy(Core[node_index] + offset + 4, &vertex.channel, sizeof(ushort));
+    if (!save_node_to_file(node_index)) {
+        printf("Error: Failed to update data.bin\n");
+        return ERROR;
+    }
+    return SUCCESS;
+}
 // Helper function to migrate vertices through a specific axis
 static int migrate_vertices_through_axis(Vertex source_vertex, Vertex target_vertex, ushort source_axis, ushort target_axis) {
     Vertices source_vertices = get_connected_vertices(source_vertex, source_axis);
-    // uint target_position = get_node_position(target_vertex.node);
-    
+    if (source_vertices.vertices == NULL) {
+        return ERROR;
+    }
     for (int i = 0; i < source_vertices.count; i++) {
         uint source_position = get_node_position(source_vertices.vertices[i].node);
         uint source_channel_offset = get_channel_offset(Core[source_position], source_vertices.vertices[i].channel);
         uint source_target_axis_offset = get_axis_offset(Core[source_position], source_vertices.vertices[i].channel, target_axis);
         
         Vertices target_vertices = get_connected_vertices(source_vertices.vertices[i], target_axis);
+        if (target_vertices.vertices == NULL) {
+            free_vertices(source_vertices);
+            return ERROR;
+        }
+        
         if (target_vertices.count > 0) {
             for (int j = 0; j < target_vertices.count; j++) {
                 uint source_target_node = target_vertices.vertices[j].node;
                 uint source_target_channel = target_vertices.vertices[j].channel;
                 if (source_target_node == source_vertex.node && 
                     source_target_channel == source_vertex.channel) {
-                    // *(Vertex*)(Core[source_position] + source_channel_offset + source_target_axis_offset + 2 + (j * 6)) = target_vertex;
-                    
-                    *(uint*)(Core[source_position] + source_channel_offset + source_target_axis_offset + 2 + (j * 6)) = target_vertex.node;
-                    *(ushort*)(Core[source_position] + source_channel_offset + source_target_axis_offset + 2 + (j * 6) + 4) = target_vertex.channel;
+                        
+                    change_vertex(source_position, source_channel_offset + source_target_axis_offset + 2 + (j * 6), target_vertex);
                     if (create_link(target_vertex.node, target_vertex.channel, 
                                 source_vertices.vertices[i].node, 
                                 source_vertices.vertices[i].channel, source_axis) != LINK_SUCCESS) {
@@ -87,6 +105,7 @@ static int migrate_vertices_through_axis(Vertex source_vertex, Vertex target_ver
                 }
             }
         }
+        
         free_vertices(target_vertices);
     }
     
@@ -110,6 +129,12 @@ bool is_start_string_vertex(Vertex vertex) {
         if (property_vertex.node == 0) {
             return true;
         }
+    }
+    return false;
+}
+bool is_root_vertex(Vertex vertex) {
+    if (vertex.node == RootVertex.node && vertex.channel == RootVertex.channel) {
+        return true;
     }
     return false;
 }

@@ -6,6 +6,7 @@
 #include "../map.h"
 #include "../data_structures/stack.h"
 #include "../cli/command_handler.h"
+#include "../database.h"
 #include "node.h"
 #include "link.h"  // For Core array access
 #include "cycle.h"
@@ -90,14 +91,6 @@ bool save_node_to_file(unsigned int node_index) {
             printf("Error: Failed to create map.bin\n");
             return false;
         }
-        // Write initial node count
-        // uint initial_count = 256;
-        // fwrite(&initial_count, sizeof(uint), 1, map_file);
-        // // Initialize all offsets to 0
-        // long zero_offset = 0;
-        // for (int i = 0; i < 256; i++) {
-        //     fwrite(&zero_offset, sizeof(long), 1, map_file);
-        // }
         fclose(map_file);
         map_file = fopen(MAP_FILE, "r+b");
     }
@@ -118,7 +111,14 @@ bool save_node_to_file(unsigned int node_index) {
     fclose(map_file);
     return true;
 }
-
+int handle_save_node(char* args) {
+    if (!args) {
+        print_argument_error("save-node", "", false);
+        return ERROR;
+    }
+    int node_index = atoi(args);
+    return save_node_to_file(node_index) ? SUCCESS : ERROR;
+}
 bool save_current_node_count() {
     FILE* map_file = fopen(MAP_FILE, "r+b");
     if (!map_file) {
@@ -138,26 +138,33 @@ void initialize_node(uchar** node) {
         (*node)[i] = initValues[i];
     }
 }
-void create_new_node() {
-    uchar* newnode = (uchar*)malloc(16 * sizeof(uchar));  // Always allocate 16 bytes initially
-    // printf("Creating new node at index %d\n", CurrentnodeCount);
+int create_new_node() {
+    uchar* newnode = (uchar*)malloc(16 * sizeof(uchar));
+    if (!newnode) {
+        printf("Error: Failed to allocate memory for new node\n");
+        return ERROR;
+    }
+    
     initialize_node(&newnode);
     CurrentnodeCount++;
     save_current_node_count();
+    
     Core[CurrentnodeCount - 1] = newnode;
     CoreSize++;
     CoreMap[CurrentnodeCount - 1].core_position = CurrentnodeCount - 1;
     CoreMap[CurrentnodeCount - 1].is_loaded = 1;
-    if (CurrentnodeCount == 1) {
-        CoreMap[CurrentnodeCount - 1].file_offset = 0;
-    } else {
-        uint last_node_size = 1 << (*(ushort*)Core[CurrentnodeCount - 2]);
-        // printf("Last node size: %d\n", last_node_size);
-        uint file_offset = CoreMap[CurrentnodeCount - 2].file_offset + last_node_size;
-        CoreMap[CurrentnodeCount - 1].file_offset = file_offset;
+    
+    // Get last file offset from data.bin file size
+    CoreMap[CurrentnodeCount - 1].file_offset = get_last_file_offset();
+    
+    if (!save_node_to_file(CurrentnodeCount - 1)) {
+        printf("Error: Failed to save node\n");
+        free(newnode);
+        return ERROR;
     }
-    save_node_to_file(CurrentnodeCount - 1);
-    printf("node created at index %d\n", CurrentnodeCount - 1);
+    
+    printf("Node created at index %d\n", CurrentnodeCount - 1);
+    return SUCCESS;
 }
 
 int handle_create_node(char* args) {
@@ -538,6 +545,7 @@ int integrate_token_data(unsigned int node_index) {
     int new_channel_index = 1;
     uint new_node = 0;
     for (int i = 1; i < channel_count; i++) {
+        Vertex current_vertex = {node_index, i};
         bool new_node_created = false;
         if (get_link_count(node_index, i, STRING_AXIS) == 0) {
             continue;
@@ -562,9 +570,16 @@ int integrate_token_data(unsigned int node_index) {
                             return CMD_ERROR;
                         }
                         ushort channel_count = get_channel_count(Core[new_node]);
+                        if (is_root_vertex(current_vertex)) {
+                            if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
+                                RootVertex = (Vertex){new_node, channel_count - 1};
+                                CurrentVertex = (Vertex){new_node, channel_count - 1};
+                            }
+                        }
                         if (is_start_string_vertex(start_vertex)) {
                             migrate_parent_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
                             migrate_child_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
+                            // clear_channel(start_vertex.node, start_vertex.channel);
                         }
                     
                         clear_cycle(existing_cycle);
@@ -579,6 +594,12 @@ int integrate_token_data(unsigned int node_index) {
                             return CMD_ERROR;
                         }
                         ushort channel_count = get_channel_count(Core[new_node]);
+                        if (is_root_vertex(current_vertex)) {
+                            if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
+                                RootVertex = (Vertex){new_node, channel_count - 1};
+                                CurrentVertex = (Vertex){new_node, channel_count - 1};
+                            }
+                        }
                         Vertex new_vertex = (Vertex){new_node, channel_count - 1};
                         Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
                         if (is_start_string_vertex(start_vertex)) {
@@ -586,6 +607,7 @@ int integrate_token_data(unsigned int node_index) {
                             migrate_child_vertices(start_vertex, new_vertex);
                         }
                         replace_new_token(new_vertex, start_vertex, 2);
+                        clear_channel(start_vertex.node, start_vertex.channel);
                         new_channel_index++;
                         free_cycle_info(existing_cycle);
                     }
@@ -604,6 +626,7 @@ int integrate_token_data(unsigned int node_index) {
                     if (is_start_string_vertex(start_vertex)) {
                         migrate_parent_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
                         migrate_child_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
+                        // clear_channel(start_vertex.node, start_vertex.channel);
                     }
 
                     clear_cycle(existing_cycle);
@@ -625,6 +648,7 @@ int integrate_token_data(unsigned int node_index) {
                         migrate_child_vertices(start_vertex, new_vertex);
                     }
                     replace_new_token(new_vertex, start_vertex, STRING_AXIS);
+                    clear_channel(start_vertex.node, start_vertex.channel);
                     new_channel_index++;
                     free_cycle_info(existing_cycle);
                 }

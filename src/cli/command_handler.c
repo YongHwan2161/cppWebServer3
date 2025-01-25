@@ -783,6 +783,14 @@ int handle_command(char* command) {
         {
             return handle_print_vertex(args);
         }
+        else if (strcmp(cmd, "check-node-consistency-all") == 0)
+        {
+            if (check_node_consistency_all() == 0)
+            {
+                printf("All nodes are consistent\n");
+                return CMD_SUCCESS;
+            }
+        }
         else
         {
             printf("Unknown command. Type 'help' for available commands.\n");
@@ -913,12 +921,17 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "optimize-string") == 0) {
         return handle_optimize_string(args);
     }
+    else if (strcmp(cmd, "save-node") == 0)
+    {
+        return handle_save_node(args);
+    }
     else
     {
         printf("Unknown command. Type 'help' for available commands.\n");
         return CMD_ERROR;
     }
 }
+
 
 int handle_validate_free_offsets(char* args) {
     if (args) {

@@ -79,3 +79,16 @@ void create_DB() {
            RootVertex.node, RootVertex.channel);
              
 }
+long get_last_file_offset() {
+    FILE* data_file = fopen(DATA_FILE, "rb");
+    if (!data_file) {
+        return 0;  // If file doesn't exist, start at 0
+    }
+    
+    // Get file size
+    fseek(data_file, 0, SEEK_END);
+    long file_size = ftell(data_file);
+    fclose(data_file);
+    
+    return file_size;
+}

@@ -20,7 +20,8 @@ typedef struct {
 // Function declarations
 bool validate_node(unsigned int node_index);
 bool save_node_to_file(unsigned int node_index);
-void create_new_node();
+int handle_save_node(char* args);
+int create_new_node();
 int handle_create_node(char* args);
 int delete_node(unsigned int node_index);
 int handle_delete_node(char* args);
@@ -45,4 +46,5 @@ int integrate_token_data(unsigned int node_index);
 int update_current_vertex();
 int update_current_vertex_to_root();
 int load_current_vertex();
+
 #endif // node_H 

@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 /**
  * Inserts data into a memory buffer at a specified position
  * 
@@ -89,5 +90,15 @@ int unload_node_data(unsigned int node_index);
 void load_node_from_file(FILE* data_file, long offset, unsigned int index);
 
 int load_node_to_core(unsigned int node_index);
+
+/**
+ * Checks the consistency of all nodes in the Core array
+ */
+bool check_node_consistency(unsigned int node_index);
+
+/**
+ * Checks the consistency of all nodes in the Core array
+ */ 
+unsigned int check_node_consistency_all();
 
 #endif // MEMORY_H 

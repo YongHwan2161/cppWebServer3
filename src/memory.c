@@ -171,3 +171,54 @@ int load_node_to_core(unsigned int node_index) {
     fclose(data_file);
     return CoreMap[node_index].core_position;
 }
+
+bool check_node_consistency(unsigned int node_index) {
+    // Get node position
+    int position = get_node_position(node_index);
+    if (position < 0) return false;
+    
+    // Open files
+    FILE* data_file = fopen(DATA_FILE, "rb");
+    FILE* map_file = fopen(MAP_FILE, "rb");
+    if (!data_file || !map_file) {
+        if (data_file) fclose(data_file);
+        if (map_file) fclose(map_file);
+        return false;
+    }
+    
+    // Get node size
+    uchar* node = Core[position];
+    size_t node_size = 1 << (*(ushort*)node);
+    
+    // Read file data
+    uchar* file_data = malloc(node_size);
+    if (!file_data) {
+        fclose(data_file);
+        fclose(map_file);
+        return false;
+    }
+    
+    // Read from data.bin
+    fseek(data_file, CoreMap[node_index].file_offset, SEEK_SET);
+    size_t read_size = fread(file_data, 1, node_size, data_file);
+    
+    // Compare data
+    bool is_consistent = (read_size == node_size && 
+                         memcmp(node, file_data, node_size) == 0);
+    
+    // Cleanup
+    free(file_data);
+    fclose(data_file);
+    fclose(map_file);
+    
+    return is_consistent;
+}
+unsigned int check_node_consistency_all() {
+    for (uint i = 0; i < CurrentnodeCount; i++) {
+        if (!check_node_consistency(i)) {
+            printf("Node %d is inconsistent\n", i);
+            return i;
+        }
+    }
+    return 0;
+}
