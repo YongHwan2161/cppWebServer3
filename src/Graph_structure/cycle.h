@@ -61,4 +61,7 @@ int delete_path_from_cycle(uint start_node, ushort start_channel,
                           int path_length, ushort axis_number);
 int optimize_string_cycle(uint* vertices, int count);
 int handle_optimize_string(char* args);
+bool are_vertices_in_same_cycle(uint node1, ushort channel1, 
+                              uint node2, ushort channel2, 
+                              ushort axis_number);
 #endif // cycle_H 

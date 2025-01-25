@@ -551,8 +551,21 @@ int integrate_token_data(unsigned int node_index) {
             continue;
         }
         Vertex next_vertex = get_next_vertex(node_index, i, STRING_AXIS);
+        if (is_start_string_vertex(next_vertex))
+        {
+            continue;
+        }
+
         for (int j = i + 1; j < channel_count; j++) {
             if (get_link_count(node_index, j, STRING_AXIS) == 0) {
+                continue;
+            }
+            if (are_vertices_in_same_cycle(node_index, i, node_index, j, STRING_AXIS))
+            {
+                continue;
+            }
+            if (is_start_string_vertex(next_vertex))
+            {
                 continue;
             }
             Vertex next_vertex2 = get_next_vertex(node_index, j, STRING_AXIS);
@@ -562,6 +575,9 @@ int integrate_token_data(unsigned int node_index) {
                 {
                     new_node = create_token_node(node_index, next_vertex.node);
                     cycleInfo *existing_cycle = get_cycle_info(node_index, i, 2);
+                    if (existing_cycle && existing_cycle->count == 1){
+                        continue;
+                    }
                     if (existing_cycle && existing_cycle->count == 2)
                     {
                         Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
@@ -586,6 +602,7 @@ int integrate_token_data(unsigned int node_index) {
                         create_loop(new_node, channel_count - 1, STRING_AXIS);
                         new_channel_index++;
                         free_cycle_info(existing_cycle);
+
                     }
                     else
                     {
@@ -613,6 +630,7 @@ int integrate_token_data(unsigned int node_index) {
                     }
                     new_node_created = true;
                 }
+               
                 cycleInfo *existing_cycle = get_cycle_info(node_index, j, STRING_AXIS);
 
                 if (existing_cycle && existing_cycle->count == 2)
@@ -647,12 +665,12 @@ int integrate_token_data(unsigned int node_index) {
                         return CMD_ERROR;
                     }
                     ushort channel_count = get_channel_count(Core[new_node]);
-                        if (is_root_vertex(current_vertex)) {
-                            if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
-                                RootVertex = (Vertex){new_node, channel_count - 1};
-                                move_current_vertex((Vertex){new_node, channel_count - 1});
-                            }
+                    if (is_root_vertex(current_vertex)) {
+                        if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
+                            RootVertex = (Vertex){new_node, channel_count - 1};
+                            move_current_vertex((Vertex){new_node, channel_count - 1});
                         }
+                    }
                     Vertex new_vertex = (Vertex){new_node, channel_count - 1};
                     Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
                     if (is_start_string_vertex(start_vertex)) {

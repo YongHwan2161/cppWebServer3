@@ -6,6 +6,7 @@
 #include "link.h"
 #include "node.h"
 #include "../cli/command_handler.h"
+#include "../data_structures/array.h"
 #include "../../CGDB.h"
 #include <stdlib.h>
 #include <locale.h>
@@ -279,6 +280,14 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel, bo
             printf("Error: Failed to create loop for node %u\n", result_first->node_index);
             free_search_result(result_first);
             return ERROR;
+        } else {
+            create_property(tokens[0], channels[0], STRING_START_NODE);
+            Vertex start_vertex = {tokens[0], channels[0]};
+            if (!is_root)
+            {
+                create_bidirectional_link(CurrentVertex, start_vertex);
+                optimize_string_cycle(tokens, count);
+            }
         }
         *start_node = tokens[0];
         *start_channel = channels[0];
@@ -331,6 +340,7 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel, bo
         Vertex start_vertex = {tokens[0], channels[0]};
         if (!is_root){
             create_bidirectional_link(CurrentVertex, start_vertex);
+            count = remove_duplicates(tokens, count);
             optimize_string_cycle(tokens, count);
         }
         // printf("Successfully created link between the last token and the first token\n");
@@ -338,6 +348,14 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel, bo
     }
 }
 int optimize_string_cycle(uint* vertices, int count) {
+    if (count == 1)
+    {
+        if (integrate_token_data(vertices[0]) != SUCCESS) {
+            printf("Error: Failed to integrate token data in node %u\n", vertices[0]);
+            return CMD_ERROR;
+        }
+        return CMD_SUCCESS;
+    }
     for (int i = 0; i < count - 1; i++) {
         if (integrate_token_data(vertices[i]) != SUCCESS) {
             printf("Error: Failed to integrate token data in node %u\n", vertices[i]);
@@ -829,4 +847,24 @@ int handle_delete_path(char* args) {
 
     printf("Error: Failed to delete path from cycle\n");
     return CMD_ERROR;
+}
+
+// Check if two vertices are in the same cycle
+bool are_vertices_in_same_cycle(uint node1, ushort channel1, 
+                              uint node2, ushort channel2, 
+                              ushort axis_number) {
+    cycleInfo* cycle = get_cycle_info(node1, channel1, axis_number);
+    if (!cycle) return false;
+    
+    // Search for second vertex in the cycle
+    bool found = false;
+    for (int i = 0; i < cycle->count; i++) {
+        if (cycle->vertices[i] == node2 && cycle->channels[i] == channel2) {
+            found = true;
+            break;
+        }
+    }
+    
+    free_cycle_info(cycle);
+    return found;
 }
