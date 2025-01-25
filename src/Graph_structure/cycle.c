@@ -35,11 +35,11 @@ bool has_cycle(unsigned int node_index, ushort channel_index, ushort axis_number
     ushort current_axis = axis_number;
     
     while (visited_count < MAX_cycle_vertices) {
-        uint node_position = get_node_position(current_node);
-        if (!Core[node_position]) break;
+        long node_position = get_node_position(current_node);
+        if (node_position == -1) break;
         
-        uint channel_offset = get_channel_offset(Core[node_position], current_channel);
-        uint axis_offset = get_axis_offset(Core[node_position], current_channel, current_axis);
+        uint channel_offset = get_channel_offset(Core[(unsigned int)node_position], current_channel);
+        uint axis_offset = get_axis_offset(Core[(unsigned int)  node_position], current_channel, current_axis);
         
         ushort link_count = *(ushort*)(Core[node_position] + channel_offset + axis_offset);
         if (link_count == 0) break;
@@ -92,8 +92,8 @@ cycleInfo* get_cycle_info(unsigned int node_index, ushort channel_index, ushort 
     
     while (visited_count < MAX_cycle_vertices) {
         // printf("visited_count: %d\n", visited_count);
-        uint node_position = get_node_position(current_node);
-        if (!Core[node_position]) break;
+        long node_position = get_node_position(current_node);
+        if (node_position == -1) break;
         
         uint channel_offset = get_channel_offset(Core[node_position], current_channel);
         uint axis_offset = get_axis_offset(Core[node_position], current_channel, current_axis);
@@ -202,7 +202,7 @@ char* get_string_data(uint node_index, ushort channel_index) {
     }
 
     // Allocate buffer for string data
-    char* string = (char*)malloc(1024);  // Add explicit cast to char*
+    char* string = (char*)malloc(8192);  // Add explicit cast to char*
     if (!string) {
         free_cycle_info(info);
         return NULL;
@@ -245,7 +245,7 @@ int clear_cycle(cycleInfo* info) {
     clear_channels(info->vertices, info->channels, info->count);
     return LINK_SUCCESS;
 }
-int handle_create_string(char* args, uint* start_node, ushort* start_channel, bool is_root) {
+int handle_create_string(char* args, uint* start_node, ushort* start_channel, bool is_root, bool is_embedded) {
     if (!args || !*args) {
         print_argument_error("create-string", "<text>", false);
         return ERROR;
@@ -339,7 +339,10 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel, bo
         create_property(tokens[0], channels[0], STRING_START_NODE);
         Vertex start_vertex = {tokens[0], channels[0]};
         if (!is_root){
-            create_bidirectional_link(CurrentVertex, start_vertex);
+            if (!is_embedded)
+            {
+                create_bidirectional_link(CurrentVertex, start_vertex);
+            }
             count = remove_duplicates(tokens, count);
             optimize_string_cycle(tokens, count);
         }
@@ -727,8 +730,8 @@ int handle_insert_path(char* args) {
 
     // Validate all channels exist
     for (int i = 0; i < path_length; i++) {
-        uint node_position = get_node_position(path_vertices[i]);
-        if (!Core[node_position]) {
+        long node_position = get_node_position(path_vertices[i]);
+        if (node_position == -1) {
             printf("Error: node %u not loaded\n", path_vertices[i]);
             return CMD_ERROR;
         }
@@ -867,4 +870,64 @@ bool are_vertices_in_same_cycle(uint node1, ushort channel1,
     
     free_cycle_info(cycle);
     return found;
+}
+
+// Create string from text file content
+int create_strings_from_file(const char* filepath) {
+    FILE* file = fopen(filepath, "r");
+    if (!file) {
+        printf("Error: Could not open file %s\n", filepath);
+        return ERROR;
+    }
+
+    char line[4096];
+    uint start_node;
+    ushort start_channel;
+    int result = SUCCESS;
+
+    while (fgets(line, sizeof(line), file)) {
+        // Remove trailing newline
+        size_t len = strlen(line);
+        if (len > 0 && line[len-1] == '\n') {
+            line[len-1] = '\0';
+        }
+
+        // Skip empty lines
+        if (strlen(line) == 0) continue;
+        if (line[0] == '\n') continue;
+
+        // Create string with embedded flag set to true
+        if (handle_create_string(line, &start_node, &start_channel, false, true) != SUCCESS) {
+            printf("Error: Failed to create string for line: %s\n", line);
+            result = ERROR;
+            break;
+        }
+    }
+
+    fclose(file);
+    return result;
+}
+// Handle upload-text command
+int handle_upload_text(char* args) {
+    if (!args || !*args) {
+        print_argument_error("upload-text", "<filepath>", true);
+        return CMD_ERROR;
+    }
+
+    // Remove quotes if present
+    if (args[0] == '"') {
+        args++;
+        size_t len = strlen(args);
+        if (len > 0 && args[len-1] == '"') {
+            args[len-1] = '\0';
+        }
+    }
+
+    if (create_strings_from_file(args) == SUCCESS) {
+        printf("Successfully uploaded text from %s\n", args);
+        return CMD_SUCCESS;
+    }
+
+    printf("Error: Failed to upload text from %s\n", args);
+    return CMD_ERROR;
 }

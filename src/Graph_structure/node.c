@@ -34,8 +34,8 @@ static uchar initValues[16] = {
  */
 bool validate_node(unsigned int node_index) {
     // Check if node exists in Core
-    uint node_position = get_node_position(node_index);
-    if (!Core[node_position]) {
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) {
         printf("Error: Invalid node index %u\n", node_index);
         return false;
     }
@@ -54,7 +54,8 @@ bool save_node_to_file(unsigned int node_index) {
         return false;
     }
     // printf("start save_node_to_file\n");
-    uint node_position = CoreMap[node_index].core_position;
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) return false;
     uchar* node = Core[node_position];
     // Try to open data file, create if doesn't exist
     FILE* data_file = fopen(DATA_FILE, "r+b");
@@ -290,7 +291,8 @@ char* get_token_data(unsigned int node_index) {
         }
 
         // Get children from axis 2
-        uint node_position = get_node_position(current.node_index);
+        long node_position = get_node_position(current.node_index);
+        if (node_position == -1) continue;
         uint channel_offset = get_channel_offset(Core[node_position], current.channel);
         uint axis_offset = get_axis_offset(Core[node_position], current.channel, TOKEN_DATA_AXIS);
         
@@ -407,7 +409,7 @@ TokenSearchResult* search_token(const char* data, size_t length) {
         printf("Error: Invalid search data\n");
         return NULL;
     }
-    printf("data: %s\n", data);
+    // printf("data: %s\n", data);
     TokenSearchResult* result = malloc(sizeof(TokenSearchResult));
     if (!result) {
         printf("Error: Failed to allocate result structure\n");
@@ -421,7 +423,7 @@ TokenSearchResult* search_token(const char* data, size_t length) {
     
     // Get token data for current node
     char* token_data = get_token_data(current_node);
-    printf("token_data: %s\n", token_data);
+    // printf("token_data: %s\n", token_data);
     if (!token_data) {
         printf("Error: Failed to get token data from node %u\n", current_node);
         free(result);
@@ -432,11 +434,14 @@ TokenSearchResult* search_token(const char* data, size_t length) {
     while (matched_pos < length) {
         bool found_match = false;
         // Get links from current node
-        uint node_position = get_node_position(current_node);
+        long node_position = get_node_position(current_node);
         // printf("node_position: %d\n", node_position);
-        if (!Core[node_position]) break;
+        if (node_position == -1) break;
 
         uint channel_offset = get_channel_offset(Core[node_position], 0);  // Use channel 0
+        if (channel_offset == 0) {
+            break;
+        }
         if (!has_axis(Core[node_position], 0, TOKEN_SEARCH_AXIS)) {
             break;
         }
@@ -526,7 +531,8 @@ int handle_search_token(char* args) {
     return CMD_SUCCESS;
 }
 Vertex get_next_vertex(unsigned int node_index, unsigned short channel, unsigned short axis_number) {
-    uint node_position = get_node_position(node_index);
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) return (Vertex){0, 0};
     uint channel_offset = get_channel_offset(Core[node_position], channel);
     uint axis_offset = get_axis_offset(Core[node_position], channel, axis_number);
     uint link_offset = channel_offset + axis_offset + 2;
@@ -537,7 +543,8 @@ Vertex get_next_vertex(unsigned int node_index, unsigned short channel, unsigned
 }
 int integrate_token_data(unsigned int node_index) {
     // Check if node has enough channels for integration
-    uint node_position = get_node_position(node_index);
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) return CMD_ERROR;
     ushort channel_count = get_channel_count(Core[node_position]);
     if (channel_count <= 1) {
         return CMD_SUCCESS;
@@ -575,7 +582,8 @@ int integrate_token_data(unsigned int node_index) {
                 {
                     new_node = create_token_node(node_index, next_vertex.node);
                     cycleInfo *existing_cycle = get_cycle_info(node_index, i, 2);
-                    if (existing_cycle && existing_cycle->count == 1){
+                    
+                    if (existing_cycle && existing_cycle->count <= 1){
                         continue;
                     }
                     if (existing_cycle && existing_cycle->count == 2)
@@ -632,7 +640,9 @@ int integrate_token_data(unsigned int node_index) {
                 }
                
                 cycleInfo *existing_cycle = get_cycle_info(node_index, j, STRING_AXIS);
-
+                if (existing_cycle->count <= 1) {
+                    continue;
+                }
                 if (existing_cycle && existing_cycle->count == 2)
                 {
                     Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
@@ -673,14 +683,14 @@ int integrate_token_data(unsigned int node_index) {
                     }
                     Vertex new_vertex = (Vertex){new_node, channel_count - 1};
                     Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
-                    if (is_start_string_vertex(start_vertex)) {
-                        migrate_parent_vertices(start_vertex, new_vertex);
-                        migrate_child_vertices(start_vertex, new_vertex);
-                    }
-                    replace_new_token(new_vertex, start_vertex, STRING_AXIS);
-                    clear_channel(start_vertex.node, start_vertex.channel);
-                    new_channel_index++;
-                    free_cycle_info(existing_cycle);
+                        if (is_start_string_vertex(start_vertex)) {
+                            migrate_parent_vertices(start_vertex, new_vertex);
+                            migrate_child_vertices(start_vertex, new_vertex);
+                        }
+                        replace_new_token(new_vertex, start_vertex, STRING_AXIS);
+                        clear_channel(start_vertex.node, start_vertex.channel);
+                        new_channel_index++;
+                        free_cycle_info(existing_cycle);
                 }
             }
         }

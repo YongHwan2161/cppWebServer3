@@ -86,15 +86,19 @@ void init_map(void) {
     }
 }
 
-unsigned int get_node_position(unsigned int node_index) {
+long get_node_position(unsigned int node_index) {
     // printf("calling get_node_position: %d\n", node_index);
+    if (node_index >= MaxCoreSize) {
+        printf("Error: node index %d is out of bounds\n", node_index);
+        return -1;
+    }
     // Check if node is loaded
     if (!CoreMap[node_index].is_loaded) {
         printf("node is not loaded\n");
         int position = load_node_to_core(node_index);
         if (position == -1) {
             printf("Error: node %d is not loaded in memory\n", node_index);
-            return 0;
+            return -1;
         }
     }
     

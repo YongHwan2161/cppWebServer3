@@ -178,7 +178,7 @@ int handle_test_sequential_token_creation(char* args) {
         // Create string from substring
         uint start_node;
         ushort start_channel;
-        int result = handle_create_string(substr, &start_node, &start_channel);
+        int result = handle_create_string(substr, &start_node, &start_channel, false, false);
         if (result == CMD_ERROR) {
             printf("Error: Failed to create string for %s\n", substr);
             failed++;
@@ -224,7 +224,7 @@ int handle_test_repeating_string(char* args) {
             // Try to create string
             uint start_node;
             ushort start_channel;
-            int result = handle_create_string(test_str, &start_node, &start_channel);
+            int result = handle_create_string(test_str, &start_node, &start_channel, false, false);
             if (result == CMD_ERROR) {
                 printf("Error: Failed to create string for pattern '%s' repeated %d times\n",
                        pattern, repeat);

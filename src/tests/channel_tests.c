@@ -10,8 +10,8 @@ int test_sequential_channel_creation(uint node_index) {
     printf("Target node: %d\n", node_index);
     
     // Store initial state
-    uint node_position = get_node_position(node_index);
-    uchar* node = Core[node_position];
+    long node_position = get_node_position(node_index);
+    uchar* node = Core[(unsigned int)node_position];
     ushort initial_channel_count = get_channel_count(node);
     
     // Create channels until we reach maximum (or fail)
@@ -53,7 +53,7 @@ int test_sequential_channel_creation(uint node_index) {
     
     // Verify final state
     node_position = get_node_position(node_index);
-    node = Core[node_position];
+    node = Core[(unsigned int)node_position];
     ushort final_count = get_channel_count(node);
     printf("Final channel count: %d\n", final_count);
     

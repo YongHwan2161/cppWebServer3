@@ -14,6 +14,7 @@ unsigned int get_channel_offset(uchar* node, ushort channel_index) {
     if (channel_index >= channel_count) {
         printf("Error: Invalid channel index %d (max: %d) get_channel_offset(), \n", 
                channel_index, channel_count - 1);
+        return 0;
     }
     return *(uint*)(node + 8 + (channel_index * 4));  // 8: size_power(2) + actual_size(4) + channels(2)
 }
@@ -28,7 +29,8 @@ unsigned int get_channel_end_offset(uchar* node, ushort channel_index) {
     return 0; // This should never happen
 }
 int create_channel(uint node_index) {
-    uint node_position = get_node_position(node_index);
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) return CHANNEL_ERROR;
     uchar* node = Core[node_position];
     // Get current actual size and calculate required size
     uint current_actual_size = *(uint*)(node + 2);
@@ -39,6 +41,7 @@ int create_channel(uint node_index) {
         return CHANNEL_ERROR;
     }
     node_position = get_node_position(node_index);
+    if (node_position == -1) return CHANNEL_ERROR;
     node = Core[node_position];
     ushort* channel_count = (ushort*)(node + 6);  // Skip size power(2) and actual size(4)
     // printf("channel_count: %d\n", *channel_count);
@@ -85,13 +88,11 @@ int create_multi_channels(uint node_index, int num_channels) {
 }
 // Find empty channel or create new one
 int recycle_or_create_channel(uint node_index) {
-    uint node_position = get_node_position(node_index);
-    if (!Core[node_position]) {
-        printf("Error: node %u not loaded\n", node_index);
-        return CHANNEL_ERROR;
-    }
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) return CHANNEL_ERROR;
+    
 
-    uchar* node = Core[node_position];
+    uchar* node = Core[(unsigned int)node_position];
     ushort channel_count = get_channel_count(node);
 
     // Check for empty channels
@@ -119,8 +120,9 @@ int recycle_or_create_channel(uint node_index) {
 //     return CHANNEL_SUCCESS;
 // }
 int clear_channel(uint node_index, ushort channel_index) {
-    uint node_position = get_node_position(node_index);
-    uchar* node = Core[node_position];
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) return CHANNEL_ERROR;
+    uchar* node = Core[(unsigned int)node_position];
     uint channel_offset = get_channel_offset(node, channel_index);
     uint channel_end_offset = get_channel_end_offset(node, channel_index);
     uint move_dest = channel_offset + 2;

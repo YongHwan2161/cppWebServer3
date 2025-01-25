@@ -112,7 +112,7 @@ int unload_node_data(unsigned int node_index) {
     }
     
     // Get node position
-    int position = get_node_position(node_index);
+    long position = get_node_position(node_index);
     if (position < 0) {
         return 0;  // Error already printed by get_node_position
     }
@@ -174,7 +174,7 @@ int load_node_to_core(unsigned int node_index) {
 
 bool check_node_consistency(unsigned int node_index) {
     // Get node position
-    int position = get_node_position(node_index);
+    long position = get_node_position(node_index);
     if (position < 0) return false;
     
     // Open files

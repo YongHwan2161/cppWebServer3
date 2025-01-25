@@ -126,7 +126,8 @@ int test_resize_node_space() {
 int test_axis_create_delete(int node_index, int channel_index, int max_axis) {
     printf("\nTesting axis creation and deletion (max axis: %d)...\n", max_axis);
     int failed_tests = 0;
-    uint node_position = get_node_position(node_index);
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) return 1;
     // Test 1: Create axes from 0 to max_axis
     printf("Creating axes 0 to %d...\n", max_axis);
     for (int i = 0; i <= max_axis; i++) {
@@ -140,6 +141,7 @@ int test_axis_create_delete(int node_index, int channel_index, int max_axis) {
     // Verify all axes were created
     printf("\nVerifying created axes...\n");
     for (int i = 0; i <= max_axis; i++) {
+        
         if (!has_axis(Core[node_position], channel_index, i)) {
             printf("✗ Axis %d not found after creation\n", i);
             failed_tests++;

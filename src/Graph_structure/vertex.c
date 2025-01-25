@@ -66,15 +66,23 @@ int change_vertex(unsigned int node_index, unsigned int offset, Vertex vertex) {
 }
 // Helper function to migrate vertices through a specific axis
 static int migrate_vertices_through_axis(Vertex source_vertex, Vertex target_vertex, ushort source_axis, ushort target_axis) {
+    long source_node_position = get_node_position(source_vertex.node);
+    if (source_node_position == -1) return ERROR;
+    if (!has_axis(Core[source_node_position], source_vertex.channel, source_axis)) {
+        return ERROR;
+    }
     Vertices source_vertices = get_connected_vertices(source_vertex, source_axis);
     if (source_vertices.vertices == NULL) {
         return ERROR;
     }
     for (int i = 0; i < source_vertices.count; i++) {
-        uint source_position = get_node_position(source_vertices.vertices[i].node);
+        long source_position = get_node_position(source_vertices.vertices[i].node);
+        if (source_position == -1) return ERROR;
         uint source_channel_offset = get_channel_offset(Core[source_position], source_vertices.vertices[i].channel);
         uint source_target_axis_offset = get_axis_offset(Core[source_position], source_vertices.vertices[i].channel, target_axis);
-        
+        if (!has_axis(Core[source_position], source_vertices.vertices[i].channel, target_axis)) {
+            return ERROR;
+        }
         Vertices target_vertices = get_connected_vertices(source_vertices.vertices[i], target_axis);
         if (target_vertices.vertices == NULL) {
             free_vertices(source_vertices);

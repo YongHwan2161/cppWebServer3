@@ -65,7 +65,8 @@
         "stdlib.h": "c",
         "free_space.h": "c",
         "node.h": "c",
-        "axis.h": "c"
+        "axis.h": "c",
+        "database.h": "c"
     },
     "makefile.launchConfigurations": [
         {

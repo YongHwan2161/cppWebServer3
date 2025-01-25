@@ -64,9 +64,9 @@ bool has_axis(uchar* node, ushort channel_index, ushort axis_number) {
 }
 
 int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
-    uint node_position = get_node_position(node_index);
+    long node_position = get_node_position(node_index);
     // Validate node
-    if (!Core[node_position]) {
+    if (node_position == -1) {
         printf("Error: Invalid node index\n");
         return AXIS_ERROR;
     }
@@ -138,8 +138,8 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
 }
 
 int delete_axis(uint node_index, ushort channel_index, ushort axis_number) {
-    uint node_position = get_node_position(node_index);
-    if (!Core[node_position]) return AXIS_ERROR;
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) return AXIS_ERROR;
     
     uchar* node = Core[node_position];
     uint channel_offset = get_channel_offset(node, channel_index);
@@ -225,7 +225,8 @@ uint get_last_axis_offset(uchar* node, ushort channel_index) {
  * @return AXIS_SUCCESS if axis exists or was created successfully, AXIS_ERROR otherwise
  */
 bool ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number) {
-    uint node_position = get_node_position(node_index);
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) return false;
     uchar* node = Core[node_position];
     // Check if axis exists
     if (!has_axis(node, channel_index, axis_number)) {

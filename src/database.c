@@ -66,7 +66,7 @@ void create_DB() {
             // Create root string "root"
     uint start_node;
     ushort start_channel;
-    if (handle_create_string("root", &start_node, &start_channel, true) != SUCCESS) {
+    if (handle_create_string("root", &start_node, &start_channel, true, false) != SUCCESS) {
         printf("Error: Failed to create root string\n");
         return;
     }

@@ -170,8 +170,8 @@ int test_multi_channel_links(uint node_index) {
     // }
     
     // Store initial state
-    uint node_position = get_node_position(node_index);
-    uchar* node = Core[node_position];
+    long node_position = get_node_position(node_index);
+    uchar* node = Core[(unsigned int)node_position];
     uint ch0_offset = get_channel_offset(node, 0);
     uint ch1_offset = get_channel_offset(node, 1);
     
@@ -221,7 +221,7 @@ int test_multi_channel_links(uint node_index) {
         
         // Verify link counts
         node_position = get_node_position(node_index);
-        node = Core[node_position];  // Reload node pointer as it might have changed
+        node = Core[(unsigned int)node_position];  // Reload node pointer as it might have changed
         ch0_offset = get_channel_offset(node, 0);
         ch1_offset = get_channel_offset(node, 1);
         axis0_offset = get_axis_offset(node, 0, 0);
@@ -282,7 +282,7 @@ int test_multi_channel_links(uint node_index) {
     
     // Verify final state
     node_position = get_node_position(node_index);
-    node = Core[node_position];
+    node = Core[(unsigned int)node_position];
     ch0_offset = get_channel_offset(node, 0);
     ch1_offset = get_channel_offset(node, 1);
     axis0_offset = get_axis_offset(node, 0, 0);

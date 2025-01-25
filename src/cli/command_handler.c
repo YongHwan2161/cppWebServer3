@@ -275,14 +275,14 @@ int handle_print_node(char* args) {
         print_argument_error("print-node", "<node_index>", false);
         return CMD_ERROR;
     }
-    uint node_position = get_node_position(node_index);
-    if (!CoreMap[node_position].is_loaded) {
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) {
         printf("Error: node %d is not loaded in memory\n", node_index);
         return CMD_ERROR;
     }
-    printf("node %d is at Core position %d\n", node_index, node_position);
+    printf("node %d is at Core position %d\n", node_index, (unsigned int)node_position);
     // Check if node exists
-    if (!Core[node_position]) {
+    if (!Core[(unsigned int)node_position]) {
         printf("Error: node %d does not exist\n", node_index);
         return CMD_ERROR;
     }
@@ -291,7 +291,7 @@ int handle_print_node(char* args) {
     printf("Offset    00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F    ASCII\n");
     printf("--------  -----------------------------------------------    ----------------\n");
     
-    ushort node_size = 1 << (*(ushort*)Core[node_position]);
+    ushort node_size = 1 << (*(ushort*)Core[(unsigned int)node_position]);
     printf("node_size: %d\n", node_size);
     for (int i = 0; i < node_size; i += 16) {
         // Print offset
@@ -300,7 +300,7 @@ int handle_print_node(char* args) {
         // Print hex values
         for (int j = 0; j < 16; j++) {
             if (i + j < node_size) {
-                printf("%02X ", Core[node_position][i + j]);
+                printf("%02X ", Core[(unsigned int)node_position][i + j]);
             } else {
                 printf("   ");
             }
@@ -309,15 +309,15 @@ int handle_print_node(char* args) {
         // Print ASCII representation
         printf("   ");
         for (int j = 0; j < 16 && i + j < node_size; j++) {
-            char c = Core[node_position][i + j];
+            char c = Core[(unsigned int)node_position][i + j];
             printf("%c", (c >= 32 && c <= 126) ? c : '.');
         }
         printf("\n");
     }
     // Print node metadata
     printf("\nnode %d Information:\n", node_index);
-    printf("Size: %d bytes\n", 1 << (*(ushort*)Core[node_position]));
-    printf("Actual Size: %d bytes\n", *(uint*)(Core[node_position] + 2));
+    printf("Size: %d bytes\n", 1 << (*(ushort*)Core[(unsigned int)node_position]));
+    printf("Actual Size: %d bytes\n", *(uint*)(Core[(unsigned int)node_position] + 2));
     printf("Core Position: %d\n", CoreMap[node_index].core_position);
     printf("File Offset: 0x%08lX\n", CoreMap[node_index].file_offset);
     printf("Load Status: %s\n", CoreMap[node_index].is_loaded ? "Loaded" : "Not loaded");
@@ -462,9 +462,9 @@ int handle_get_channel_offset(char* args) {
         print_argument_error("get-channel-offset", "<node_index> <channel_index>", false);
         return CMD_ERROR;
     }
-    uint node_position = get_node_position(node_index);
+    long node_position = get_node_position(node_index);
     // Get node and check if it exists
-    if (!Core[node_position]) {
+    if (node_position == -1) {
         printf("Error: node %d does not exist\n", node_index);
         return CMD_ERROR;
     }
@@ -488,10 +488,10 @@ int handle_get_node_position(char* args) {
     }
     
     // Get node position
-    int position = get_node_position(node_index);
+    long position = get_node_position(node_index);
     if (position >= 0) {
-        printf("node %d is at Core position %d\n", node_index, position);
-        printf("Memory address: %p\n", (void*)Core[position]);
+        printf("node %d is at Core position %d\n", node_index, (unsigned int)position);
+        printf("Memory address: %p\n", (void*)Core[(unsigned int)position]);
         return CMD_SUCCESS;
     }
     
@@ -903,7 +903,17 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "/") == 0) {
         uint start_node;
         ushort start_channel;
-        int result = handle_create_string(args, &start_node, &start_channel, false);
+        int result = handle_create_string(args, &start_node, &start_channel, false, false);
+        if (result == SUCCESS) {
+            printf("Successfully created string starting at node %u, channel %u\n", 
+                   start_node, start_channel);
+        }
+        return result;
+    }
+    else if (strcmp(cmd, "//") == 0) {
+        uint start_node;
+        ushort start_channel;
+        int result = handle_create_string(args, &start_node, &start_channel, false, true);
         if (result == SUCCESS) {
             printf("Successfully created string starting at node %u, channel %u\n", 
                    start_node, start_channel);
@@ -934,6 +944,9 @@ int handle_command(char* command) {
     }
     else if (strcmp(cmd, "move") == 0){
         return handle_move_current_vertex(args);
+    }
+    else if (strcmp(cmd, "upload-text") == 0) {
+        return handle_upload_text(args);
     }
     else
     {

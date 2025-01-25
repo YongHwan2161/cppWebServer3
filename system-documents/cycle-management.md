@@ -464,3 +464,86 @@ if (are_vertices_in_same_cycle(42, 1, 43, 2, STRING_AXIS)) {
    - Pre-operation validation
    - Cycle modification checks
    - Relationship verification 
+
+## Text Document Upload
+
+### Overview
+The system provides functionality to upload text documents and automatically create strings from their content. Each line in the document becomes a separate string in the database, enabling efficient text storage and tokenization.
+
+### Command Interface
+```shell
+upload-text <filepath>
+```
+
+#### Parameters
+- filepath: Path to the text document to upload
+
+#### Process
+1. File Processing
+   - Open text document
+   - Read line by line
+   - Handle empty lines and formatting
+
+2. String Creation
+   - Create string for each line
+   - Enable embedded mode
+   - Optimize token usage
+
+3. Token Management
+   - Automatic tokenization
+   - Token reuse across strings
+   - Efficient storage
+
+### Implementation Details
+
+#### File Reading
+```c
+int create_strings_from_file(const char* filepath) {
+    FILE* file = fopen(filepath, "r");
+    if (!file) return ERROR;
+
+    char line[1024];
+    while (fgets(line, sizeof(line), file)) {
+        // Process line and create string
+        handle_create_string(line, &start_node, &start_channel, 
+                           false, true);
+    }
+}
+```
+
+#### String Creation
+- Each line processed individually
+- Embedded flag set to true
+- Automatic token optimization
+
+### Benefits
+1. Bulk Processing
+   - Efficient document upload
+   - Automatic string creation
+   - Token optimization
+
+2. Storage Efficiency
+   - Token reuse across strings
+   - Minimized redundancy
+   - Optimized memory usage
+
+3. Usability
+   - Simple interface
+   - Automatic processing
+   - Bulk text handling
+
+### Notes
+1. File Handling
+   - Line length limits
+   - Empty line handling
+   - Error recovery
+
+2. Performance
+   - Progressive tokenization
+   - Incremental optimization
+   - Memory management
+
+3. Usage Context
+   - Document upload
+   - Text processing
+   - Database population 

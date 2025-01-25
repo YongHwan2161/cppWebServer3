@@ -13,7 +13,7 @@
 uchar** Core;
 nodeMapping* CoreMap;
 int CoreSize = 0;
-const unsigned int MaxCoreSize = 1024;  // Maximum vertices in RAM at once
+const unsigned int MaxCoreSize = 32768;  // Maximum vertices in RAM at once
 unsigned int CurrentnodeCount = 0;
 const unsigned int GarbagenodeIndex = 256;
 const unsigned int pointer_current_vertex = 257;
