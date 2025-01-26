@@ -1,15 +1,16 @@
+#include <stdlib.h>
+#include <locale.h>
 #include "cycle.h"
-#include "../memory.h"
-#include "../map.h"
 #include "axis.h"
 #include "channel.h"
 #include "link.h"
-#include "node.h"
+#include "node/node.h"
+#include "node/token.h"
+#include "../memory.h"
+#include "../map.h"
 #include "../cli/command_handler.h"
 #include "../data_structures/array.h"
 #include "../../CGDB.h"
-#include <stdlib.h>
-#include <locale.h>
 
 #define MAX_cycle_vertices 1000
 
@@ -350,18 +351,18 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel, bo
         return SUCCESS;
     }
 }
-int optimize_string_cycle(uint* vertices, int count) {
-    if (count == 1)
-    {
-        if (integrate_token_data(vertices[0]) != SUCCESS) {
-            printf("Error: Failed to integrate token data in node %u\n", vertices[0]);
-            return CMD_ERROR;
-        }
-        return CMD_SUCCESS;
-    }
-    for (int i = 0; i < count - 1; i++) {
-        if (integrate_token_data(vertices[i]) != SUCCESS) {
-            printf("Error: Failed to integrate token data in node %u\n", vertices[i]);
+int optimize_string_cycle(uint* nodes, int count) {
+    // if (count == 1)
+    // {
+    //     if (integrate_token_data(vertices[0]) != SUCCESS) {
+    //         printf("Error: Failed to integrate token data in node %u\n", vertices[0]);
+    //         return CMD_ERROR;
+    //     }
+    //     return CMD_SUCCESS;
+    // }
+    for (int i = 0; i < count; i++) {
+        if (integrate_token_prepare(nodes[i]) != SUCCESS) {
+            printf("Error: Failed to integrate token data in node %u\n", nodes[i]);
             return CMD_ERROR;
         }
     }
@@ -880,7 +881,7 @@ int create_strings_from_file(const char* filepath) {
         return ERROR;
     }
 
-    char line[4096];
+    char line[8192];
     uint start_node;
     ushort start_channel;
     int result = SUCCESS;

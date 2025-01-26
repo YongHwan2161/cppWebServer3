@@ -2,7 +2,7 @@
 #include "../tests/axis_tests.h"
 #include "../tests/link_tests.h"
 #include "../tests/channel_tests.h"
-#include "../Graph_structure/node.h"
+#include "../Graph_structure/node/node.h"
 #include "../Graph_structure/cycle.h"
 #include <stdio.h>
 #include <stdlib.h>

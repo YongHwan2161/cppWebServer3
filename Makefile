@@ -20,6 +20,10 @@ directories:
 	@mkdir -p $(OBJ_DIR)
 	@mkdir -p $(OBJ_DIR)/$(SRC_DIR)
 	@mkdir -p $(OBJ_DIR)/$(SRC_DIR)/tests
+	@mkdir -p $(OBJ_DIR)/$(SRC_DIR)/Graph_structure
+	@mkdir -p $(OBJ_DIR)/$(SRC_DIR)/Graph_structure/node
+	@mkdir -p $(OBJ_DIR)/$(SRC_DIR)/data_structures
+	@mkdir -p $(OBJ_DIR)/$(SRC_DIR)/cli
 
 $(TARGET): $(OBJS)
 	$(GCC) $(OBJS) -o $(TARGET)

@@ -2,7 +2,7 @@
 #include "channel.h"
 #include "../free_space.h"
 #include "link.h"
-#include "node.h"
+#include "node/node.h"
 #include "../memory.h"
 #include "../map.h"
 #include <string.h>

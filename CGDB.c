@@ -3,7 +3,7 @@
 #include "src/database.h"
 #include "src/free_space.h"
 #include "src/Graph_structure/axis.h"
-#include "src/Graph_structure/node.h"
+#include "src/Graph_structure/node/node.h"
 #include "src/Graph_structure/vertex.h"
 #include "src/cli/command_handler.h"
 #include "src/memory.h"

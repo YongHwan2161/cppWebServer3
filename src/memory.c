@@ -1,5 +1,5 @@
 #include "memory.h"
-#include "Graph_structure/node.h"
+#include "Graph_structure/node/node.h"
 #include "../CGDB.h"
 #include "map.h"
 

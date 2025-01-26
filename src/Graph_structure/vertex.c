@@ -4,7 +4,7 @@
 #include "channel.h"
 #include "link.h"
 #include "../map.h"
-#include "node.h"
+#include "node/node.h"
 #include <string.h>
 
 int free_vertices(Vertices vertices) {
@@ -55,6 +55,29 @@ Vertices get_child_vertices(Vertex vertex) {
     return get_connected_vertices(vertex, CHILD_AXIS);
 }
 
+Vertex get_next_vertex(unsigned int node_index, unsigned short channel, unsigned short axis_number, ushort link_index) {
+    long node_position = get_node_position(node_index);
+    if (node_position == -1) return (Vertex){0, 0};
+    uint channel_offset = get_channel_offset(Core[node_position], channel);
+    uint axis_offset = get_axis_offset(Core[node_position], channel, axis_number);
+    uint link_offset = channel_offset + axis_offset + 2;
+    Vertex vertex;
+    vertex.node = *(uint*)(Core[node_position] + link_offset + (link_index * 6));
+    vertex.channel = *(ushort*)(Core[node_position] + link_offset + (link_index * 6) + 4);
+    return vertex;
+}
+Vertex get_next_vertex_check(unsigned int node_index, unsigned short channel, unsigned short axis_number, ushort link_index) {
+    if (!has_axis(Core[node_index], channel, axis_number)) return (Vertex){0, 0};
+    if (get_link_count(node_index, channel, axis_number) < link_index) {
+        printf("Error: Link index %d does not exist in node %d, channel %d, axis %d: get_next_vertex_check(), get_next_vertex_check()\n",
+        link_index, node_index, channel, axis_number);
+        return (Vertex){0, 0};
+    }
+    Vertex next_vertex = get_next_vertex(node_index, channel, axis_number, link_index);
+    if (next_vertex.node == node_index && next_vertex.channel == channel) return (Vertex){0, 0}; // loop vertex
+    if (is_start_string_vertex(next_vertex)) return (Vertex){0, 0};
+    return next_vertex;
+}
 int change_vertex(unsigned int node_index, unsigned int offset, Vertex vertex) {
     memcpy(Core[node_index] + offset, &vertex.node, sizeof(uint));
     memcpy(Core[node_index] + offset + 4, &vertex.channel, sizeof(ushort));
