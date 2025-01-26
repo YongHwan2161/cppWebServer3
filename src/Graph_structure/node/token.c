@@ -27,52 +27,28 @@ int integrate_token(unsigned int node_index, unsigned int next_node, ushort to_i
                 // printf("Error: Cycle count is less than 1\n");
                 return ERROR;
             }
+            Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
+            if (create_channel(new_node) != CHANNEL_SUCCESS)
+            {
+                free_cycle_info(existing_cycle);
+                printf("Error: Failed to create channel\n");
+                return ERROR;
+            }
+            ushort channel_count = get_channel_count(Core[new_node]);
+            Vertex new_vertex = (Vertex){new_node, channel_count - 1};
+            if (is_start_string_vertex(start_vertex))
+            {
+                migrate_parent_vertices(start_vertex, new_vertex);
+                migrate_child_vertices(start_vertex, new_vertex);
+                // clear_channel(start_vertex.node, start_vertex.channel);
+            }
             if (existing_cycle->count == 2)
             {
-                Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
-                if (create_channel(new_node) != CHANNEL_SUCCESS) {
-                    free_cycle_info(existing_cycle);
-                    printf("Error: Failed to create channel\n");
-                    return ERROR;
-                }
-                ushort channel_count = get_channel_count(Core[new_node]);
-                // if (is_root_vertex(start_vertex)) {
-                //     if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
-                //         RootVertex = (Vertex){new_node, channel_count - 1};
-                //         move_current_vertex((Vertex){new_node, channel_count - 1});
-                //     }
-                // }
-                if (is_start_string_vertex(start_vertex))
-                {
-                    migrate_parent_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
-                    migrate_child_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
-                    // clear_channel(start_vertex.node, start_vertex.channel);
-                }
                 clear_cycle(existing_cycle);
                 create_loop(new_node, channel_count - 1, STRING_AXIS);
             } 
             else
             {
-                Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
-                if (create_channel(new_node) != CHANNEL_SUCCESS) {
-                    printf("Error: Failed to create channel\n");
-                    free_cycle_info(existing_cycle);
-                    return ERROR;
-                }
-                ushort channel_count = get_channel_count(Core[new_node]);
-                // if (is_root_vertex(start_vertex)) {
-                //     if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
-                //         RootVertex = (Vertex){new_node, channel_count - 1};
-                //         move_current_vertex((Vertex){new_node, channel_count - 1});
-                //     }
-                // }
-                Vertex new_vertex = (Vertex){new_node, channel_count - 1};
-                // Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
-                if (is_start_string_vertex(start_vertex))
-                {
-                    migrate_parent_vertices(start_vertex, new_vertex);
-                    migrate_child_vertices(start_vertex, new_vertex);
-                }
                 replace_new_token(new_vertex, start_vertex, STRING_AXIS);
                 clear_channel(start_vertex.node, start_vertex.channel);
             }
