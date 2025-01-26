@@ -28,7 +28,7 @@ unsigned int get_channel_end_offset(uchar* node, ushort channel_index) {
     }
     return 0; // This should never happen
 }
-int create_channel(uint node_index) {
+int create_channel(uint node_index, bool sync) {
     long node_position = get_node_position(node_index);
     if (node_position == -1) return CHANNEL_ERROR;
     uchar* node = Core[node_position];
@@ -36,7 +36,7 @@ int create_channel(uint node_index) {
     uint current_actual_size = *(uint*)(node + 2);
     uint required_size = current_actual_size + 6;  // channel entry(4) + axis count(2)
     
-    if (check_and_resize_node(node, required_size, node_index) == FREE_SPACE_ERROR) {
+    if (check_and_resize_node(node, required_size, node_index, sync) == FREE_SPACE_ERROR) {
         printf("Error: Failed to resize node\n");
         return CHANNEL_ERROR;
     }
@@ -63,14 +63,17 @@ int create_channel(uint node_index) {
     // Increment channel count
     (*channel_count)++;
 
-    if (!save_node_to_file(node_index)) {
-        printf("Error: Failed to update data.bin\n");
-        return CHANNEL_ERROR;
+    if (sync)
+    {
+        if (!save_node_to_file(node_index)) {
+            printf("Error: Failed to update data.bin\n");
+            return CHANNEL_ERROR;
+        }
     }
     return CHANNEL_SUCCESS;
 }
 // Create multiple channels in a node
-int create_multi_channels(uint node_index, int num_channels) {
+int create_multi_channels(uint node_index, int num_channels, bool sync) {
     if (num_channels < 1) {
         printf("Error: Invalid number of channels to create\n");
         return CHANNEL_ERROR;
@@ -78,7 +81,7 @@ int create_multi_channels(uint node_index, int num_channels) {
 
     // Create channels one by one
     for (int i = 0; i < num_channels; i++) {
-        if (create_channel(node_index) != CHANNEL_SUCCESS) {
+        if (create_channel(node_index, sync) != CHANNEL_SUCCESS) {
             printf("Error: Failed to create channel %d\n", i + 1);
             return CHANNEL_ERROR;
         }
@@ -87,7 +90,7 @@ int create_multi_channels(uint node_index, int num_channels) {
     return CHANNEL_SUCCESS;
 }
 // Find empty channel or create new one
-int recycle_or_create_channel(uint node_index) {
+int recycle_or_create_channel(uint node_index, bool sync) {
     long node_position = get_node_position(node_index);
     if (node_position == -1) return CHANNEL_ERROR;
     
@@ -105,21 +108,14 @@ int recycle_or_create_channel(uint node_index) {
     }
 
     // No empty channels found, create new one
-    if (create_channel(node_index) != CHANNEL_SUCCESS) {
+    if (create_channel(node_index, sync) != CHANNEL_SUCCESS) {
         printf("Error: Failed to create new channel\n");
         return CHANNEL_ERROR;
     }
 
     return channel_count; // Return new channel index
 }
-// int clear_channel(uint node_index, ushort channel_index) {
-//     uint node_position = get_node_position(node_index);
-//     uchar* node = Core[node_position];
-//     uint channel_offset = get_channel_offset(node, channel_index);
-//     *(ushort*)(node + channel_offset) = 0;
-//     return CHANNEL_SUCCESS;
-// }
-int clear_channel(uint node_index, ushort channel_index) {
+int clear_channel(uint node_index, ushort channel_index, bool sync) {
     long node_position = get_node_position(node_index);
     if (node_position == -1) return CHANNEL_ERROR;
     uchar* node = Core[(unsigned int)node_position];
@@ -140,16 +136,19 @@ int clear_channel(uint node_index, ushort channel_index) {
         *(uint*)(node + 8 + (i * 4)) -= channel_end_offset - move_dest;
     }
 
-    if (!save_node_to_file(node_index)) {
-        printf("Error: Failed to update data.bin\n");
-        return CHANNEL_ERROR;
+    if (sync)
+    {
+        if (!save_node_to_file(node_index)) {
+            printf("Error: Failed to update data.bin\n");
+            return CHANNEL_ERROR;
+        }
     }
 
     return CHANNEL_SUCCESS;
 }
-int clear_channels(uint *node_index, ushort *channel_index, ushort count) {
+int clear_channels(uint *node_index, ushort *channel_index, ushort count, bool sync) {
     for (ushort i = 0; i < count; i++) {
-        if (clear_channel(node_index[i], channel_index[i]) != CHANNEL_SUCCESS) {
+        if (clear_channel(node_index[i], channel_index[i], sync) != CHANNEL_SUCCESS) {
             printf("Error: Failed to clear channel %d\n", i);
             return CHANNEL_ERROR;
         }

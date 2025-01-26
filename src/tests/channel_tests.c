@@ -19,7 +19,7 @@ int test_sequential_channel_creation(uint node_index) {
     const int MAX_TEST_CHANNELS = 100;  // Reasonable test limit
     
     for (int i = initial_channel_count; i < MAX_TEST_CHANNELS; i++) {
-        int result = create_channel(node_index);
+        int result = create_channel(node_index, true);
         if (result != CHANNEL_SUCCESS) {
             printf("Failed to create channel %d\n", i);
             failed++;

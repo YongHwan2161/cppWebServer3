@@ -12,7 +12,7 @@ int test_axis_creation() {
     int failed_tests = 0;
     
     // Test 1: Create forward link axis
-    int result = create_axis(test_node, test_channel, 0);
+    int result = create_axis(test_node, test_channel, 0, true);
     if (result == AXIS_SUCCESS) {
         printf("✓ Successfully created forward axis\n");
     } else {
@@ -21,7 +21,7 @@ int test_axis_creation() {
     }
     
     // Test 2: Create backward link axis
-    result = create_axis(test_node, test_channel, 1);
+    result = create_axis(test_node, test_channel, 1, true);
     if (result == AXIS_SUCCESS) {
         printf("✓ Successfully created backward axis\n");
     } else {
@@ -30,7 +30,7 @@ int test_axis_creation() {
     }
     
     // Test 3: Create time axis
-    result = create_axis(test_node, test_channel, 2);
+    result = create_axis(test_node, test_channel, 2, true);
     if (result == AXIS_SUCCESS) {
         printf("✓ Successfully created time axis\n");
     } else {
@@ -40,7 +40,7 @@ int test_axis_creation() {
     
     // Test 4: Try to create duplicate axis (should show warning)
     printf("\nTesting duplicate axis creation (expect warning):\n");
-    result = create_axis(test_node, test_channel, 0);
+    result = create_axis(test_node, test_channel, 0, true);
     if (result == AXIS_SUCCESS) {
         printf("✓ Duplicate axis handling works correctly\n");
     } else {
@@ -50,7 +50,7 @@ int test_axis_creation() {
     
     // Test 5: Try to create axis in invalid node
     printf("\nTesting invalid node (expect error):\n");
-        result = create_axis(256, test_channel, 0);
+    result = create_axis(256, test_channel, 0, true);
     if (result == AXIS_ERROR) {
         printf("✓ Invalid node handling works correctly\n");
     } else {
@@ -68,9 +68,9 @@ int test_resize_node_space() {
     
     // Test 1: Create initial axes to generate free blocks
     printf("Setting up test environment...\n");
-    int result = create_axis(0, 0, 1);
-    result &= create_axis(0, 0, 2);
-    result &= create_axis(0, 0, 3);
+    int result = create_axis(0, 0, 1, true);
+    result &= create_axis(0, 0, 2, true);
+    result &= create_axis(0, 0, 3, true);
     
     if (result != AXIS_SUCCESS) {
         printf("✗ Failed to set up test environment\n");
@@ -88,7 +88,7 @@ int test_resize_node_space() {
     
     // Test 2: Create axis in node 1 to trigger resize
     printf("\nTesting node resize with free block reuse...\n");
-    result = create_axis(1, 0, 1);
+    result = create_axis(1, 0, 1, true);
     
     if (result != AXIS_SUCCESS) {
         printf("✗ Failed to create axis for resize test\n");
@@ -131,7 +131,7 @@ int test_axis_create_delete(int node_index, int channel_index, int max_axis) {
     // Test 1: Create axes from 0 to max_axis
     printf("Creating axes 0 to %d...\n", max_axis);
     for (int i = 0; i <= max_axis; i++) {
-        int result = create_axis(node_index, channel_index, i);
+        int result = create_axis(node_index, channel_index, i, true);
         if (result != AXIS_SUCCESS) {
             printf("✗ Failed to create axis %d\n", i);
             failed_tests++;
@@ -151,7 +151,7 @@ int test_axis_create_delete(int node_index, int channel_index, int max_axis) {
     // Test 2: Delete all axes
     printf("\nDeleting all axes...\n");
     for (int i = max_axis; i >= 0; i--) {
-        int result = delete_axis(node_index, channel_index, i);
+        int result = delete_axis(node_index, channel_index, i, true);
         if (result != AXIS_SUCCESS) {
             printf("✗ Failed to delete axis %d\n", i);
             failed_tests++;

@@ -10,9 +10,9 @@
 #include "../../cli/command_handler.h"
 #include "../../../CGDB.h"
 
-int integrate_token(unsigned int node_index, unsigned int next_node, ushort to_integrate_ch[], ushort channel_count)
+int integrate_token(unsigned int node_index, unsigned int next_node, ushort to_integrate_ch[], ushort channel_count, bool save)
 {
-    int new_node = create_token_node(node_index, next_node);
+    int new_node = create_token_node(node_index, next_node, save);
     if (new_node == -1) return ERROR;
     for (int i = 0; i < channel_count; i++) {
         if (to_integrate_ch[i] == 1) {
@@ -28,7 +28,7 @@ int integrate_token(unsigned int node_index, unsigned int next_node, ushort to_i
                 return ERROR;
             }
             Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
-            if (create_channel(new_node) != CHANNEL_SUCCESS)
+            if (create_channel(new_node, save) != CHANNEL_SUCCESS)
             {
                 free_cycle_info(existing_cycle);
                 printf("Error: Failed to create channel\n");
@@ -38,19 +38,18 @@ int integrate_token(unsigned int node_index, unsigned int next_node, ushort to_i
             Vertex new_vertex = (Vertex){new_node, channel_count - 1};
             if (is_start_string_vertex(start_vertex))
             {
-                migrate_parent_vertices(start_vertex, new_vertex);
-                migrate_child_vertices(start_vertex, new_vertex);
-                // clear_channel(start_vertex.node, start_vertex.channel);
+                migrate_parent_vertices(start_vertex, new_vertex, save);
+                migrate_child_vertices(start_vertex, new_vertex, save);
             }
             if (existing_cycle->count == 2)
             {
-                clear_cycle(existing_cycle);
-                create_loop(new_node, channel_count - 1, STRING_AXIS);
+                clear_cycle(existing_cycle, save);
+                create_loop(new_node, channel_count - 1, STRING_AXIS, save);
             } 
             else
             {
-                replace_new_token(new_vertex, start_vertex, STRING_AXIS);
-                clear_channel(start_vertex.node, start_vertex.channel);
+                replace_new_token(new_vertex, start_vertex, STRING_AXIS, save);
+                clear_channel(start_vertex.node, start_vertex.channel, save);
             }
             free_cycle_info(existing_cycle);
         }
@@ -58,7 +57,7 @@ int integrate_token(unsigned int node_index, unsigned int next_node, ushort to_i
     return SUCCESS;
 }
 
-int integrate_token_prepare(unsigned int node_index)
+int integrate_token_prepare(unsigned int node_index, bool save)
 {
     // Check if node has enough channels for integration
     long node_position = get_node_position(node_index);
@@ -99,7 +98,7 @@ int integrate_token_prepare(unsigned int node_index)
         }
         if (need_integrate)
         {
-            integrate_token(node_index, next_vertex.node, to_integrate_ch, channel_count);
+            integrate_token(node_index, next_vertex.node, to_integrate_ch, channel_count, save);
         }
     }
     return SUCCESS;
@@ -121,7 +120,7 @@ int handle_integrate_tokens(char* args) {
     }
     
     // Integrate tokens
-    int result = integrate_token_prepare(node_index);
+    int result = integrate_token_prepare(node_index, true);
     if (result == SUCCESS) {
         printf("Successfully integrated tokens in node %d\n", node_index);
         return SUCCESS;

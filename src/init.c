@@ -25,7 +25,6 @@ int check_and_create_directory() {
     return 0;
 }
 void init_core_mapping() {
-    CoreMap = (nodeMapping*)malloc(MaxCoreSize * sizeof(nodeMapping));
     
     // Initialize with default values
     for (uint i = 0; i < MaxCoreSize; i++) {
@@ -63,6 +62,7 @@ int initialize_system() {
         printf("Error initializing free space management\n");
         return INIT_ERROR;
     }
+    CoreMap = (nodeMapping*)malloc(MaxCoreSize * sizeof(nodeMapping));
     // 2. Initialize database (creates or loads existing)
     int db_status = initialize_database();
     if (db_status == DB_ERROR) {

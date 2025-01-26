@@ -29,17 +29,17 @@ void free_cycle_info(cycleInfo* info);
 bool is_in_garbage_cycle(unsigned int node_index);
 
 // Add this function declaration
-int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number);
-int clear_cycle(cycleInfo* info);
+int create_cycle(uint* vertices, ushort* channels, int count, ushort axis_number, bool sync);
+int clear_cycle(cycleInfo* info, bool sync);
 // Create a string cycle from an array of token vertices
 // Returns LINK_SUCCESS or LINK_ERROR
-int create_string_cycle(uint* token_vertices, ushort* channels, int count);
+int create_string_cycle(uint* token_vertices, ushort* channels, int count, bool sync);
 
 // Get string data starting from given node/channel
 // Returns allocated string containing string data or NULL on error
 char* get_string_data(uint node_index, ushort channel_index);
 int handle_get_string(char* args);
-int handle_create_string(char* args, uint* start_node, ushort* start_channel, bool is_root, bool is_embedded);
+int handle_create_string(char* args, uint* start_node, ushort* start_channel, bool is_root, bool is_embedded, bool sync);
 int create_strings_from_file(const char* filepath);
 int handle_upload_text(char* args);
 int handle_create_cycle(char* args);
@@ -47,7 +47,7 @@ bool validate_cycle(int node_index, int channel_index, int axis_number);
 int handle_validate_cycle(char* args);
 int handle_print_cycle(char* args);
 int handle_delete_path(char* args);
-int replace_new_token(Vertex new_vertex, Vertex old_vertex, ushort axis_number);
+int replace_new_token(Vertex new_vertex, Vertex old_vertex, ushort axis_number, bool sync);
 // Create a string from an ASCII string
 // Returns SUCCESS or ERROR
 // int handle_create_string_from_string(char* args);
@@ -56,12 +56,12 @@ int handle_insert_path(char* args);
 // Insert a path into an existing cycle
 int insert_path_into_cycle(uint insert_node, ushort insert_channel,
                           uint* path_vertices, ushort* path_channels, 
-                          int path_length, ushort axis_number);
+                          int path_length, ushort axis_number, bool sync);
 
 // Delete a path from an existing cycle
 int delete_path_from_cycle(uint start_node, ushort start_channel,
-                          int path_length, ushort axis_number);
-int optimize_string_cycle(uint* vertices, int count);
+                          int path_length, ushort axis_number, bool sync);
+int optimize_string_cycle(uint* vertices, int count, bool save);
 int handle_optimize_string(char* args);
 bool are_vertices_in_same_cycle(uint node1, ushort channel1, 
                               uint node2, ushort channel2, 

@@ -15,14 +15,13 @@ typedef struct {
 } Link;
 
 // Function declarations
-int create_link(uint source_node, ushort source_ch, uint dest_node, ushort dest_ch, ushort axis_number);
-int create_loop(uint source_node, ushort source_ch, ushort axis_number);
-int create_bidirectional_link(Vertex source_vertex, Vertex dest_vertex);
-int create_forward_link(Vertex source_vertex, Vertex dest_vertex);
-int create_backward_link(Vertex source_vertex, Vertex dest_vertex);
-int create_property(uint node_index, ushort channel_index, uint property_node);
-int delete_link(uint source_node, ushort source_ch, uint dest_node, ushort dest_ch, ushort axis_number);
-int delete_first_link(uint source_node, ushort source_ch, ushort axis_number);
+int create_link(uint source_node, ushort source_ch, uint dest_node, ushort dest_ch, ushort axis_number, bool sync);
+int create_loop(uint source_node, ushort source_ch, ushort axis_number, bool sync);
+int create_bidirectional_link(Vertex source_vertex, Vertex dest_vertex, bool sync);
+int create_forward_link(Vertex source_vertex, Vertex dest_vertex, bool sync);
+int create_property(uint node_index, ushort channel_index, uint property_node, bool sync);
+int delete_link(uint source_node, ushort source_ch, uint dest_node, ushort dest_ch, ushort axis_number, bool sync);
+int delete_first_link(uint source_node, ushort source_ch, ushort axis_number, bool sync);
 int get_link(uint source_node, ushort source_ch, ushort axis_number, ushort link_index, uint* dest_node, ushort* dest_ch);
 int get_link_count(uint source_node, ushort source_ch, ushort axis_number);
 int get_property(uint node_index, ushort channel_index);

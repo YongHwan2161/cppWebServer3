@@ -112,6 +112,15 @@ bool save_node_to_file(unsigned int node_index) {
     fclose(map_file);
     return true;
 }
+bool save_all_nodes() {
+    for (unsigned int i = 0; i < CurrentnodeCount; i++) {
+        if (!save_node_to_file(i)) {
+            printf("Error: Failed to save node %d\n", i);
+            return false;
+        }
+    }
+    return true;
+}
 int handle_save_node(char* args) {
     if (!args) {
         print_argument_error("save-node", "", false);
@@ -187,7 +196,7 @@ int handle_create_node(char* args) {
     return CMD_SUCCESS;
 }
 
-int delete_node(unsigned int node_index) {
+int delete_node(unsigned int node_index, bool save) {
     printf("calling delete_node: %d\n", node_index);
     // Check if trying to delete garbage node
     if (node_index == GarbagenodeIndex) {
@@ -208,9 +217,9 @@ int delete_node(unsigned int node_index) {
     uint axis_offset = get_axis_offset(Core[GarbagenodeIndex], 0, 0);
     uint first_garbage_node = *(uint*)(Core[GarbagenodeIndex] + channel_offset + axis_offset + 2);
     printf("First garbage node: %d\n", first_garbage_node);
-    delete_link(GarbagenodeIndex, 0, first_garbage_node, 0, 0);
-    create_link(GarbagenodeIndex, 0, node_index, 0, 0);
-    create_link(node_index, 0, first_garbage_node, 0, 0);
+    delete_link(GarbagenodeIndex, 0, first_garbage_node, 0, 0, save);
+    create_link(GarbagenodeIndex, 0, node_index, 0, 0, save);
+    create_link(node_index, 0, first_garbage_node, 0, 0, save);
 
     Core[node_position] = NULL;
     CoreMap[node_index].core_position = -1;
@@ -241,7 +250,7 @@ int handle_delete_node(char* args) {
     }
     // printf("node_index: %d\n", node_index);
     // Delete the node
-    int result = delete_node(node_index);
+    int result = delete_node(node_index, true);
     // int result = node_SUCCESS;
     if (result == node_SUCCESS) {
         printf("Successfully deleted node %d\n", node_index);
@@ -320,7 +329,7 @@ char* get_token_data(unsigned int node_index) {
     return result;
 }
 
-int create_token_node(unsigned int first_node, unsigned int second_node) {
+int create_token_node(unsigned int first_node, unsigned int second_node, bool sync) {
     // Validate input vertices
     if (!validate_node(first_node) || !validate_node(second_node)) {
         return -1;
@@ -331,20 +340,20 @@ int create_token_node(unsigned int first_node, unsigned int second_node) {
     uint new_node = CurrentnodeCount - 1;
 
     // Create axis 2 in new node for storing token data links
-    if (create_axis(new_node, 0, TOKEN_DATA_AXIS) != AXIS_SUCCESS) {
+    if (create_axis(new_node, 0, TOKEN_DATA_AXIS, sync) != AXIS_SUCCESS) {
         printf("Error: Failed to create token data axis\n");
         return -1;
     }
 
     // Link new node to first node's token search axis
-    if (create_link(first_node, 0, new_node, 0, TOKEN_SEARCH_AXIS) != LINK_SUCCESS) {
+    if (create_link(first_node, 0, new_node, 0, TOKEN_SEARCH_AXIS, sync) != LINK_SUCCESS) {
         printf("Error: Failed to create search link\n");
         return -1;
     }
 
     // Link new node to both input vertices for data storage
-    if (create_link(new_node, 0, first_node, 0, TOKEN_DATA_AXIS) != LINK_SUCCESS ||
-        create_link(new_node, 0, second_node, 0, TOKEN_DATA_AXIS) != LINK_SUCCESS) {
+    if (create_link(new_node, 0, first_node, 0, TOKEN_DATA_AXIS, sync) != LINK_SUCCESS ||
+        create_link(new_node, 0, second_node, 0, TOKEN_DATA_AXIS, sync) != LINK_SUCCESS) {
         printf("Error: Failed to create data links\n");
         return -1;
     }
@@ -385,7 +394,7 @@ int handle_create_token(char* args) {
     }
     
     // Create token node
-    int new_node = create_token_node(first_node, second_node);
+    int new_node = create_token_node(first_node, second_node, true);
     if (new_node < 0) {
         printf("Error: Failed to create token node\n");
         return CMD_ERROR;

@@ -14,7 +14,7 @@ int test_multiple_link_creation(uint source_node, ushort source_ch, ushort axis_
     printf("Source: node %d, Channel %d, Axis %d\n", source_node, source_ch, axis_number);
     
     // Get initial link count
-    if (!ensure_axis_exists(source_node, source_ch, axis_number)) {
+    if (!ensure_axis_exists(source_node, source_ch, axis_number, true)) {
         printf("Failed to ensure axis %d exists\n", axis_number);
         return -1;
     }
@@ -32,7 +32,7 @@ int test_multiple_link_creation(uint source_node, ushort source_ch, ushort axis_
         ushort dest_ch = rand() % 5;  // Assuming max 5 channels
         
         // Create link
-        int result = create_link(source_node, source_ch, dest_node, dest_ch, axis_number);
+        int result = create_link(source_node, source_ch, dest_node, dest_ch, axis_number, true);
         if (result != LINK_SUCCESS) {
             printf("Failed to create link %d\n", i);
             failed++;
@@ -73,7 +73,7 @@ int test_create_delete_links(uint source_node, ushort source_ch, ushort axis_num
     printf("Source: node %d, Channel %d, Axis %d\n", source_node, source_ch, axis_number);
     
     // Get initial link count
-    if (!ensure_axis_exists(source_node, source_ch, axis_number)) {
+    if (!ensure_axis_exists(source_node, source_ch, axis_number, true)) {
         printf("Failed to ensure axis %d exists\n", axis_number);
         return -1;
     }
@@ -99,7 +99,7 @@ int test_create_delete_links(uint source_node, ushort source_ch, ushort axis_num
         dest_channels[i] = dest_ch;
         
         // Create link
-        int result = create_link(source_node, source_ch, dest_node, dest_ch, axis_number);
+        int result = create_link(source_node, source_ch, dest_node, dest_ch, axis_number, true);
         if (result != LINK_SUCCESS) {
             printf("Failed to create link %d\n", i);
             failed++;
@@ -122,7 +122,7 @@ int test_create_delete_links(uint source_node, ushort source_ch, ushort axis_num
     // Delete all created links in reverse order
     printf("Deleting all links...\n");
     for (int i = 99; i >= 0; i--) {
-        int result = delete_link(source_node, source_ch, dest_vertices[i], dest_channels[i], axis_number);
+        int result = delete_link(source_node, source_ch, dest_vertices[i], dest_channels[i], axis_number, true);
         if (result != LINK_SUCCESS) {
             printf("Failed to delete link %d\n", i);
             failed++;
@@ -176,8 +176,8 @@ int test_multi_channel_links(uint node_index) {
     uint ch1_offset = get_channel_offset(node, 1);
     
     // Ensure axis 0 exists in both channels
-    if (!ensure_axis_exists(node_index, 0, 0) || 
-        !ensure_axis_exists(node_index, 1, 0)) {
+    if (!ensure_axis_exists(node_index, 0, 0, true) || 
+        !ensure_axis_exists(node_index, 1, 0, true)) {
         printf("Failed to ensure axis exists in channels\n");
         return -1;
     }
@@ -203,7 +203,7 @@ int test_multi_channel_links(uint node_index) {
         links_ch0[i].node = dest_node;
         links_ch0[i].channel = dest_ch;
         
-        if (create_link(node_index, 0, dest_node, dest_ch, 0) != LINK_SUCCESS) {
+        if (create_link(node_index, 0, dest_node, dest_ch, 0, true) != LINK_SUCCESS) {
             printf("Failed to create link %d in channel 0\n", i);
             failed++;
         }
@@ -214,7 +214,7 @@ int test_multi_channel_links(uint node_index) {
         links_ch1[i].node = dest_node;
         links_ch1[i].channel = dest_ch;
         
-        if (create_link(node_index, 1, dest_node, dest_ch, 0) != LINK_SUCCESS) {
+        if (create_link(node_index, 1, dest_node, dest_ch, 0, true) != LINK_SUCCESS) {
             printf("Failed to create link %d in channel 1\n", i);
             failed++;
         }
@@ -246,13 +246,13 @@ int test_multi_channel_links(uint node_index) {
     printf("Deleting all links...\n");
     for (int i = 99; i >= 0; i--) {
         // Delete from channel 1 first
-        if (delete_link(node_index, 1, links_ch1[i].node, links_ch1[i].channel, 0) != LINK_SUCCESS) {
+        if (delete_link(node_index, 1, links_ch1[i].node, links_ch1[i].channel, 0, true) != LINK_SUCCESS) {
             printf("Failed to delete link %d from channel 1\n", i);
             failed++;
         }
         
         // Then delete from channel 0
-        if (delete_link(node_index, 0, links_ch0[i].node, links_ch0[i].channel, 0) != LINK_SUCCESS) {
+        if (delete_link(node_index, 0, links_ch0[i].node, links_ch0[i].channel, 0, true) != LINK_SUCCESS) {
             printf("Failed to delete link %d from channel 0\n", i);
             failed++;
         }

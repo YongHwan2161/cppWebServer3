@@ -52,7 +52,7 @@ int initialize_database() {
 void create_DB() {
     printf("Creating new database...\n");
     Core = (uchar**)malloc(MaxCoreSize * sizeof(uchar*));
-    CoreMap = (nodeMapping*)malloc(259 * sizeof(nodeMapping));
+    // CoreMap = (nodeMapping*)malloc(259 * sizeof(nodeMapping));
     
     // Initialize CoreMap with default values
     for (int i = 0; i < 259; ++i) {
@@ -61,18 +61,18 @@ void create_DB() {
         CoreMap[i].file_offset = 16 * i;  // Each node starts with 16 bytes, plus 4 bytes header        
         create_new_node();
     }
-    create_axis(256, 0, 0); // create axis first
-    create_loop(GarbagenodeIndex, 0, 0);
+    create_axis(256, 0, 0, true); // create axis first
+    create_loop(GarbagenodeIndex, 0, 0, true);
             // Create root string "root"
     uint start_node;
     ushort start_channel;
-        if (handle_create_string("root", &start_node, &start_channel, true, false) != SUCCESS) {
+        if (handle_create_string("root", &start_node, &start_channel, true, false, true) != SUCCESS) {
             printf("Error: Failed to create root string\n");
             return;
         }
     for (int i = 0; i < 3; i++)
     {
-        if (handle_create_string("root", &start_node, &start_channel, false, true) != SUCCESS) {
+        if (handle_create_string("root", &start_node, &start_channel, false, true, true) != SUCCESS) {
             printf("Error: Failed to create root string\n");
             return;
         }
