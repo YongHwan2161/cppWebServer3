@@ -24,7 +24,7 @@ int integrate_token(unsigned int node_index, unsigned int next_node, ushort to_i
             }
             if (existing_cycle->count <= 1) {
                 free_cycle_info(existing_cycle);
-                printf("Error: Cycle count is less than 1\n");
+                // printf("Error: Cycle count is less than 1\n");
                 return ERROR;
             }
             if (existing_cycle->count == 2)
@@ -36,12 +36,12 @@ int integrate_token(unsigned int node_index, unsigned int next_node, ushort to_i
                     return ERROR;
                 }
                 ushort channel_count = get_channel_count(Core[new_node]);
-                if (is_root_vertex(start_vertex)) {
-                    if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
-                        RootVertex = (Vertex){new_node, channel_count - 1};
-                        move_current_vertex((Vertex){new_node, channel_count - 1});
-                    }
-                }
+                // if (is_root_vertex(start_vertex)) {
+                //     if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
+                //         RootVertex = (Vertex){new_node, channel_count - 1};
+                //         move_current_vertex((Vertex){new_node, channel_count - 1});
+                //     }
+                // }
                 if (is_start_string_vertex(start_vertex))
                 {
                     migrate_parent_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
@@ -60,14 +60,14 @@ int integrate_token(unsigned int node_index, unsigned int next_node, ushort to_i
                     return ERROR;
                 }
                 ushort channel_count = get_channel_count(Core[new_node]);
-                if (is_root_vertex(start_vertex)) {
-                    if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
-                        RootVertex = (Vertex){new_node, channel_count - 1};
-                        move_current_vertex((Vertex){new_node, channel_count - 1});
-                    }
-                }
+                // if (is_root_vertex(start_vertex)) {
+                //     if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
+                //         RootVertex = (Vertex){new_node, channel_count - 1};
+                //         move_current_vertex((Vertex){new_node, channel_count - 1});
+                //     }
+                // }
                 Vertex new_vertex = (Vertex){new_node, channel_count - 1};
-                Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
+                // Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
                 if (is_start_string_vertex(start_vertex))
                 {
                     migrate_parent_vertices(start_vertex, new_vertex);
@@ -92,20 +92,19 @@ int integrate_token_prepare(unsigned int node_index)
         return SUCCESS;
     }
     // int new_channel_index = 1;
-    uint new_node = 0;
+    // uint new_node = 0;
     uint visited_nodes[channel_count];
     for (int i = 0; i < channel_count; i++) {
         visited_nodes[i] = 0;
     }
     ushort to_integrate_ch[channel_count];
-    for (int i = 0; i < channel_count; i++) {
-        to_integrate_ch[i] = 0;
-    }
     Vertex next_vertex;
-    bool need_integrate = false;
     for (int i = 1; i < channel_count - 1; i++) {
-        Vertex current_vertex = {node_index, i};
-        bool new_node_created = false;
+        bool need_integrate = false;
+        for (int i = 0; i < channel_count; i++)
+        {
+            to_integrate_ch[i] = 0;
+        }
         if (visited_nodes[i] == 1) continue;
         next_vertex = get_next_vertex_check(node_index, i, STRING_AXIS, 0);
         if (next_vertex.node == 0 && next_vertex.channel == 0) continue;
@@ -118,121 +117,14 @@ int integrate_token_prepare(unsigned int node_index)
             if (next_vertex.node == next_vertex2.node) {
                 // Create combined token
                 need_integrate = true;
-                // if (!new_node_created)
-                // {
-                //     new_node = create_token_node(node_index, next_vertex.node);
-                //     new_node_created = true;
-                // }
                 visited_nodes[j] = 1;
                 to_integrate_ch[j] = 1;
-                //     cycleInfo *existing_cycle = get_cycle_info(node_index, i, 2);
-                //     if (existing_cycle == NULL) continue;
-                //     if (existing_cycle->count <= 1) continue;
-                //     if (existing_cycle->count == 2)
-                //     {
-                //         Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
-                //         if (create_channel(new_node) != CHANNEL_SUCCESS) {
-                //             printf("Error: Failed to create channel\n");
-                //             return CMD_ERROR;
-                //         }
-                //         ushort channel_count = get_channel_count(Core[new_node]);
-                //         if (is_root_vertex(current_vertex)) {
-                //             if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
-                //                 RootVertex = (Vertex){new_node, channel_count - 1};
-                //                 move_current_vertex((Vertex){new_node, channel_count - 1});
-                //             }
-                //         }
-                //         if (is_start_string_vertex(start_vertex)) {
-                //             migrate_parent_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
-                //             migrate_child_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
-                //             // clear_channel(start_vertex.node, start_vertex.channel);
-                //         }                    
-                //         clear_cycle(existing_cycle);
-                //         create_loop(new_node, channel_count - 1, STRING_AXIS);
-                //         // new_channel_index++;
-                //         free_cycle_info(existing_cycle);
-                //     }
-                //     else
-                //     {
-                //         if (create_channel(new_node) != CHANNEL_SUCCESS) {
-                //             printf("Error: Failed to create channel\n");
-                //             return CMD_ERROR;
-                //         }
-                //         ushort channel_count = get_channel_count(Core[new_node]);
-                //         if (is_root_vertex(current_vertex)) {
-                //             if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
-                //                 RootVertex = (Vertex){new_node, channel_count - 1};
-                //                 move_current_vertex((Vertex){new_node, channel_count - 1});
-                //             }
-                //         }
-                //         Vertex new_vertex = (Vertex){new_node, channel_count - 1};
-                //         Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
-                //         if (is_start_string_vertex(start_vertex)) {
-                //             migrate_parent_vertices(start_vertex, new_vertex);
-                //             migrate_child_vertices(start_vertex, new_vertex);
-                //         }
-                //         replace_new_token(new_vertex, start_vertex, 2);
-                //         clear_channel(start_vertex.node, start_vertex.channel);
-                //         // new_channel_index++;
-                //         free_cycle_info(existing_cycle);
-                //     }
-                // cycleInfo *existing_cycle = get_cycle_info(node_index, j, STRING_AXIS);
-                // if (existing_cycle->count <= 1) {
-                //     continue;
-                // }
-                // if (existing_cycle && existing_cycle->count == 2)
-                // {
-                //     Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
-                //     if (create_channel(new_node) != CHANNEL_SUCCESS) {
-                //         printf("Error: Failed to create channel\n");
-                //         return CMD_ERROR;
-                //     }
-                //     ushort channel_count = get_channel_count(Core[new_node]);
-                //         if (is_root_vertex(current_vertex)) {
-                //             if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
-                //                 RootVertex = (Vertex){new_node, channel_count - 1};
-                //                 move_current_vertex((Vertex){new_node, channel_count - 1});
-                //             }
-                //         }
-                //     if (is_start_string_vertex(start_vertex)) {
-                //         migrate_parent_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
-                //         migrate_child_vertices(start_vertex, (Vertex){new_node, channel_count - 1});
-                //         // clear_channel(start_vertex.node, start_vertex.channel);
-                //     }
-                //     clear_cycle(existing_cycle);
-                //     create_loop(new_node, channel_count - 1, STRING_AXIS);
-                //     // new_channel_index++;
-                //     free_cycle_info(existing_cycle);
-                // }
-                // else
-                // {
-                //     if (create_channel(new_node) != CHANNEL_SUCCESS) {
-                //         printf("Error: Failed to create channel\n");
-                //         return CMD_ERROR;
-                //     }
-                //     ushort channel_count = get_channel_count(Core[new_node]);
-                //     if (is_root_vertex(current_vertex)) {
-                //         if (CurrentVertex.node == RootVertex.node && CurrentVertex.channel == RootVertex.channel) {
-                //             RootVertex = (Vertex){new_node, channel_count - 1};
-                //             move_current_vertex((Vertex){new_node, channel_count - 1});
-                //         }
-                //     }
-                //     Vertex new_vertex = (Vertex){new_node, channel_count - 1};
-                //     Vertex start_vertex = (Vertex){existing_cycle->vertices[0], existing_cycle->channels[0]};
-                //         if (is_start_string_vertex(start_vertex)) {
-                //             migrate_parent_vertices(start_vertex, new_vertex);
-                //             migrate_child_vertices(start_vertex, new_vertex);
-                //         }
-                //         replace_new_token(new_vertex, start_vertex, STRING_AXIS);
-                //         clear_channel(start_vertex.node, start_vertex.channel);
-                //         // new_channel_index++;
-                //         free_cycle_info(existing_cycle);
-                // }
             }
         }
-    }
-    if (need_integrate) {
-        integrate_token(node_index, next_vertex.node, to_integrate_ch, channel_count);
+        if (need_integrate)
+        {
+            integrate_token(node_index, next_vertex.node, to_integrate_ch, channel_count);
+        }
     }
     return SUCCESS;
 }

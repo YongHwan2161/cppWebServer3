@@ -7,7 +7,7 @@ SRC_DIR = src
 OBJ_DIR = obj
 
 # Create source file list
-SRCS = $(wildcard *.c $(SRC_DIR)/*.c $(SRC_DIR)/*/*.c)
+SRCS = $(wildcard *.c $(SRC_DIR)/*.c $(SRC_DIR)/*/*.c $(SRC_DIR)/*/*/*.c)
 # Create object file list by replacing source paths with object paths
 OBJS = $(SRCS:%.c=$(OBJ_DIR)/%.o)
 

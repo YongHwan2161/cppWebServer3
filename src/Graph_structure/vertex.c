@@ -68,9 +68,8 @@ Vertex get_next_vertex(unsigned int node_index, unsigned short channel, unsigned
 }
 Vertex get_next_vertex_check(unsigned int node_index, unsigned short channel, unsigned short axis_number, ushort link_index) {
     if (!has_axis(Core[node_index], channel, axis_number)) return (Vertex){0, 0};
-    if (get_link_count(node_index, channel, axis_number) < link_index) {
-        printf("Error: Link index %d does not exist in node %d, channel %d, axis %d: get_next_vertex_check(), get_next_vertex_check()\n",
-        link_index, node_index, channel, axis_number);
+    if (get_link_count(node_index, channel, axis_number) < link_index + 1) {
+        // printf("Error: Link index %d does not exist in node %d, channel %d, axis %d: get_next_vertex_check()\n", link_index, node_index, channel, axis_number);
         return (Vertex){0, 0};
     }
     Vertex next_vertex = get_next_vertex(node_index, channel, axis_number, link_index);

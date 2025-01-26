@@ -284,10 +284,10 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel, bo
         } else {
             create_property(tokens[0], channels[0], STRING_START_NODE);
             Vertex start_vertex = {tokens[0], channels[0]};
-            if (!is_root)
+            if (!is_root && !is_embedded)
             {
                 create_bidirectional_link(CurrentVertex, start_vertex);
-                optimize_string_cycle(tokens, count);
+                // optimize_string_cycle(tokens, count);
             }
         }
         *start_node = tokens[0];
@@ -352,14 +352,6 @@ int handle_create_string(char* args, uint* start_node, ushort* start_channel, bo
     }
 }
 int optimize_string_cycle(uint* nodes, int count) {
-    // if (count == 1)
-    // {
-    //     if (integrate_token_data(vertices[0]) != SUCCESS) {
-    //         printf("Error: Failed to integrate token data in node %u\n", vertices[0]);
-    //         return CMD_ERROR;
-    //     }
-    //     return CMD_SUCCESS;
-    // }
     for (int i = 0; i < count; i++) {
         if (integrate_token_prepare(nodes[i]) != SUCCESS) {
             printf("Error: Failed to integrate token data in node %u\n", nodes[i]);

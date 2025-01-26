@@ -2,17 +2,17 @@
 #include <string.h>
 #include <stdlib.h>
 #include <locale.h>
-#include "../../CGDB.h"
-#include "../map.h"
-#include "../data_structures/stack.h"
-#include "../cli/command_handler.h"
-#include "../database.h"
 #include "node.h"
-#include "link.h"  // For Core array access
-#include "cycle.h"
-#include "vertex.h"
-#include "channel.h"
-#include "axis.h"
+#include "../../../CGDB.h"
+#include "../../map.h"
+#include "../../data_structures/stack.h"
+#include "../../cli/command_handler.h"
+#include "../../database.h"
+#include "../link.h"  // For Core array access
+#include "../cycle.h"
+#include "../vertex.h"
+#include "../channel.h"
+#include "../axis.h"
 
 #define MAX_STACK_SIZE 1000
 
