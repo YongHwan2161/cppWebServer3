@@ -232,7 +232,7 @@ void initialize_node(uchar** node) {
         (*node)[i] = initValues[i];
     }
 }
-int create_new_node() {
+int create_new_node(bool sync) {
     uchar* newnode = (uchar*)malloc(16 * sizeof(uchar));
     if (!newnode) {
         printf("Error: Failed to allocate memory for new node\n");
@@ -250,11 +250,12 @@ int create_new_node() {
     
     CoreMap[CurrentnodeCount - 1].file_offset = max_offset;
     max_offset += 16;
-    
-    if (!save_node_to_file(CurrentnodeCount - 1)) {
-        printf("Error: Failed to save node\n");
-        free(newnode);
-        return ERROR;
+    if (sync) {
+        if (!save_node_to_file(CurrentnodeCount - 1)) {
+            printf("Error: Failed to save node\n");
+            free(newnode);
+            return ERROR;
+        }
     }
     
     printf("Node created at index %d\n", CurrentnodeCount - 1);
@@ -275,7 +276,7 @@ int handle_create_node(char* args) {
     }
     
     // Create new node
-    create_new_node();
+    create_new_node(true);
     printf("Successfully created new node at index %d\n", CurrentnodeCount - 1);
     return CMD_SUCCESS;
 }
@@ -481,7 +482,7 @@ int create_token_node(unsigned int first_node, unsigned int second_node, bool sy
     }
 
     // Create new node
-    create_new_node();
+    create_new_node(sync);
     uint new_node = CurrentnodeCount - 1;
 
     // Create axis 2 in new node for storing token data links

@@ -25,7 +25,7 @@ bool save_current_node_count();
 bool save_inconsistent_nodes();
 int handle_save_inconsistent_nodes();
 int handle_save_node(char* args);
-int create_new_node();
+int create_new_node(bool sync);
 int handle_create_node(char* args);
 int delete_node(unsigned int node_index, bool save);
 int handle_delete_node(char* args);

@@ -59,7 +59,7 @@ void create_DB() {
         CoreMap[i].core_position = i;
         CoreMap[i].is_loaded = 1;
         CoreMap[i].file_offset = 16 * i;  // Each node starts with 16 bytes, plus 4 bytes header        
-        create_new_node();
+        create_new_node(true);
     }
     create_axis(256, 0, 0, true); // create axis first
     create_loop(GarbagenodeIndex, 0, 0, true);
