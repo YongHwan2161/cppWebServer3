@@ -11,6 +11,7 @@
 #include "../tests/channel_tests.h"
 #include "../map.h"
 #include "../memory.h"
+#include "../database.h"
 #include "command_handler.h"
 #include "test_command_handler.h"
 #include "validate_command_handler.h"
@@ -804,6 +805,9 @@ int handle_command(char* command) {
         }
         else if (strcmp(cmd, "save-inconsistent-nodes") == 0){
             return handle_save_inconsistent_nodes();
+        }
+        else if (strcmp(cmd, "max-offset") == 0){
+            return handle_max_offset();
         }
         else
         {

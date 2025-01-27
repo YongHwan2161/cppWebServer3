@@ -42,7 +42,7 @@ int initialize_database() {
             Core[i] = NULL;
             load_node_to_core(i);
         }
-
+        max_offset = get_last_file_offset();
         fclose(map_file);
         fclose(data_file);
         return DB_SUCCESS;
@@ -55,7 +55,7 @@ void create_DB() {
     // CoreMap = (nodeMapping*)malloc(259 * sizeof(nodeMapping));
     
     // Initialize CoreMap with default values
-    for (int i = 0; i < 259; ++i) {
+    for (unsigned int i = 0; i < init_node_count; ++i) {
         CoreMap[i].core_position = i;
         CoreMap[i].is_loaded = 1;
         CoreMap[i].file_offset = 16 * i;  // Each node starts with 16 bytes, plus 4 bytes header        
@@ -70,7 +70,7 @@ void create_DB() {
             printf("Error: Failed to create root string\n");
             return;
         }
-    for (int i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; i++)
     {
         if (handle_create_string("root", &start_node, &start_channel, false, true, true) != SUCCESS) {
             printf("Error: Failed to create root string\n");
@@ -101,4 +101,8 @@ long get_last_file_offset() {
     fclose(data_file);
     
     return file_size;
+}
+int handle_max_offset(void) {
+    printf("Max offset: %ld\n", max_offset);
+    return SUCCESS;
 }

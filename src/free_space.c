@@ -1,5 +1,6 @@
 #include "free_space.h"
 #include "map.h"
+#include "Graph_structure/node/node.h"
 #include <string.h>
 #include <stdbool.h>
 FreeSpace* free_space = NULL;
@@ -134,16 +135,8 @@ uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uin
         // Add old space to free space
         add_free_block(current_size, CoreMap[node_index].file_offset);
         
-        if (sync) {
-            // Update CoreMap with new location
-            FILE* data_file = fopen(DATA_FILE, "ab");
-            if (data_file) {
-                CoreMap[node_index].file_offset = ftell(data_file);
-                fclose(data_file);
-            }
-        } else {
-            CoreMap[node_index].file_offset = get_last_offset();
-        }
+        CoreMap[node_index].file_offset = max_offset;
+        max_offset += *new_size;
     }
     
     // Update node size

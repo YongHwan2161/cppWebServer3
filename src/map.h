@@ -13,5 +13,6 @@ int save_map_all(void);
 // int load_map(void);
 void init_map(void);
 long get_node_position(unsigned int node_index);
-long get_last_offset(void);
+long get_last_offset();
+long get_last_offset_by_induction(void);
 #endif // MAP_H 

@@ -44,15 +44,19 @@ extern uchar** Core;
 extern nodeMapping* CoreMap;
 extern int CoreSize;        // Current number of vertices loaded in Core
 extern const unsigned int MaxCoreSize;  // Maximum number of vertices that can be in RAM
+extern const unsigned int init_node_count;
+
 extern const unsigned int GarbagenodeIndex;
 extern const unsigned int pointer_current_vertex;
 extern const unsigned int pointer_root_vertex;
 
 extern unsigned int CurrentnodeCount;
+extern long max_offset;
 
 extern const char* DATA_DIR;
 extern const char* DATA_FILE;
 extern const char* MAP_FILE;
+
 
 extern Vertex CurrentVertex;  // Current user position
 extern Vertex RootVertex;     // Root string position

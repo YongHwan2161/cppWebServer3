@@ -81,7 +81,7 @@ bool save_node_to_file(unsigned int node_index) {
     size_t node_size = (size_t)1 << node_size_power;
     
     if (fwrite(node, 1, node_size, data_file) != node_size) {
-        printf("Error: Failed to write to data.bin\n");
+        printf("Error: Failed to write to data.bin, save_node_to_file(%d)\n", node_index);
         fclose(data_file);
         return false;
     }
@@ -92,7 +92,7 @@ bool save_node_to_file(unsigned int node_index) {
     if (!map_file) {
         map_file = fopen(MAP_FILE, "wb");
         if (!map_file) {
-            printf("Error: Failed to create map.bin\n");
+            printf("Error: Failed to create map.bin, save_node_to_file(%d)\n", node_index);
             return false;
         }
         fclose(map_file);
@@ -101,13 +101,13 @@ bool save_node_to_file(unsigned int node_index) {
 
     // Update map entry
     if (fseek(map_file, sizeof(uint) + (node_index * sizeof(long)), SEEK_SET) != 0) {
-        printf("Error: Failed to seek in map.bin\n");
+        printf("Error: Failed to seek in map.bin, save_node_to_file(%d)\n", node_index);
         fclose(map_file);
         return false;
     }
 
     if (fwrite(&CoreMap[node_index].file_offset, sizeof(long), 1, map_file) != 1) {
-        printf("Error: Failed to write to map.bin\n");
+        printf("Error: Failed to write to map.bin, save_node_to_file(%d)\n", node_index);
         fclose(map_file);
         return false;
     }
@@ -141,14 +141,14 @@ bool save_all_nodes() {
         
         // Write node data
         if (fseek(data_file, CoreMap[node_index].file_offset, SEEK_SET) != 0) {
-            printf("Error: Failed to seek in data.bin\n");
+            printf("Error: Failed to seek in data.bin, save_node_to_file(%d)\n", node_index);
             fclose(data_file);
             return false;
         }
         ushort node_size_power = *(ushort*)node;
         size_t node_size = (size_t)1 << node_size_power;
         if (fwrite(node, 1, node_size, data_file) != node_size) {
-            printf("Error: Failed to write to data.bin\n");
+            printf("Error: Failed to write to data.bin, save_node_to_file(%d)\n", node_index);
             fclose(data_file);
             return false;
         }
@@ -172,14 +172,14 @@ bool save_all_nodes() {
         // Update map entry
         if (fseek(map_file, sizeof(uint) + (node_index * sizeof(long)), SEEK_SET) != 0)
         {
-            printf("Error: Failed to seek in map.bin\n");
+            printf("Error: Failed to seek in map.bin, save_all_nodes(%d)\n", node_index);
             fclose(map_file);
             return false;
         }
 
         if (fwrite(&CoreMap[node_index].file_offset, sizeof(long), 1, map_file) != 1)
         {
-            printf("Error: Failed to write to map.bin\n");
+            printf("Error: Failed to write to map.bin, save_all_nodes(%d)\n", node_index);
             fclose(map_file);
             return false;
         }
@@ -248,8 +248,8 @@ int create_new_node() {
     CoreMap[CurrentnodeCount - 1].core_position = CurrentnodeCount - 1;
     CoreMap[CurrentnodeCount - 1].is_loaded = 1;
     
-    // Get last file offset from data.bin file size
-    CoreMap[CurrentnodeCount - 1].file_offset = get_last_file_offset();
+    CoreMap[CurrentnodeCount - 1].file_offset = max_offset;
+    max_offset += 16;
     
     if (!save_node_to_file(CurrentnodeCount - 1)) {
         printf("Error: Failed to save node\n");

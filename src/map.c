@@ -105,7 +105,14 @@ long get_node_position(unsigned int node_index) {
     
     return CoreMap[node_index].core_position;
 } 
-long get_last_offset(void) {
+long get_last_offset() {
+    // long last_offset = 0;
+
+    // size_t node_size = (size_t)1 << *(ushort*)Core[max_offset_node];
+    // last_offset += (long)node_size;
+    return max_offset;
+}
+long get_last_offset_by_induction(void) {
     long last_offset = 0;
     unsigned int max_node_index = 0;
 

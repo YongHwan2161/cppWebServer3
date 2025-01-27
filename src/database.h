@@ -12,4 +12,5 @@
 int initialize_database(void);
 void create_DB(void);
 long get_last_file_offset();
+int handle_max_offset(void);
 #endif 

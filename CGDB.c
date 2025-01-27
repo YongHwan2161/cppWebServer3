@@ -14,10 +14,16 @@ uchar** Core;
 nodeMapping* CoreMap;
 int CoreSize = 0;
 const unsigned int MaxCoreSize = 32768;  // Maximum vertices in RAM at once
-unsigned int CurrentnodeCount = 0;
+const unsigned int init_node_count = 259;
+
 const unsigned int GarbagenodeIndex = 256;
 const unsigned int pointer_current_vertex = 257;
 const unsigned int pointer_root_vertex = 258;
+// const unsigned int pointer_max_offset_node = 259;
+
+long max_offset = 0;
+unsigned int CurrentnodeCount = 0;
+
 const char* DATA_DIR = "binary-data";
 const char* DATA_FILE = "binary-data/data.bin";
 const char* MAP_FILE = "binary-data/map.bin";
