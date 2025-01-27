@@ -8,9 +8,9 @@
 
 int create_link(uint source_node, ushort source_ch,
                 uint dest_node, ushort dest_ch,
-                ushort axis_number, bool sync)
+                ushort axis_number)
 {
-    if (!ensure_axis_exists(source_node, source_ch, axis_number, sync))
+    if (!ensure_axis_exists(source_node, source_ch, axis_number))
     {
         printf("Error: Axis %d does not exist in node %d, channel %d: create_link\n",
                axis_number, source_node, source_ch);
@@ -23,7 +23,7 @@ int create_link(uint source_node, ushort source_ch,
     uint current_actual_size = *(uint*)(node + 2);
     uint required_size = current_actual_size + 6;  // Add 6 bytes for new link
     // Check and resize if needed using the new function
-    int resize_result = check_and_resize_node(node, required_size, source_node, sync);
+    int resize_result = check_and_resize_node(node, required_size, source_node);
     if (resize_result == FREE_SPACE_ERROR) {
         printf("Error: Failed to resize node\n");
         return LINK_ERROR;
@@ -58,7 +58,7 @@ int create_link(uint source_node, ushort source_ch,
     // Update link count and actual size
     (*current_link_count)++;
     *(uint*)(node + 2) = required_size;
-    if (sync)
+    if (sync_flag)
     {
         if (!save_node_to_file(source_node)) {
             printf("Error: Failed to update data.bin\n");
@@ -67,17 +67,17 @@ int create_link(uint source_node, ushort source_ch,
     }
     return LINK_SUCCESS;
 }
-int create_forward_link(Vertex source_vertex, Vertex dest_vertex, bool sync) {
-    create_link(source_vertex.node, source_vertex.channel, dest_vertex.node, dest_vertex.channel, CHILD_AXIS, sync);
+int create_forward_link(Vertex source_vertex, Vertex dest_vertex) {
+    create_link(source_vertex.node, source_vertex.channel, dest_vertex.node, dest_vertex.channel, CHILD_AXIS);
     return LINK_SUCCESS;
 }
-int create_backward_link(Vertex source_vertex, Vertex dest_vertex, bool sync) {
-    create_link(source_vertex.node, source_vertex.channel, dest_vertex.node, dest_vertex.channel, PARENT_AXIS, sync);
+int create_backward_link(Vertex source_vertex, Vertex dest_vertex) {
+    create_link(source_vertex.node, source_vertex.channel, dest_vertex.node, dest_vertex.channel, PARENT_AXIS);
     return LINK_SUCCESS;
 }
-int create_bidirectional_link(Vertex source_vertex, Vertex dest_vertex, bool sync) {
-    create_forward_link(source_vertex, dest_vertex, sync);
-    create_backward_link(dest_vertex, source_vertex, sync);
+int create_bidirectional_link(Vertex source_vertex, Vertex dest_vertex) {
+    create_forward_link(source_vertex, dest_vertex);
+    create_backward_link(dest_vertex, source_vertex);
     return LINK_SUCCESS;
 }
 /**
@@ -89,14 +89,14 @@ int create_bidirectional_link(Vertex source_vertex, Vertex dest_vertex, bool syn
  * @return LINK_SUCCESS if the loop link is created successfully, LINK_ERROR if it fails
  * make sure to create the axis first
  */
-int create_loop(uint source_node, ushort source_ch, ushort axis_number, bool sync) {
-    create_link(source_node, source_ch, source_node, source_ch, axis_number, sync);
+int create_loop(uint source_node, ushort source_ch, ushort axis_number) {
+    create_link(source_node, source_ch, source_node, source_ch, axis_number);
     return LINK_SUCCESS;
 }
 
 int delete_link(uint source_node, ushort source_ch, 
                uint dest_node, ushort dest_ch, 
-               ushort axis_number, bool sync) {
+               ushort axis_number) {
     
     uchar* node = Core[source_node];
     uint channel_offset = get_channel_offset(node, source_ch);
@@ -146,7 +146,7 @@ int delete_link(uint source_node, ushort source_ch,
     // Update link count and actual size
     (*current_link_count)--;
     *(uint*)(node + 2) = actual_size - 6;
-    if (sync)
+    if (sync_flag)
     {
         if (!save_node_to_file(source_node)) {
             printf("Error: Failed to update data.bin\n");
@@ -155,13 +155,13 @@ int delete_link(uint source_node, ushort source_ch,
     }
     return LINK_SUCCESS;
 }
-int delete_first_link(uint source_node, ushort source_ch, ushort axis_number, bool sync) {
+int delete_first_link(uint source_node, ushort source_ch, ushort axis_number) {
     uint first_link_node;
     ushort first_link_channel;
     if (get_link(source_node, source_ch, axis_number, 0, &first_link_node, &first_link_channel) == LINK_ERROR) {
         return LINK_ERROR;
     }
-    delete_link(source_node, source_ch, first_link_node, first_link_channel, axis_number, sync);
+    delete_link(source_node, source_ch, first_link_node, first_link_channel, axis_number);
     return LINK_SUCCESS;
 }
 /**
@@ -218,9 +218,9 @@ int get_link_count(uint source_node, ushort source_ch, ushort axis_number) {
     ushort* current_link_count = (ushort*)(node + channel_offset + axis_offset);
     return *current_link_count;
 }
-int create_property(uint node_index, ushort channel_index, uint property_node, bool sync) {
-    create_axis(node_index, channel_index, PROPERTY_AXIS, sync);
-    create_link(node_index, channel_index, property_node, 0, PROPERTY_AXIS, sync);
+int create_property(uint node_index, ushort channel_index, uint property_node) {
+    create_axis(node_index, channel_index, PROPERTY_AXIS);
+    create_link(node_index, channel_index, property_node, 0, PROPERTY_AXIS);
     return AXIS_SUCCESS;
 }
 int get_property(uint node_index, ushort channel_index) {

@@ -62,7 +62,7 @@ int handle_create_axis(char* args) {
     }
     
     // Create the axis
-    int result = create_axis(node_index, channel_index, axis_number, true);
+    int result = create_axis(node_index, channel_index, axis_number);
     if (result == AXIS_SUCCESS) {
         printf("Successfully created axis %d in node %d, channel %d\n",
                axis_number, node_index, channel_index);
@@ -184,7 +184,7 @@ int handle_delete_axis(char* args) {
         return CMD_ERROR;
     }
     // Delete the axis
-    int result = delete_axis(node_index, channel_index, axis_number, true);
+    int result = delete_axis(node_index, channel_index, axis_number);
     return (result == AXIS_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
 }
 
@@ -204,7 +204,7 @@ int handle_create_link(char* args) {
     // Create the link
     int result = create_link(source_node, source_ch, 
                            dest_node, dest_ch, 
-                           axis_number, true);
+                           axis_number);
     return (result == LINK_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
 }
 int handle_create_loop(char* args) {
@@ -218,7 +218,7 @@ int handle_create_loop(char* args) {
     if (!validate_node(node_index)) {
         return CMD_ERROR;
     }
-    return create_loop(node_index, channel_index, axis_number, true);
+    return create_loop(node_index, channel_index, axis_number);
 }
 int handle_create_bidirectional_link(char* args) {
     int source_node, source_ch, dest_node, dest_ch;
@@ -233,7 +233,7 @@ int handle_create_bidirectional_link(char* args) {
     }
     Vertex source_vertex = {source_node, source_ch};
     Vertex dest_vertex = {dest_node, dest_ch};
-    return create_bidirectional_link(source_vertex, dest_vertex, true);
+    return create_bidirectional_link(source_vertex, dest_vertex);
 }
 int handle_delete_link(char* args) {
     int source_node, source_ch, dest_node, dest_ch, axis_number;
@@ -264,7 +264,7 @@ int handle_delete_link(char* args) {
     // Delete the link
     int result = delete_link(source_node, source_ch, 
                            dest_node, dest_ch, 
-                           axis_number, true);
+                           axis_number);
     return (result == LINK_SUCCESS) ? CMD_SUCCESS : CMD_ERROR;
 }
 
@@ -418,7 +418,7 @@ int handle_create_channel(char* args) {
     }
     
     // Create the channel
-    int result = create_channel(node_index, true);
+    int result = create_channel(node_index);
     if (result == CHANNEL_SUCCESS) {
         printf("Successfully created new channel in node %d\n", node_index);
         return CMD_SUCCESS;
@@ -445,7 +445,7 @@ int handle_clear_channel(char* args) {
     }
     
     // Clear the channel
-    int result = clear_channel(node_index, channel_index, true);
+    int result = clear_channel(node_index, channel_index);
     if (result == CHANNEL_SUCCESS) {
         printf("Successfully cleared channel %d in node %d\n", channel_index, node_index);
         return CMD_SUCCESS;
@@ -809,6 +809,9 @@ int handle_command(char* command) {
         else if (strcmp(cmd, "max-offset") == 0){
             return handle_max_offset();
         }
+        else if (strcmp(cmd, "max-channel") == 0){
+            return handle_max_channel();
+        }
         else
         {
             printf("Unknown command. Type 'help' for available commands.\n");
@@ -914,7 +917,7 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "/") == 0) {
         uint start_node;
         ushort start_channel;
-        int result = handle_create_string(args, &start_node, &start_channel, false, false, true);
+        int result = handle_create_string(args, &start_node, &start_channel, false, false);
         if (result == SUCCESS) {
             printf("Successfully created string starting at node %u, channel %u\n", 
                    start_node, start_channel);
@@ -924,7 +927,7 @@ int handle_command(char* command) {
     else if (strcmp(cmd, "//") == 0) {
         uint start_node;
         ushort start_channel;
-        int result = handle_create_string(args, &start_node, &start_channel, false, true, true);
+        int result = handle_create_string(args, &start_node, &start_channel, false, true);
         if (result == SUCCESS) {
             printf("Successfully created string starting at node %u, channel %u\n", 
                    start_node, start_channel);

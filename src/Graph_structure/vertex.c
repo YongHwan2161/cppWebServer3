@@ -87,7 +87,7 @@ int change_vertex(unsigned int node_index, unsigned int offset, Vertex vertex) {
     return SUCCESS;
 }
 // Helper function to migrate vertices through a specific axis
-static int migrate_vertices_through_axis(Vertex source_vertex, Vertex target_vertex, ushort source_axis, ushort target_axis, bool save) {
+static int migrate_vertices_through_axis(Vertex source_vertex, Vertex target_vertex, ushort source_axis, ushort target_axis) {
     long source_node_position = get_node_position(source_vertex.node);
     if (source_node_position == -1) return ERROR;
     if (!has_axis(Core[source_node_position], source_vertex.channel, source_axis)) {
@@ -121,12 +121,12 @@ static int migrate_vertices_through_axis(Vertex source_vertex, Vertex target_ver
                     change_vertex(source_position, source_channel_offset + source_target_axis_offset + 2 + (j * 6), target_vertex);
                     if (create_link(target_vertex.node, target_vertex.channel, 
                                 source_vertices.vertices[i].node, 
-                                source_vertices.vertices[i].channel, source_axis, save) != LINK_SUCCESS) {
+                                source_vertices.vertices[i].channel, source_axis) != LINK_SUCCESS) {
                         printf("Error: Failed to create link between node %d and node %d\n", 
                                target_vertex.node, source_vertices.vertices[i].node);
                         return ERROR;
                     }
-                    if (create_link(target_vertex.node, target_vertex.channel, 0, 0, PROPERTY_AXIS, save) != LINK_SUCCESS) {
+                    if (create_link(target_vertex.node, target_vertex.channel, 0, 0, PROPERTY_AXIS) != LINK_SUCCESS) {
                         printf("Error: Failed to create PROPERTY vertex of node %d\n", 
                                target_vertex.node);
                         return ERROR;
@@ -143,12 +143,12 @@ static int migrate_vertices_through_axis(Vertex source_vertex, Vertex target_ver
     return SUCCESS;
 }
 
-int migrate_parent_vertices(Vertex source_vertex, Vertex target_vertex, bool save) {
-    return migrate_vertices_through_axis(source_vertex, target_vertex, PARENT_AXIS, CHILD_AXIS, save);
+int migrate_parent_vertices(Vertex source_vertex, Vertex target_vertex) {
+    return migrate_vertices_through_axis(source_vertex, target_vertex, PARENT_AXIS, CHILD_AXIS);
 }
 
-int migrate_child_vertices(Vertex source_vertex, Vertex target_vertex, bool save) {
-    return migrate_vertices_through_axis(source_vertex, target_vertex, CHILD_AXIS, PARENT_AXIS, save);
+int migrate_child_vertices(Vertex source_vertex, Vertex target_vertex) {
+    return migrate_vertices_through_axis(source_vertex, target_vertex, CHILD_AXIS, PARENT_AXIS);
 }
 bool is_start_string_vertex(Vertex vertex) {
     uchar* node = Core[vertex.node];
@@ -191,18 +191,18 @@ int load_root_vertex() {
     return ERROR;
 }
 int update_current_vertex() {
-    delete_first_link(pointer_current_vertex, 0, PROPERTY_AXIS, true);
-    create_link(pointer_current_vertex, 0, CurrentVertex.node, CurrentVertex.channel, PROPERTY_AXIS, true);
+    delete_first_link(pointer_current_vertex, 0, PROPERTY_AXIS);
+    create_link(pointer_current_vertex, 0, CurrentVertex.node, CurrentVertex.channel, PROPERTY_AXIS);
     return SUCCESS;
 }
 int update_root_vertex() {
-    delete_first_link(pointer_root_vertex, 0, PROPERTY_AXIS, true);
-    create_link(pointer_root_vertex, 0, RootVertex.node, RootVertex.channel, PROPERTY_AXIS, true);
+    delete_first_link(pointer_root_vertex, 0, PROPERTY_AXIS);
+    create_link(pointer_root_vertex, 0, RootVertex.node, RootVertex.channel, PROPERTY_AXIS);
     return SUCCESS;
 }
 int update_current_vertex_to_root() {
-    delete_first_link(pointer_current_vertex, 0, PROPERTY_AXIS, true);
-    create_link(pointer_current_vertex, 0, RootVertex.node, RootVertex.channel, PROPERTY_AXIS, true);
+    delete_first_link(pointer_current_vertex, 0, PROPERTY_AXIS);
+    create_link(pointer_current_vertex, 0, RootVertex.node, RootVertex.channel, PROPERTY_AXIS);
     return SUCCESS;
 }
 int handle_get_current_vertex() {

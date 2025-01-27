@@ -25,9 +25,9 @@ bool save_current_node_count();
 bool save_inconsistent_nodes();
 int handle_save_inconsistent_nodes();
 int handle_save_node(char* args);
-int create_new_node(bool sync);
+int create_new_node();
 int handle_create_node(char* args);
-int delete_node(unsigned int node_index, bool save);
+int delete_node(unsigned int node_index);
 int handle_delete_node(char* args);
 
 // Get token data from a token node
@@ -37,7 +37,7 @@ char* get_token_data(unsigned int node_index);
 
 // Create a new token node by combining two existing tokens
 // Returns the new node index or -1 on error
-int create_token_node(unsigned int first_node, unsigned int second_node, bool sync);
+int create_token_node(unsigned int first_node, unsigned int second_node);
 
 int handle_create_token(char* args);
 int handle_get_token_data(char* args);

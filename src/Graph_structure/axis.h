@@ -15,10 +15,10 @@ uint get_axis_offset_by_index(uchar* node, ushort channel_index, ushort axis_ind
 uint get_axis_offset(uchar* node, ushort channel_index, ushort axis_number);
 bool has_axis(uchar* node, ushort channel_index, ushort axis_number);
 bool has_axis_channel_offset(uchar* node, uint channel_offset, ushort axis_number);
-bool ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number, bool sync);
-int create_axis(uint node_index, ushort channel_index, ushort axis_number, bool sync);
-int delete_axis(uint node_index, ushort channel_index, ushort axis_number, bool sync);
-int delete_property_axis(uint node_index, ushort channel_index, bool sync);
+bool ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number);
+int create_axis(uint node_index, ushort channel_index, ushort axis_number);
+int delete_axis(uint node_index, ushort channel_index, ushort axis_number);
+int delete_property_axis(uint node_index, ushort channel_index);
 uint get_last_axis_offset(uchar* node, ushort channel_index);
 
 #endif 

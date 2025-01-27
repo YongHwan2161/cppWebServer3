@@ -63,7 +63,7 @@ bool has_axis(uchar* node, ushort channel_index, ushort axis_number) {
     return has_axis_channel_offset(node, channel_offset, axis_number);
 }
 
-int create_axis(uint node_index, ushort channel_index, ushort axis_number, bool sync) {
+int create_axis(uint node_index, ushort channel_index, ushort axis_number) {
     long node_position = get_node_position(node_index);
     // Validate node
     if (node_position == -1) {
@@ -88,7 +88,7 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number, bool 
     
     if (required_size > current_node_size) {
         uint new_size;
-        uchar* new_node = resize_node_space(node, required_size, node_index, &new_size, sync);
+        uchar* new_node = resize_node_space(node, required_size, node_index, &new_size);
         if (!new_node) {
             printf("Error: Failed to resize node\n");
             return AXIS_ERROR;
@@ -130,7 +130,7 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number, bool 
     
     // Update actual size
     *(uint*)(node + 2) = required_size;
-    if (sync) {
+    if (sync_flag) {
         if (!save_node_to_file(node_index)) {
             printf("Error: Failed to save node\n");
             return AXIS_ERROR;
@@ -139,7 +139,7 @@ int create_axis(uint node_index, ushort channel_index, ushort axis_number, bool 
     return AXIS_SUCCESS;
 }
 
-int delete_axis(uint node_index, ushort channel_index, ushort axis_number, bool sync) {
+int delete_axis(uint node_index, ushort channel_index, ushort axis_number) {
     long node_position = get_node_position(node_index);
     if (node_position == -1) return AXIS_ERROR;
     
@@ -192,7 +192,7 @@ int delete_axis(uint node_index, ushort channel_index, ushort axis_number, bool 
     (*axis_count)--;
     *(uint*)(node + 2) = new_actual_size;  // -6 for removed axis entry
     
-    if (sync) {
+    if (sync_flag) {
         if (!save_node_to_file(node_index)) {
             printf("Error: Failed to save node\n");
             return AXIS_ERROR;
@@ -200,8 +200,8 @@ int delete_axis(uint node_index, ushort channel_index, ushort axis_number, bool 
     }
     return AXIS_SUCCESS;
 }
-int delete_property_axis(uint node_index, ushort channel_index, bool sync) {
-    delete_axis(node_index, channel_index, PROPERTY_AXIS, sync);
+int delete_property_axis(uint node_index, ushort channel_index) {
+    delete_axis(node_index, channel_index, PROPERTY_AXIS);
     return AXIS_SUCCESS;
 }
 uint get_last_axis_offset(uchar* node, ushort channel_index) {
@@ -227,13 +227,13 @@ uint get_last_axis_offset(uchar* node, ushort channel_index) {
  * @param axis_number Axis number to check/create
  * @return AXIS_SUCCESS if axis exists or was created successfully, AXIS_ERROR otherwise
  */
-bool ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number, bool sync) {
+bool ensure_axis_exists(uint node_index, ushort channel_index, ushort axis_number) {
     long node_position = get_node_position(node_index);
     if (node_position == -1) return false;
     uchar* node = Core[node_position];
     // Check if axis exists
     if (!has_axis(node, channel_index, axis_number)) {
-        int result = create_axis(node_index, channel_index, axis_number, sync);
+        int result = create_axis(node_index, channel_index, axis_number);
         if (result != AXIS_SUCCESS) {
             printf("Error: Failed to create required axis\n");
             return false;

@@ -98,7 +98,7 @@ void release_node_space(int node_index) {
     save_free_space();
 }
 
-uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uint* new_size, bool sync) {
+uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uint* new_size) {
     // printf("required_size: %d\n", required_size);
     // Calculate new size (next power of 2)
     ushort node_size_power = *(ushort*)node;
@@ -144,7 +144,7 @@ uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uin
     
     // Free old node
     free(node);
-    if (sync)
+    if (sync_flag)
     {
         // Save updated free space information
         save_free_space();
@@ -199,14 +199,14 @@ FreeBlock* find_and_get_free_block(uint size) {
     return NULL;
 }
 
-int check_and_resize_node(uchar* node, uint required_size, uint node_index, bool sync) {
+int check_and_resize_node(uchar* node, uint required_size, uint node_index) {
     // Check if we need to resize
     ushort node_size_power = *(ushort*)(node);
     uint current_node_size = 1 << node_size_power;
     
     if (required_size > current_node_size) {
         uint new_size;
-        uchar* new_node = resize_node_space(node, required_size, node_index, &new_size, sync);
+        uchar* new_node = resize_node_space(node, required_size, node_index, &new_size);
         // printf("new_node: %p\n", new_node);
         if (!new_node) {
             printf("Error: Failed to resize node\n");

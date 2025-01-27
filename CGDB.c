@@ -23,11 +23,13 @@ const unsigned int pointer_root_vertex = 258;
 
 long max_offset = 0;
 unsigned int CurrentnodeCount = 0;
+int integrate_count = 2;
 
 const char* DATA_DIR = "binary-data";
 const char* DATA_FILE = "binary-data/data.bin";
 const char* MAP_FILE = "binary-data/map.bin";
 
+bool sync_flag = true;
 
 int main() {
     int init_status = initialize_system();

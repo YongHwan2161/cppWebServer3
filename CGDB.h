@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define ERROR -1
 #define SUCCESS 0
@@ -43,6 +44,7 @@ typedef struct {
 extern uchar** Core;
 extern nodeMapping* CoreMap;
 extern int CoreSize;        // Current number of vertices loaded in Core
+extern int integrate_count;
 extern const unsigned int MaxCoreSize;  // Maximum number of vertices that can be in RAM
 extern const unsigned int init_node_count;
 
@@ -60,5 +62,7 @@ extern const char* MAP_FILE;
 
 extern Vertex CurrentVertex;  // Current user position
 extern Vertex RootVertex;     // Root string position
+
+extern bool sync_flag;
 
 #endif

@@ -232,7 +232,7 @@ void initialize_node(uchar** node) {
         (*node)[i] = initValues[i];
     }
 }
-int create_new_node(bool sync) {
+int create_new_node() {
     uchar* newnode = (uchar*)malloc(16 * sizeof(uchar));
     if (!newnode) {
         printf("Error: Failed to allocate memory for new node\n");
@@ -250,7 +250,7 @@ int create_new_node(bool sync) {
     
     CoreMap[CurrentnodeCount - 1].file_offset = max_offset;
     max_offset += 16;
-    if (sync) {
+    if (sync_flag) {
         if (!save_node_to_file(CurrentnodeCount - 1)) {
             printf("Error: Failed to save node\n");
             free(newnode);
@@ -276,12 +276,12 @@ int handle_create_node(char* args) {
     }
     
     // Create new node
-    create_new_node(true);
+    create_new_node();
     printf("Successfully created new node at index %d\n", CurrentnodeCount - 1);
     return CMD_SUCCESS;
 }
 
-int delete_node(unsigned int node_index, bool save) {
+int delete_node(unsigned int node_index) {
     printf("calling delete_node: %d\n", node_index);
     // Check if trying to delete garbage node
     if (node_index == GarbagenodeIndex) {
@@ -302,9 +302,9 @@ int delete_node(unsigned int node_index, bool save) {
     uint axis_offset = get_axis_offset(Core[GarbagenodeIndex], 0, 0);
     uint first_garbage_node = *(uint*)(Core[GarbagenodeIndex] + channel_offset + axis_offset + 2);
     printf("First garbage node: %d\n", first_garbage_node);
-    delete_link(GarbagenodeIndex, 0, first_garbage_node, 0, 0, save);
-    create_link(GarbagenodeIndex, 0, node_index, 0, 0, save);
-    create_link(node_index, 0, first_garbage_node, 0, 0, save);
+    delete_link(GarbagenodeIndex, 0, first_garbage_node, 0, 0);
+    create_link(GarbagenodeIndex, 0, node_index, 0, 0);
+    create_link(node_index, 0, first_garbage_node, 0, 0);
 
     Core[node_position] = NULL;
     CoreMap[node_index].core_position = -1;
@@ -335,7 +335,7 @@ int handle_delete_node(char* args) {
     }
     // printf("node_index: %d\n", node_index);
     // Delete the node
-    int result = delete_node(node_index, true);
+    int result = delete_node(node_index);
     // int result = node_SUCCESS;
     if (result == node_SUCCESS) {
         printf("Successfully deleted node %d\n", node_index);
@@ -422,7 +422,7 @@ char* get_token_data(unsigned int node_index) {
  * @param first_node Starting node for search tree traversal
  * @return SUCCESS if tree was updated successfully, ERROR otherwise
  */
-int create_token_search_tree(uint new_node, const char* new_token_data, uint first_node, bool save) {
+int create_token_search_tree(uint new_node, const char* new_token_data, uint first_node) {
     if (!new_token_data || !validate_node(new_node) || !validate_node(first_node)) {
         return ERROR;
     }
@@ -439,7 +439,7 @@ int create_token_search_tree(uint new_node, const char* new_token_data, uint fir
         uint channel_offset = get_channel_offset(Core[node_position], 0);
         if (!has_axis(Core[node_position], 0, TOKEN_SEARCH_AXIS)) {
             // Create link from current node to new node if no further paths
-            create_link(current_node, 0, new_node, 0, TOKEN_SEARCH_AXIS, save);
+            create_link(current_node, 0, new_node, 0, TOKEN_SEARCH_AXIS);
             return SUCCESS;
         }
 
@@ -467,7 +467,7 @@ int create_token_search_tree(uint new_node, const char* new_token_data, uint fir
 
         // If no matching path found, create link from current node to new node
         if (!found_path) {
-            create_link(current_node, 0, new_node, 0, TOKEN_SEARCH_AXIS, save);
+            create_link(current_node, 0, new_node, 0, TOKEN_SEARCH_AXIS);
             link_created = true;
         }
     }
@@ -475,31 +475,31 @@ int create_token_search_tree(uint new_node, const char* new_token_data, uint fir
     return SUCCESS;
 }
 
-int create_token_node(unsigned int first_node, unsigned int second_node, bool sync) {
+int create_token_node(unsigned int first_node, unsigned int second_node) {
     // Validate input vertices
     if (!validate_node(first_node) || !validate_node(second_node)) {
         return -1;
     }
 
     // Create new node
-    create_new_node(sync);
+    create_new_node(true);
     uint new_node = CurrentnodeCount - 1;
 
     // Create axis 2 in new node for storing token data links
-    if (create_axis(new_node, 0, TOKEN_DATA_AXIS, sync) != AXIS_SUCCESS) {
+    if (create_axis(new_node, 0, TOKEN_DATA_AXIS) != AXIS_SUCCESS) {
         printf("Error: Failed to create token data axis\n");
         return -1;
     }
 
     // Link new node to first node's token search axis
-    // if (create_link(first_node, 0, new_node, 0, TOKEN_SEARCH_AXIS, sync) != LINK_SUCCESS) {
+    // if (create_link(first_node, 0, new_node, 0, TOKEN_SEARCH_AXIS) != LINK_SUCCESS) {
     //     printf("Error: Failed to create search link\n");
     //     return -1;
     // }
 
     // Link new node to both input vertices for data storage
-    if (create_link(new_node, 0, first_node, 0, TOKEN_DATA_AXIS, sync) != LINK_SUCCESS ||
-        create_link(new_node, 0, second_node, 0, TOKEN_DATA_AXIS, sync) != LINK_SUCCESS) {
+    if (create_link(new_node, 0, first_node, 0, TOKEN_DATA_AXIS) != LINK_SUCCESS ||
+        create_link(new_node, 0, second_node, 0, TOKEN_DATA_AXIS) != LINK_SUCCESS) {
         printf("Error: Failed to create data links\n");
         return -1;
     }
@@ -507,7 +507,7 @@ int create_token_node(unsigned int first_node, unsigned int second_node, bool sy
     char* first_token_data = get_token_data(first_node);
     char* second_token_data = get_token_data(second_node);
     char* new_token_data = strcat(first_token_data, second_token_data);
-    create_token_search_tree(new_node, new_token_data, first_node, sync);
+    create_token_search_tree(new_node, new_token_data, first_node);
 
     return new_node;
 }
@@ -545,7 +545,7 @@ int handle_create_token(char* args) {
     }
     
     // Create token node
-    int new_node = create_token_node(first_node, second_node, true);
+    int new_node = create_token_node(first_node, second_node);
     if (new_node < 0) {
         printf("Error: Failed to create token node\n");
         return CMD_ERROR;
