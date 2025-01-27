@@ -1,5 +1,6 @@
 #include "map.h"
 #include "memory.h"
+#include "../CGDB.h"
 #include <stdio.h>
 
 int save_map(uint node_index) {
@@ -51,31 +52,31 @@ int save_map_all(void) {
     return MAP_SUCCESS;
 }
 
-int load_map(void) {
-    FILE* map_file = fopen(MAP_FILE, "rb");
-    if (!map_file) {
-        printf("Error: Could not open map file for reading\n");
-        return MAP_ERROR;
-    }
+// int load_map(void) {
+//     FILE* map_file = fopen(MAP_FILE, "rb");
+//     if (!map_file) {
+//         printf("Error: Could not open map file for reading\n");
+//         return MAP_ERROR;
+//     }
     
-    // Read and verify number of vertices
-    uint num_vertices;
-    if (fread(&num_vertices, sizeof(uint), 1, map_file) != 1 || num_vertices != 256) {
-        fclose(map_file);
-        return MAP_ERROR;
-    }
+//     // Read and verify number of vertices
+//     uint num_vertices;
+//     if (fread(&num_vertices, sizeof(uint), 1, map_file) != 1 || num_vertices != 256) {
+//         fclose(map_file);
+//         return MAP_ERROR;
+//     }
     
-    // Read all offsets
-    for (int i = 0; i < 256; i++) {
-        if (fread(&CoreMap[i].file_offset, sizeof(long), 1, map_file) != 1) {
-            fclose(map_file);
-            return MAP_ERROR;
-        }
-    }
+//     // Read all offsets
+//     for (int i = 0; i < 256; i++) {
+//         if (fread(&CoreMap[i].file_offset, sizeof(long), 1, map_file) != 1) {
+//             fclose(map_file);
+//             return MAP_ERROR;
+//         }
+//     }
     
-    fclose(map_file);
-    return MAP_SUCCESS;
-}
+//     fclose(map_file);
+//     return MAP_SUCCESS;
+// }
 
 void init_map(void) {
     // Initialize CoreMap with default values
@@ -104,3 +105,17 @@ long get_node_position(unsigned int node_index) {
     
     return CoreMap[node_index].core_position;
 } 
+long get_last_offset(void) {
+    long last_offset = 0;
+    unsigned int max_node_index = 0;
+
+    for (unsigned int i = 0; i < CurrentnodeCount; i++) {
+        if (CoreMap[i].file_offset > last_offset) {
+            last_offset = CoreMap[i].file_offset;
+            max_node_index = i;
+        }
+    }
+    size_t node_size = (size_t)1 << *(ushort*)Core[max_node_index];
+    last_offset += (long)node_size;
+    return last_offset;
+}

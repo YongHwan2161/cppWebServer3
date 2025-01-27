@@ -213,3 +213,7 @@ int handle_get_root_vertex() {
     printf("Root vertex: node %u, channel %u\n", RootVertex.node, RootVertex.channel);
     return SUCCESS;
 }
+int handle_get_current_node_count() {
+    printf("Current node count: %u\n", CurrentnodeCount);
+    return SUCCESS;
+}

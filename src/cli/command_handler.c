@@ -787,7 +787,7 @@ int handle_command(char* command) {
         }
         else if (strcmp(cmd, "check-node-consistency-all") == 0)
         {
-            if (check_node_consistency_all() == 0)
+            if (check_node_consistency_all() == true)
             {
                 printf("All nodes are consistent\n");
                 return CMD_SUCCESS;
@@ -798,6 +798,12 @@ int handle_command(char* command) {
         }
         else if (strcmp(cmd, "get-root") == 0){
             return handle_get_root_vertex();
+        }
+        else if (strcmp(cmd, "get-current-node-count") == 0){
+            return handle_get_current_node_count();
+        }
+        else if (strcmp(cmd, "save-inconsistent-nodes") == 0){
+            return handle_save_inconsistent_nodes();
         }
         else
         {
@@ -1040,7 +1046,8 @@ int handle_load_node(char* args) {
     }
 
     // Calculate actual size and allocate buffer
-    size_t node_size = 1 << size_power;
+
+    size_t node_size = (size_t)1 << size_power;
     uchar* node_data = malloc(node_size);
     if (!node_data) {
         printf("Error: Failed to allocate memory for node\n");

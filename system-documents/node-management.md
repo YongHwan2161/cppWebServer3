@@ -116,6 +116,72 @@ if (!save_node_to_file(node_index)) {
    long map_offset = sizeof(uint) + (node_index * sizeof(long));
    ``` 
 
+### Save All Nodes
+```c
+bool save_all_nodes();
+```
+
+#### Purpose
+Saves all nodes in memory to data.bin and updates their offsets in map.bin.
+
+#### Process
+1. File Initialization
+   - Open data.bin in read/write mode
+   - Create if doesn't exist
+   - Open map.bin in read/write mode
+   - Create if doesn't exist
+
+2. Node Saving Loop
+   - Iterate through all nodes
+   - Write node data to data.bin
+   - Update offset in map.bin
+   - Handle errors appropriately
+
+3. Resource Management
+   - Proper file handle cleanup
+   - Error state cleanup
+   - Atomic operation (all or nothing)
+
+#### Error Handling
+1. File Operations
+   - File open failures
+   - Seek failures
+   - Write failures
+
+2. Node Validation
+   - Invalid node positions
+   - Missing nodes
+   - Size mismatches
+
+3. Resource Cleanup
+   - Close files on any error
+   - Close files after completion
+   - Maintain file handle safety
+
+#### Implementation Notes
+1. File Safety
+   - Files opened once at start
+   - Closed on any error
+   - Closed after completion
+
+2. Error Recovery
+   - Return false on any error
+   - Close all files before return
+   - Clear error messages
+
+3. Performance
+   - Single file open per operation
+   - Minimized file operations
+   - Efficient error handling
+
+#### Usage Example
+```c
+if (!save_all_nodes()) {
+    printf("Error: Failed to save nodes\n");
+    // Handle error...
+}
+```
+
 ### node Creation
 
 #### Command Interface
@@ -236,3 +302,85 @@ Error: Cannot delete garbage node (index 0)
    - 완전한 초기화
    - 링크 정리
    - 참조 제거 
+
+## Memory Safety
+
+### node Size Calculation
+The system provides a safe way to calculate node sizes:
+
+```c
+static size_t get_node_size(const uchar* node)
+```
+
+#### Size Power Limits
+The system limits node size power to 16 (64KB) for several reasons:
+
+1. Memory Safety
+   - Prevents integer overflow on 32-bit systems
+   - Avoids undefined behavior with large shifts
+   - Ensures consistent behavior across platforms
+
+2. Resource Management
+   - 64KB per node is sufficient for most uses
+   - Prevents accidental allocation of huge nodes
+   - Helps maintain reasonable memory usage
+
+3. Error Detection
+   - Size powers > 16 likely indicate corruption
+   - Early detection of potential issues
+   - Clear error reporting for debugging
+
+#### Size Calculation Example
+```c
+// Maximum valid size: 2^16 = 65,536 bytes (64KB)
+size_t max_valid_size = 1 << 16;
+
+// Larger sizes are rejected:
+if (size_power > 16) {
+    // Error: Size too large
+    return 0;
+}
+```
+
+#### Implementation Benefits
+1. Platform Independence
+   - Works on both 32-bit and 64-bit systems
+   - Avoids architecture-specific issues
+   - Maintains consistent behavior
+
+2. Error Prevention
+   - Catches corrupted size values early
+   - Prevents memory allocation issues
+   - Simplifies debugging
+
+3. Performance
+   - Fast size validation
+   - Simple power-of-2 calculations
+   - Efficient memory management
+
+#### Usage Example
+```c
+uchar* node = Core[node_position];
+size_t size = get_node_size(node);
+if (size == 0) {
+    // Handle error...
+}
+```
+
+#### Implementation Details
+1. Size Power Reading
+   - Uses memcpy for alignment-safe access
+   - Reads exactly 2 bytes
+   - Maintains platform independence
+
+2. Validation
+   - Maximum size power of 16 (64KB)
+   - Returns 0 on invalid size
+   - Clear error reporting
+
+3. Calculation
+   - Safe left shift operation
+   - Proper type casting
+   - Overflow prevention
+
+[Rest of the document remains the same...]

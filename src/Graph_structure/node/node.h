@@ -21,6 +21,9 @@ typedef struct {
 bool validate_node(unsigned int node_index);
 bool save_node_to_file(unsigned int node_index);
 bool save_all_nodes();
+bool save_current_node_count();
+bool save_inconsistent_nodes();
+int handle_save_inconsistent_nodes();
 int handle_save_node(char* args);
 int create_new_node();
 int handle_create_node(char* args);

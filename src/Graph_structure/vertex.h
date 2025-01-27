@@ -21,4 +21,5 @@ int update_root_vertex();
 int update_current_vertex_to_root();
 int handle_get_current_vertex();
 int handle_get_root_vertex();
+int handle_get_current_node_count();
 #endif

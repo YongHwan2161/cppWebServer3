@@ -99,6 +99,6 @@ bool check_node_consistency(unsigned int node_index);
 /**
  * Checks the consistency of all nodes in the Core array
  */ 
-unsigned int check_node_consistency_all();
+bool check_node_consistency_all();
 
 #endif // MEMORY_H 

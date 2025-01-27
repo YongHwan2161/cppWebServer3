@@ -8,6 +8,7 @@
 #include "../../data_structures/stack.h"
 #include "../../cli/command_handler.h"
 #include "../../database.h"
+#include "../../memory.h"
 #include "../link.h"  // For Core array access
 #include "../cycle.h"
 #include "../vertex.h"
@@ -76,7 +77,9 @@ bool save_node_to_file(unsigned int node_index) {
         return false;
     }
 
-    size_t node_size = 1 << (*(ushort*)node);
+    ushort node_size_power = *(ushort*)node;
+    size_t node_size = (size_t)1 << node_size_power;
+    
     if (fwrite(node, 1, node_size, data_file) != node_size) {
         printf("Error: Failed to write to data.bin\n");
         fclose(data_file);
@@ -113,13 +116,94 @@ bool save_node_to_file(unsigned int node_index) {
     return true;
 }
 bool save_all_nodes() {
-    for (unsigned int i = 0; i < CurrentnodeCount; i++) {
-        if (!save_node_to_file(i)) {
-            printf("Error: Failed to save node %d\n", i);
+    // Try to open data file, create if doesn't exist
+    // if (!data_file) {
+    //     data_file = fopen(DATA_FILE, "wb");
+    //     if (!data_file) {
+    //         printf("Error: Failed to create data.bin\n");
+    //         return false;
+    //     }
+    //     fclose(data_file);
+    //     data_file = fopen(DATA_FILE, "r+b");
+    // }
+
+    // Save each node
+    for (unsigned int node_index = 0; node_index < CurrentnodeCount; node_index++) {
+        
+    FILE *data_file = fopen(DATA_FILE, "r+b");
+        long node_position = get_node_position(node_index);
+        if (node_position == -1) {
+            fclose(data_file);
             return false;
+        }
+
+        uchar *node = Core[node_position];
+        
+        // Write node data
+        if (fseek(data_file, CoreMap[node_index].file_offset, SEEK_SET) != 0) {
+            printf("Error: Failed to seek in data.bin\n");
+            fclose(data_file);
+            return false;
+        }
+        ushort node_size_power = *(ushort*)node;
+        size_t node_size = (size_t)1 << node_size_power;
+        if (fwrite(node, 1, node_size, data_file) != node_size) {
+            printf("Error: Failed to write to data.bin\n");
+            fclose(data_file);
+            return false;
+        }
+    fclose(data_file);
+    }
+
+    // Try to open map file, create if doesn't exist
+    // if (!map_file) {
+    //     map_file = fopen(MAP_FILE, "wb");
+    //     if (!map_file) {
+    //         fclose(map_file);
+    //         printf("Error: Failed to create map.bin\n");
+    //         return false;
+    //     }
+    //     fclose(map_file);
+    //     map_file = fopen(MAP_FILE, "r+b");
+    // }
+    for (unsigned int node_index = 0; node_index < CurrentnodeCount; node_index++)
+    {
+        FILE *map_file = fopen(MAP_FILE, "r+b");
+        // Update map entry
+        if (fseek(map_file, sizeof(uint) + (node_index * sizeof(long)), SEEK_SET) != 0)
+        {
+            printf("Error: Failed to seek in map.bin\n");
+            fclose(map_file);
+            return false;
+        }
+
+        if (fwrite(&CoreMap[node_index].file_offset, sizeof(long), 1, map_file) != 1)
+        {
+            printf("Error: Failed to write to map.bin\n");
+            fclose(map_file);
+            return false;
+        }
+        fclose(map_file);
+    }
+
+    return true;
+}
+bool save_inconsistent_nodes() {
+    for (unsigned int i = 0; i < CurrentnodeCount; i++) {
+        if (!check_node_consistency(i)) {
+            printf("Node %d is inconsistent\n", i);
+            save_node_to_file(i);
         }
     }
     return true;
+}
+int handle_save_inconsistent_nodes() {
+    if (save_inconsistent_nodes()) {
+        printf("Successfully saved inconsistent nodes\n");
+        return CMD_SUCCESS;
+    }
+    printf("Error: Failed to save inconsistent nodes\n");
+    return CMD_ERROR;
 }
 int handle_save_node(char* args) {
     if (!args) {
@@ -329,6 +413,67 @@ char* get_token_data(unsigned int node_index) {
     return result;
 }
 
+/**
+ * Creates or updates token search tree for a new token node
+ * 
+ * @param new_node Index of the new token node
+ * @param new_token_data Token data to insert into search tree
+ * @param first_node Starting node for search tree traversal
+ * @return SUCCESS if tree was updated successfully, ERROR otherwise
+ */
+int create_token_search_tree(uint new_node, const char* new_token_data, uint first_node, bool save) {
+    if (!new_token_data || !validate_node(new_node) || !validate_node(first_node)) {
+        return ERROR;
+    }
+
+    // Start from first_node and traverse token search tree
+    uint current_node = first_node;
+    bool link_created = false;
+
+    while (!link_created) {
+        // Get all linked nodes through token search axis (0)
+        long node_position = get_node_position(current_node);
+        if (node_position == -1) return ERROR;
+
+        uint channel_offset = get_channel_offset(Core[node_position], 0);
+        if (!has_axis(Core[node_position], 0, TOKEN_SEARCH_AXIS)) {
+            // Create link from current node to new node if no further paths
+            create_link(current_node, 0, new_node, 0, TOKEN_SEARCH_AXIS, save);
+            return SUCCESS;
+        }
+
+        uint axis_offset = get_axis_offset(Core[node_position], 0, TOKEN_SEARCH_AXIS);
+        ushort link_count = *(ushort*)(Core[node_position] + channel_offset + axis_offset);
+        int link_offset = channel_offset + axis_offset + 2;
+
+        bool found_path = false;
+        
+        // Check each linked node's token data
+        for (int i = 0; i < link_count; i++) {
+            uint dest_node = *(uint*)(Core[node_position] + link_offset + (i * 6));
+            char* dest_token = get_token_data(dest_node);
+            if (!dest_token) continue;
+
+            // If destination token is prefix of new token, continue down that path
+            if (strncmp(new_token_data, dest_token, strlen(dest_token)) == 0) {
+                current_node = dest_node;
+                found_path = true;
+                free(dest_token);
+                break;
+            }
+            free(dest_token);
+        }
+
+        // If no matching path found, create link from current node to new node
+        if (!found_path) {
+            create_link(current_node, 0, new_node, 0, TOKEN_SEARCH_AXIS, save);
+            link_created = true;
+        }
+    }
+
+    return SUCCESS;
+}
+
 int create_token_node(unsigned int first_node, unsigned int second_node, bool sync) {
     // Validate input vertices
     if (!validate_node(first_node) || !validate_node(second_node)) {
@@ -346,10 +491,10 @@ int create_token_node(unsigned int first_node, unsigned int second_node, bool sy
     }
 
     // Link new node to first node's token search axis
-    if (create_link(first_node, 0, new_node, 0, TOKEN_SEARCH_AXIS, sync) != LINK_SUCCESS) {
-        printf("Error: Failed to create search link\n");
-        return -1;
-    }
+    // if (create_link(first_node, 0, new_node, 0, TOKEN_SEARCH_AXIS, sync) != LINK_SUCCESS) {
+    //     printf("Error: Failed to create search link\n");
+    //     return -1;
+    // }
 
     // Link new node to both input vertices for data storage
     if (create_link(new_node, 0, first_node, 0, TOKEN_DATA_AXIS, sync) != LINK_SUCCESS ||
@@ -357,6 +502,11 @@ int create_token_node(unsigned int first_node, unsigned int second_node, bool sy
         printf("Error: Failed to create data links\n");
         return -1;
     }
+
+    char* first_token_data = get_token_data(first_node);
+    char* second_token_data = get_token_data(second_node);
+    char* new_token_data = strcat(first_token_data, second_token_data);
+    create_token_search_tree(new_node, new_token_data, first_node, sync);
 
     return new_node;
 }

@@ -101,7 +101,7 @@ uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uin
     // printf("required_size: %d\n", required_size);
     // Calculate new size (next power of 2)
     ushort node_size_power = *(ushort*)node;
-    uint current_size = 1 << node_size_power;
+    size_t current_size = (size_t)1 << node_size_power;
     
     while ((1 << node_size_power) < required_size) {
         node_size_power++;
@@ -134,11 +134,15 @@ uchar* resize_node_space(uchar* node, ushort required_size, uint node_index, uin
         // Add old space to free space
         add_free_block(current_size, CoreMap[node_index].file_offset);
         
-        // Update CoreMap with new location
-        FILE* data_file = fopen(DATA_FILE, "ab");
-        if (data_file) {
-            CoreMap[node_index].file_offset = ftell(data_file);
-            fclose(data_file);
+        if (sync) {
+            // Update CoreMap with new location
+            FILE* data_file = fopen(DATA_FILE, "ab");
+            if (data_file) {
+                CoreMap[node_index].file_offset = ftell(data_file);
+                fclose(data_file);
+            }
+        } else {
+            CoreMap[node_index].file_offset = get_last_offset();
         }
     }
     

@@ -131,3 +131,113 @@ for (int i = 0; i < link_count; i++) {
    - Data deduplication
    - Storage optimization
    - Pattern matching 
+
+# Token Search Tree Management
+
+## Overview
+The token search tree is a hierarchical structure that enables efficient token lookup and reuse. Each node in the tree represents a token, with links through axis 0 (TOKEN_SEARCH_AXIS) connecting to longer token sequences.
+
+## Tree Creation Process
+
+### create_token_search_tree Function
+```c
+int create_token_search_tree(uint new_node, const char* new_token_data, uint first_node);
+```
+
+#### Purpose
+- Inserts new token nodes into the search tree structure
+- Maintains prefix relationships between tokens
+- Enables efficient token lookup and reuse
+
+#### Process
+1. Tree Traversal
+   - Start from first_node (root)
+   - Follow token search axis links
+   - Compare token data at each node
+
+2. Path Selection
+   - Check if current token is prefix of new token
+   - Continue down matching path if found
+   - Create new link if no match found
+
+3. Link Creation
+   - Add link when no matching prefix exists
+   - Connect from last matching node
+   - Use token search axis (0)
+
+### Implementation Details
+
+#### Node Traversal
+```c
+// Get linked nodes through token search axis
+uint channel_offset = get_channel_offset(Core[node_position], 0);
+uint axis_offset = get_axis_offset(Core[node_position], 0, TOKEN_SEARCH_AXIS);
+ushort link_count = *(ushort*)(Core[node_position] + channel_offset + axis_offset);
+```
+
+#### Token Comparison
+```c
+// Compare token data for prefix match
+if (strncmp(new_token_data, dest_token, strlen(dest_token)) == 0) {
+    // Continue down this path
+    current_node = dest_node;
+    found_path = true;
+}
+```
+
+#### Link Creation
+```c
+// Create new link when no matching path found
+create_link(current_node, 0, new_node, 0, TOKEN_SEARCH_AXIS);
+```
+
+### Usage Example
+```c
+// Create new token node
+uint new_node = create_token_node(data);
+
+// Insert into search tree starting from root
+create_token_search_tree(new_node, token_data, root_node);
+```
+
+## Memory Management
+
+### Resource Handling
+1. Token Data
+   - Free temporary token strings
+   - Handle allocation failures
+   - Clean up on early returns
+
+2. Node Access
+   - Validate node indices
+   - Check axis existence
+   - Handle missing nodes
+
+### Error Cases
+1. Invalid Input
+   - NULL token data
+   - Invalid node indices
+   - Missing search axis
+
+2. Tree Structure
+   - Missing linked nodes
+   - Corrupted token data
+   - Link creation failures
+
+## Performance Considerations
+
+### Optimization
+1. Early Termination
+   - Stop at first non-matching node
+   - Skip invalid nodes
+   - Minimize comparisons
+
+2. Memory Usage
+   - Free temporary strings promptly
+   - Minimize allocations
+   - Efficient token storage
+
+3. Search Efficiency
+   - Prefix-based traversal
+   - Minimal backtracking
+   - Optimal tree structure 

@@ -83,12 +83,14 @@ int integrate_token_prepare(unsigned int node_index, bool save)
         if (visited_nodes[i] == 1) continue;
         next_vertex = get_next_vertex_check(node_index, i, STRING_AXIS, 0);
         if (next_vertex.node == 0 && next_vertex.channel == 0) continue;
+        if (!has_cycle(node_index, i, STRING_AXIS)) continue;
         to_integrate_ch[i] = 1;
 
         for (int j = i + 1; j < channel_count; j++) {
             Vertex next_vertex2 = get_next_vertex_check(node_index, j, STRING_AXIS, 0);
             if (next_vertex2.node == 0 && next_vertex2.channel == 0) continue;
             if (are_vertices_in_same_cycle(node_index, i, node_index, j, STRING_AXIS)) continue;
+            if (!has_cycle(node_index, j, STRING_AXIS)) continue;
             if (next_vertex.node == next_vertex2.node) {
                 // Create combined token
                 need_integrate = true;

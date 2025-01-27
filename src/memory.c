@@ -188,7 +188,9 @@ bool check_node_consistency(unsigned int node_index) {
     
     // Get node size
     uchar* node = Core[position];
-    size_t node_size = 1 << (*(ushort*)node);
+    // size_t node_size = get_node_size(node);
+    ushort node_size_power = *(ushort*)node;
+    size_t node_size = (size_t)1 << node_size_power;
     
     // Read file data
     uchar* file_data = malloc(node_size);
@@ -205,7 +207,9 @@ bool check_node_consistency(unsigned int node_index) {
     // Compare data
     bool is_consistent = (read_size == node_size && 
                          memcmp(node, file_data, node_size) == 0);
-    
+    if (!is_consistent) {
+        printf("Node %d is inconsistent\n", node_index);
+    }
     // Cleanup
     free(file_data);
     fclose(data_file);
@@ -213,12 +217,19 @@ bool check_node_consistency(unsigned int node_index) {
     
     return is_consistent;
 }
-unsigned int check_node_consistency_all() {
+bool check_node_consistency_all() {
     for (uint i = 0; i < CurrentnodeCount; i++) {
         if (!check_node_consistency(i)) {
             printf("Node %d is inconsistent\n", i);
-            return i;
+            save_node_to_file(i);
+            if (!check_node_consistency(i)) {
+                printf("Node %d is still inconsistent\n", i);
+                return false;
+            } else {
+                printf("Node %d is consistent\n", i);
+            }
+            // return i;
         }
     }
-    return 0;
+    return true;
 }

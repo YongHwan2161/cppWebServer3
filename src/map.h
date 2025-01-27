@@ -10,7 +10,8 @@
 // Function declarations
 int save_map(uint node_index);
 int save_map_all(void);
-int load_map(void);
+// int load_map(void);
 void init_map(void);
-long get_node_position(uint node_index);
+long get_node_position(unsigned int node_index);
+long get_last_offset(void);
 #endif // MAP_H 

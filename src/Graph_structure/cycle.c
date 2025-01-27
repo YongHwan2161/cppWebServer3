@@ -242,7 +242,7 @@ char* get_string_data(uint node_index, ushort channel_index) {
     free_cycle_info(info);
     return string;
 } 
-#define MAX_string_TOKENS 100
+#define MAX_string_TOKENS 500
 int clear_cycle(cycleInfo* info, bool sync) {
     clear_channels(info->vertices, info->channels, info->count, sync);
     return LINK_SUCCESS;
@@ -874,13 +874,13 @@ int create_strings_from_file(const char* filepath) {
         return ERROR;
     }
 
-    char line[8192];
+    char line[8192];  // Increased buffer size for safety
     uint start_node;
     ushort start_channel;
     int result = SUCCESS;
 
     while (fgets(line, sizeof(line), file)) {
-        // Remove trailing newline
+        // Remove trailing newline if present
         size_t len = strlen(line);
         if (len > 0 && line[len-1] == '\n') {
             line[len-1] = '\0';
@@ -888,7 +888,6 @@ int create_strings_from_file(const char* filepath) {
 
         // Skip empty lines
         if (strlen(line) == 0) continue;
-        if (line[0] == '\n') continue;
 
         // Create string with embedded flag set to true
         if (handle_create_string(line, &start_node, &start_channel, false, true, false) != SUCCESS) {
@@ -899,9 +898,10 @@ int create_strings_from_file(const char* filepath) {
     }
 
     fclose(file);
-        save_free_space();
-        // // save_map_all();
-        save_all_nodes();
+    save_free_space();
+    save_all_nodes();
+    save_map_all();
+    save_current_node_count();
     return result;
 }
 // Handle upload-text command
@@ -925,6 +925,7 @@ int handle_upload_text(char* args) {
         return CMD_SUCCESS;
     }
 
+    // save_inconsistent_nodes();
     printf("Error: Failed to upload text from %s\n", args);
     return CMD_ERROR;
 }
